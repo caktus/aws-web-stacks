@@ -1,8 +1,10 @@
 from troposphere import (
     AWS_REGION,
     autoscaling,
+    cloudformation,
     FindInMap,
     iam,
+    Join,
     Parameter,
     Ref,
 )
@@ -48,6 +50,18 @@ container_instance_role = iam.Role(
     )]),
     Path="/",
     Policies=[
+        iam.Policy(
+            PolicyName="ECSManagementPolicy",
+            PolicyDocument=dict(
+                Statement=[dict(
+                    Effect="Allow",
+                    Action=[
+                        "ecs:*",
+                    ],
+                    Resource="*",
+                )],
+            ),
+        ),
     ]
 )
 
@@ -67,6 +81,21 @@ container_instance_configuration_name = "ContainerLaunchConfiguration"
 container_instance_configuration = autoscaling.LaunchConfiguration(
     container_instance_configuration_name,
     template=template,
+    Metadata=autoscaling.Metadata(
+        cloudformation.Init(dict(
+            config=cloudformation.InitConfig(
+                commands=dict(
+                    register_cluster=dict(command=Join("", [
+                        "#!/bin/bash\n",
+                        # Register the cluster
+                        "echo ECS_CLUSTER=",
+                        Ref(cluster),
+                        " >> /etc/ecs/ecs.config\n",
+                    ]))
+                ),
+            )
+        ))
+    ),
     InstanceType=container_instance_type,
     ImageId=FindInMap("ECSRegionMap", Ref(AWS_REGION), "AMI"),
     IamInstanceProfile=Ref(container_instance_profile),
