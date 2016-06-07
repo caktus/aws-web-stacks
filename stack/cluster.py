@@ -7,8 +7,10 @@ from troposphere import (
     cloudformation,
     elasticloadbalancing as elb,
     FindInMap,
+    GetAtt,
     iam,
     Join,
+    Output,
     Parameter,
     Ref,
 )
@@ -80,6 +82,12 @@ load_balancer = elb.LoadBalancer(
     SecurityGroups=[Ref(load_balancer_security_group)],
     CrossZone=True,
 )
+
+template.add_output(Output(
+    "LoadBalancerDNSName",
+    Description="Loadbalancer DNS",
+    Value=GetAtt(load_balancer, "DNSName")
+))
 
 
 # ECS cluster
