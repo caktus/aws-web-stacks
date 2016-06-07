@@ -5,6 +5,7 @@ from troposphere import (
     autoscaling,
     Base64,
     cloudformation,
+    elasticloadbalancing as elb,
     FindInMap,
     iam,
     Join,
@@ -12,11 +13,21 @@ from troposphere import (
     Ref,
 )
 
+from troposphere.ec2 import (
+    SecurityGroup,
+    SecurityGroupRule,
+)
+
 from troposphere.ecs import (
     Cluster,
 )
 
 from .template import template
+from .vpc import (
+    vpc,
+    loadbalancer_a_subnet,
+    loadbalancer_b_subnet,
+)
 
 
 container_instance_type = Ref(template.add_parameter(Parameter(
@@ -28,11 +39,47 @@ container_instance_type = Ref(template.add_parameter(Parameter(
 )))
 
 
+web_worker_port = Ref(template.add_parameter(Parameter(
+    "WebWorkerPort",
+    Description="Web worker container exposed port",
+    Type="Number",
+    Default="8000",
+)))
+
+
 template.add_mapping("ECSRegionMap", {
     "eu-west-1": {"AMI": "ami-4e6ffe3d"},
     "us-east-1": {"AMI": "ami-8f7687e2"},
     "us-west-2": {"AMI": "ami-84b44de4"},
 })
+
+
+# Web load balancer
+load_balancer_security_group = SecurityGroup(
+    "LoadBalancerSecurityGroup",
+    template=template,
+    GroupDescription="Web load balancer security group.",
+    VpcId=Ref(vpc),
+    SecurityGroupIngress=[
+        SecurityGroupRule(
+            IpProtocol="tcp",
+            FromPort="443",
+            ToPort="443",
+            CidrIp='0.0.0.0/0',
+        ),
+    ],
+)
+
+load_balancer = elb.LoadBalancer(
+    'LoadBalancer',
+    template=template,
+    Subnets=[
+        Ref(loadbalancer_a_subnet),
+        Ref(loadbalancer_b_subnet),
+    ],
+    SecurityGroups=[Ref(load_balancer_security_group)],
+    CrossZone=True,
+)
 
 
 # ECS cluster
