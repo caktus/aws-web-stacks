@@ -1,6 +1,9 @@
 from troposphere import (
     AWS_REGION,
+    AWS_STACK_ID,
+    AWS_STACK_NAME,
     autoscaling,
+    Base64,
     cloudformation,
     FindInMap,
     iam,
@@ -93,10 +96,66 @@ container_instance_configuration = autoscaling.LaunchConfiguration(
                         " >> /etc/ecs/ecs.config\n",
                     ]))
                 ),
+                files=cloudformation.InitFiles({
+                    "/etc/cfn/cfn-hup.conf": cloudformation.InitFile(
+                        content=Join("", [
+                            "[main]\n",
+                            "template=",
+                            Ref(AWS_STACK_ID),
+                            "\n",
+                            "region=",
+                            Ref(AWS_REGION),
+                            "\n",
+                        ]),
+                        mode="000400",
+                        owner="root",
+                        group="root",
+                    ),
+                    "/etc/cfn/hooks.d/cfn-auto-reload.conf":
+                    cloudformation.InitFile(
+                        content=Join("", [
+                            "[cfn-auto-reloader-hook]\n",
+                            "triggers=post.update\n",
+                            "path=Resources.%s."
+                            % container_instance_configuration_name,
+                            "Metadata.AWS::CloudFormation::Init\n",
+                            "action=/opt/aws/bin/cfn-init -v ",
+                            "         --stack",
+                            Ref(AWS_STACK_NAME),
+                            "         --resource %s"
+                            % container_instance_configuration_name,
+                            "         --region ",
+                            Ref("AWS::Region"),
+                            "\n",
+                            "runas=root\n",
+                        ])
+                    )
+                }),
+                services=dict(
+                    sysvinit=cloudformation.InitServices({
+                        'cfn-hup': cloudformation.InitService(
+                            enabled=True,
+                            ensureRunning=True,
+                            files=[
+                                "/etc/cfn/cfn-hup.conf",
+                                "/etc/cfn/hooks.d/cfn-auto-reloader.conf",
+                            ]
+                        ),
+                    })
+                )
             )
         ))
     ),
     InstanceType=container_instance_type,
     ImageId=FindInMap("ECSRegionMap", Ref(AWS_REGION), "AMI"),
     IamInstanceProfile=Ref(container_instance_profile),
+    UserData=Base64(Join('', [
+        "#!/bin/bash -xe\n",
+        "yum install -y aws-cfn-bootstrap\n",
+
+        "/opt/aws/bin/cfn-init -v ",
+        "         --stack", Ref(AWS_STACK_NAME),
+        "         --resource %s " % container_instance_configuration_name,
+        "         --region ", Ref(AWS_REGION), "\n",
+    ])),
 )
