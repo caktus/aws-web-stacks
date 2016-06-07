@@ -1,4 +1,7 @@
 from troposphere import (
+    AWS_REGION,
+    autoscaling,
+    FindInMap,
     iam,
     Parameter,
     Ref,
@@ -55,4 +58,16 @@ container_instance_profile = iam.InstanceProfile(
     template=template,
     Path="/",
     Roles=[Ref(container_instance_role)],
+)
+
+
+container_instance_configuration_name = "ContainerLaunchConfiguration"
+
+
+container_instance_configuration = autoscaling.LaunchConfiguration(
+    container_instance_configuration_name,
+    template=template,
+    InstanceType=container_instance_type,
+    ImageId=FindInMap("ECSRegionMap", Ref(AWS_REGION), "AMI"),
+    IamInstanceProfile=Ref(container_instance_profile),
 )
