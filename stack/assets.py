@@ -15,5 +15,6 @@ assets_bucket = template.add_resource(
         VersioningConfiguration=VersioningConfiguration(
             Status="Enabled"
         ),
+        DeletionPolicy="Retain",
     )
 )
