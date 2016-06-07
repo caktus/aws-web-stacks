@@ -60,6 +60,22 @@ web_worker_port = Ref(template.add_parameter(Parameter(
 )))
 
 
+max_container_instances = Ref(template.add_parameter(Parameter(
+    "MaxScale",
+    Description="Maximum container instances count",
+    Type="Number",
+    Default="3",
+)))
+
+
+desired_container_instances = Ref(template.add_parameter(Parameter(
+    "DesiredScale",
+    Description="Desired container instances count",
+    Type="Number",
+    Default="3",
+)))
+
+
 template.add_mapping("ECSRegionMap", {
     "eu-west-1": {"AMI": "ami-4e6ffe3d"},
     "us-east-1": {"AMI": "ami-8f7687e2"},
@@ -273,5 +289,8 @@ autoscaling_group = autoscaling.AutoScalingGroup(
     autoscaling_group_name,
     template=template,
     VPCZoneIdentifier=[Ref(container_a_subnet), Ref(container_b_subnet)],
+    MinSize=desired_container_instances,
+    MaxSize=max_container_instances,
+    DesiredCapacity=desired_container_instances,
     LaunchConfigurationName=Ref(container_instance_configuration),
 )
