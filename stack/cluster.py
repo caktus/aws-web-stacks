@@ -294,4 +294,10 @@ autoscaling_group = autoscaling.AutoScalingGroup(
     DesiredCapacity=desired_container_instances,
     LaunchConfigurationName=Ref(container_instance_configuration),
     LoadBalancerNames=[Ref(load_balancer)],
+    # Since one instance within the group is a reserved slot
+    # for rolling ECS service upgrade, it's not possible to rely
+    # on a "dockerized" `ELB` health-check, else this reserved
+    # instance will be flagged as `unhealthy` and won't stop respawning'
+    HealthCheckType="EC2",
+    HealthCheckGracePeriod=300,
 )
