@@ -65,3 +65,11 @@ distribution = template.add_resource(
         ),
     )
 )
+
+
+# Output CloudFront url
+template.add_output(Output(
+    "AssetsDistributionDomainName",
+    Description="The assest CDN domain name",
+    Value=GetAtt(distribution, "DomainName")
+))
