@@ -130,3 +130,20 @@ SubnetRouteTableAssociation(
     RouteTableId=Ref(public_route_table),
     SubnetId=Ref(loadbalancer_b_subnet),
 )
+
+
+# Private route table
+private_route_table = RouteTable(
+    "PrivateRouteTable",
+    template=template,
+    VpcId=Ref(vpc),
+)
+
+
+private_nat_route = Route(
+    "PrivateNatRoute",
+    template=template,
+    RouteTableId=Ref(private_route_table),
+    DestinationCidrBlock="0.0.0.0/0",
+    NatGatewayId=Ref(nat_gateway),
+)
