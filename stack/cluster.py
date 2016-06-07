@@ -1,4 +1,5 @@
 from troposphere import (
+    iam,
     Parameter,
     Ref,
 )
@@ -30,4 +31,28 @@ template.add_mapping("ECSRegionMap", {
 cluster = Cluster(
     "Cluster",
     template=template,
+)
+
+
+# ECS container role
+container_instance_role = iam.Role(
+    "ContainerInstanceRole",
+    template=template,
+    AssumeRolePolicyDocument=dict(Statement=[dict(
+        Effect="Allow",
+        Principal=dict(Service=["ec2.amazonaws.com"]),
+        Action=["sts:AssumeRole"],
+    )]),
+    Path="/",
+    Policies=[
+    ]
+)
+
+
+# ECS container instance profile
+container_instance_profile = iam.InstanceProfile(
+    "ContainerInstanceProfile",
+    template=template,
+    Path="/",
+    Roles=[Ref(container_instance_role)],
 )
