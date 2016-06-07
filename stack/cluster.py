@@ -293,4 +293,5 @@ autoscaling_group = autoscaling.AutoScalingGroup(
     MaxSize=max_container_instances,
     DesiredCapacity=desired_container_instances,
     LaunchConfigurationName=Ref(container_instance_configuration),
+    LoadBalancerNames=[Ref(load_balancer)],
 )
