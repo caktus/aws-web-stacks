@@ -94,6 +94,13 @@ load_balancer = elb.LoadBalancer(
         Protocol='HTTPS',
         SSLCertificateId=certificate_id,
     )],
+    HealthCheck=elb.HealthCheck(
+        Target=Join("", ["HTTP:", web_worker_port, "/health-check"]),
+        HealthyThreshold="2",
+        UnhealthyThreshold="2",
+        Interval="100",
+        Timeout="10",
+    ),
     CrossZone=True,
 )
 
