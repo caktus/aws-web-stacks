@@ -1,3 +1,8 @@
+from troposphere import (
+    Output,
+    GetAtt,
+)
+
 from troposphere.s3 import (
     Bucket,
     PublicRead,
@@ -18,3 +23,11 @@ assets_bucket = template.add_resource(
         DeletionPolicy="Retain",
     )
 )
+
+
+# Output S3 asset bucket name
+template.add_output(Output(
+    "AssetsBucketDomainName",
+    Description="Assets bucket domain name",
+    Value=GetAtt(assets_bucket, "DomainName")
+))
