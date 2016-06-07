@@ -136,6 +136,7 @@ container_instance_role = iam.Role(
                     Effect="Allow",
                     Action=[
                         "ecs:*",
+                        "elasticloadbalancing:*",
                     ],
                     Resource="*",
                 )],
