@@ -31,6 +31,8 @@ from .vpc import (
     loadbalancer_a_subnet_cidr,
     loadbalancer_b_subnet,
     loadbalancer_b_subnet_cidr,
+    container_a_subnet,
+    container_b_subnet,
 )
 
 
@@ -183,6 +185,9 @@ container_security_group = SecurityGroup(
 container_instance_configuration_name = "ContainerLaunchConfiguration"
 
 
+autoscaling_group_name = "AutoScalingGroup"
+
+
 container_instance_configuration = autoscaling.LaunchConfiguration(
     container_instance_configuration_name,
     template=template,
@@ -261,4 +266,12 @@ container_instance_configuration = autoscaling.LaunchConfiguration(
         "         --resource %s " % container_instance_configuration_name,
         "         --region ", Ref(AWS_REGION), "\n",
     ])),
+)
+
+
+autoscaling_group = autoscaling.AutoScalingGroup(
+    autoscaling_group_name,
+    template=template,
+    VPCZoneIdentifier=[Ref(container_a_subnet), Ref(container_b_subnet)],
+    LaunchConfigurationName=Ref(container_instance_configuration),
 )
