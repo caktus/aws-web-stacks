@@ -1,6 +1,7 @@
 from troposphere.s3 import (
     Bucket,
     PublicRead,
+    VersioningConfiguration,
 )
 
 from .template import template
@@ -11,5 +12,8 @@ assets_bucket = template.add_resource(
     Bucket(
         "AssetsBucket",
         AccessControl=PublicRead,
+        VersioningConfiguration=VersioningConfiguration(
+            Status="Enabled"
+        ),
     )
 )
