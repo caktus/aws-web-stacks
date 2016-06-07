@@ -28,7 +28,9 @@ from .template import template
 from .vpc import (
     vpc,
     loadbalancer_a_subnet,
+    loadbalancer_a_subnet_cidr,
     loadbalancer_b_subnet,
+    loadbalancer_b_subnet_cidr,
 )
 
 
@@ -155,6 +157,29 @@ container_instance_profile = iam.InstanceProfile(
 )
 
 
+container_security_group = SecurityGroup(
+    'ContainerSecurityGroup',
+    template=template,
+    GroupDescription="Container security group.",
+    VpcId=Ref(vpc),
+    SecurityGroupIngress=[
+        # HTTP from web public subnets
+        SecurityGroupRule(
+            IpProtocol="tcp",
+            FromPort=web_worker_port,
+            ToPort=web_worker_port,
+            CidrIp=loadbalancer_a_subnet_cidr,
+        ),
+        SecurityGroupRule(
+            IpProtocol="tcp",
+            FromPort=web_worker_port,
+            ToPort=web_worker_port,
+            CidrIp=loadbalancer_b_subnet_cidr,
+        ),
+    ],
+)
+
+
 container_instance_configuration_name = "ContainerLaunchConfiguration"
 
 
@@ -223,6 +248,7 @@ container_instance_configuration = autoscaling.LaunchConfiguration(
             )
         ))
     ),
+    SecurityGroups=[Ref(container_security_group)],
     InstanceType=container_instance_type,
     ImageId=FindInMap("ECSRegionMap", Ref(AWS_REGION), "AMI"),
     IamInstanceProfile=Ref(container_instance_profile),
