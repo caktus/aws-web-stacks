@@ -32,6 +32,13 @@ from .vpc import (
 )
 
 
+certificate_id = Ref(template.add_parameter(Parameter(
+    "CertId",
+    Description="Web SSL certificate id",
+    Type="String",
+)))
+
+
 container_instance_type = Ref(template.add_parameter(Parameter(
     "ContainerInstanceType",
     Description="The container instance type",
@@ -80,6 +87,13 @@ load_balancer = elb.LoadBalancer(
         Ref(loadbalancer_b_subnet),
     ],
     SecurityGroups=[Ref(load_balancer_security_group)],
+    Listeners=[elb.Listener(
+        LoadBalancerPort=443,
+        InstanceProtocol='HTTP',
+        InstancePort=web_worker_port,
+        Protocol='HTTPS',
+        SSLCertificateId=certificate_id,
+    )],
     CrossZone=True,
 )
 
