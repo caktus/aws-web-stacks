@@ -1,4 +1,5 @@
 from troposphere import (
+    AWS_ACCOUNT_ID,
     AWS_REGION,
     AWS_STACK_ID,
     AWS_STACK_NAME,
@@ -6,10 +7,12 @@ from troposphere import (
     Base64,
     cloudformation,
     elasticloadbalancing as elb,
+    Equals,
     FindInMap,
     GetAtt,
     iam,
     Join,
+    Not,
     Output,
     Parameter,
     Ref,
@@ -22,7 +25,15 @@ from troposphere.ec2 import (
 
 from troposphere.ecs import (
     Cluster,
+    ContainerDefinition,
+    Environment,
+    LoadBalancer,
+    PortMapping,
+    Service,
+    TaskDefinition,
 )
+
+from awacs import ecr
 
 from .template import template
 from .vpc import (
@@ -34,6 +45,12 @@ from .vpc import (
     container_a_subnet,
     container_b_subnet,
 )
+from .assets import (
+    assets_bucket,
+    distribution,
+)
+from .domain import domain_name
+from .repository import repository
 
 
 certificate_id = Ref(template.add_parameter(Parameter(
@@ -60,6 +77,30 @@ web_worker_port = Ref(template.add_parameter(Parameter(
 )))
 
 
+web_worker_cpu = Ref(template.add_parameter(Parameter(
+    "WebWorkerCPU",
+    Description="Web worker CPU units",
+    Type="Number",
+    Default="512",
+)))
+
+
+web_worker_memory = Ref(template.add_parameter(Parameter(
+    "WebWorkerMemory",
+    Description="Web worker memory",
+    Type="Number",
+    Default="700",
+)))
+
+
+web_worker_desired_count = Ref(template.add_parameter(Parameter(
+    "WebWorkerDesiredCount",
+    Description="Web worker task instance count",
+    Type="Number",
+    Default="2",
+)))
+
+
 max_container_instances = Ref(template.add_parameter(Parameter(
     "MaxScale",
     Description="Maximum container instances count",
@@ -73,6 +114,25 @@ desired_container_instances = Ref(template.add_parameter(Parameter(
     Description="Desired container instances count",
     Type="Number",
     Default="3",
+)))
+
+
+app_revision = Ref(template.add_parameter(Parameter(
+    "WebAppRevision",
+    Description="An optional docker app revision to deploy",
+    Type="String",
+    Default="",
+)))
+
+
+deploy_condition = "Deploy"
+template.add_condition(deploy_condition, Not(Equals(app_revision, "")))
+
+
+secret_key = Ref(template.add_parameter(Parameter(
+    "SecretKey",
+    Description="Application secret key",
+    Type="String",
 )))
 
 
@@ -150,6 +210,31 @@ container_instance_role = iam.Role(
     Path="/",
     Policies=[
         iam.Policy(
+            PolicyName="AssetsManagementPolicy",
+            PolicyDocument=dict(
+                Statement=[dict(
+                    Effect="Allow",
+                    Action=[
+                        "s3:ListBucket",
+                    ],
+                    Resource=Join("", [
+                        "arn:aws:s3:::",
+                        Ref(assets_bucket),
+                    ]),
+                ), dict(
+                    Effect="Allow",
+                    Action=[
+                        "s3:*",
+                    ],
+                    Resource=Join("", [
+                        "arn:aws:s3:::",
+                        Ref(assets_bucket),
+                        "/*",
+                    ]),
+                )],
+            ),
+        ),
+        iam.Policy(
             PolicyName="ECSManagementPolicy",
             PolicyDocument=dict(
                 Statement=[dict(
@@ -157,6 +242,21 @@ container_instance_role = iam.Role(
                     Action=[
                         "ecs:*",
                         "elasticloadbalancing:*",
+                    ],
+                    Resource="*",
+                )],
+            ),
+        ),
+        iam.Policy(
+            PolicyName='ECRManagementPolicy',
+            PolicyDocument=dict(
+                Statement=[dict(
+                    Effect='Allow',
+                    Action=[
+                        ecr.GetAuthorizationToken,
+                        ecr.GetDownloadUrlForLayer,
+                        ecr.BatchGetImage,
+                        ecr.BatchCheckLayerAvailability,
                     ],
                     Resource="*",
                 )],
@@ -300,4 +400,105 @@ autoscaling_group = autoscaling.AutoScalingGroup(
     # instance will be flagged as `unhealthy` and won't stop respawning'
     HealthCheckType="EC2",
     HealthCheckGracePeriod=300,
+)
+
+
+# ECS task
+web_task_definition = TaskDefinition(
+    "WebTask",
+    template=template,
+    Condition=deploy_condition,
+    ContainerDefinitions=[
+        ContainerDefinition(
+            Name="WebWorker",
+            #  1024 is full CPU
+            Cpu=web_worker_cpu,
+            Memory=web_worker_memory,
+            Essential=True,
+            Image=Join("", [
+                Ref(AWS_ACCOUNT_ID),
+                ".dkr.ecr.",
+                Ref(AWS_REGION),
+                ".amazonaws.com/",
+                Ref(repository),
+                ":",
+                app_revision,
+            ]),
+            PortMappings=[PortMapping(
+                ContainerPort=web_worker_port,
+                HostPort=web_worker_port,
+            )],
+            Environment=[
+                Environment(
+                    Name="AWS_STORAGE_BUCKET_NAME",
+                    Value=Ref(assets_bucket),
+                ),
+                Environment(
+                    Name="CDN_DOMAIN_NAME",
+                    Value=GetAtt(distribution, "DomainName"),
+                ),
+                Environment(
+                    Name="DOMAIN_NAME",
+                    Value=domain_name,
+                ),
+                Environment(
+                    Name="PORT",
+                    Value=web_worker_port,
+                ),
+                Environment(
+                    Name="SECRET_KEY",
+                    Value=secret_key,
+                ),
+            ],
+        )
+    ],
+)
+
+
+app_service_role = iam.Role(
+    "AppServiceRole",
+    template=template,
+    AssumeRolePolicyDocument=dict(Statement=[dict(
+        Effect="Allow",
+        Principal=dict(Service=["ecs.amazonaws.com"]),
+        Action=["sts:AssumeRole"],
+    )]),
+    Path="/",
+    Policies=[
+        iam.Policy(
+            PolicyName="WebServicePolicy",
+            PolicyDocument=dict(
+                Statement=[dict(
+                    Effect="Allow",
+                    Action=[
+                        "elasticloadbalancing:Describe*",
+                        "elasticloadbalancing"
+                        ":DeregisterInstancesFromLoadBalancer",
+                        "elasticloadbalancing"
+                        ":RegisterInstancesWithLoadBalancer",
+                        "ec2:Describe*",
+                        "ec2:AuthorizeSecurityGroupIngress",
+                    ],
+                    Resource="*",
+                )],
+            ),
+        ),
+    ]
+)
+
+
+app_service = Service(
+    "AppService",
+    template=template,
+    Cluster=Ref(cluster),
+    Condition=deploy_condition,
+    DependsOn=[autoscaling_group_name],
+    DesiredCount=web_worker_desired_count,
+    LoadBalancers=[LoadBalancer(
+        ContainerName="WebWorker",
+        ContainerPort=web_worker_port,
+        LoadBalancerName=Ref(load_balancer),
+    )],
+    TaskDefinition=Ref(web_task_definition),
+    Role=Ref(app_service_role),
 )
