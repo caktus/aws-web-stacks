@@ -26,6 +26,7 @@ from troposphere.ec2 import (
 from troposphere.ecs import (
     Cluster,
     ContainerDefinition,
+    Environment,
     LoadBalancer,
     PortMapping,
     Service,
@@ -43,6 +44,9 @@ from .vpc import (
     loadbalancer_b_subnet_cidr,
     container_a_subnet,
     container_b_subnet,
+)
+from .assets import (
+    assets_bucket,
 )
 from .repository import repository
 
@@ -196,6 +200,31 @@ container_instance_role = iam.Role(
     )]),
     Path="/",
     Policies=[
+        iam.Policy(
+            PolicyName="AssetsManagementPolicy",
+            PolicyDocument=dict(
+                Statement=[dict(
+                    Effect="Allow",
+                    Action=[
+                        "s3:ListBucket",
+                    ],
+                    Resource=Join("", [
+                        "arn:aws:s3:::",
+                        Ref(assets_bucket),
+                    ]),
+                ), dict(
+                    Effect="Allow",
+                    Action=[
+                        "s3:*",
+                    ],
+                    Resource=Join("", [
+                        "arn:aws:s3:::",
+                        Ref(assets_bucket),
+                        "/*",
+                    ]),
+                )],
+            ),
+        ),
         iam.Policy(
             PolicyName="ECSManagementPolicy",
             PolicyDocument=dict(
@@ -390,6 +419,12 @@ web_task_definition = TaskDefinition(
                 ContainerPort=web_worker_port,
                 HostPort=web_worker_port,
             )],
+            Environment=[
+                Environment(
+                    Name="AWS_STORAGE_BUCKET_NAME",
+                    Value=Ref(assets_bucket),
+                ),
+            ],
         )
     ],
 )
