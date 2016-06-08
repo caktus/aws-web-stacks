@@ -63,6 +63,22 @@ web_worker_port = Ref(template.add_parameter(Parameter(
 )))
 
 
+web_worker_cpu = Ref(template.add_parameter(Parameter(
+    "WebWorkerCPU",
+    Description="Web worker CPU units",
+    Type="Number",
+    Default="512",
+)))
+
+
+web_worker_memory = Ref(template.add_parameter(Parameter(
+    "WebWorkerMemory",
+    Description="Web worker memory",
+    Type="Number",
+    Default="700",
+)))
+
+
 max_container_instances = Ref(template.add_parameter(Parameter(
     "MaxScale",
     Description="Maximum container instances count",
@@ -314,6 +330,8 @@ web_task_definition = TaskDefinition(
         ContainerDefinition(
             Name="WebWorker",
             #  1024 is full CPU
+            Cpu=web_worker_cpu,
+            Memory=web_worker_memory,
             Essential=True,
             PortMappings=[PortMapping(
                 ContainerPort=web_worker_port,
