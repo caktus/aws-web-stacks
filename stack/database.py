@@ -1,5 +1,6 @@
 from troposphere import (
     ec2,
+    Parameter,
     rds,
     Ref,
     AWS_STACK_NAME,
@@ -13,6 +14,16 @@ from .vpc import (
     container_b_subnet,
     container_b_subnet_cidr,
 )
+
+
+db_class = template.add_parameter(Parameter(
+    "DatabaseClass",
+    Default="db.t2.small",
+    Description="Database instance class",
+    Type="String",
+    AllowedValues=['db.t2.small', 'db.t2.medium'],
+    ConstraintDescription="must select a valid database instance type.",
+))
 
 
 db_security_group = ec2.SecurityGroup(
@@ -49,6 +60,7 @@ db_subnet_group = rds.DBSubnetGroup(
 db_instance = rds.DBInstance(
     "PostgreSQL",
     template=template,
+    DBInstanceClass=Ref(db_class),
     DBInstanceIdentifier=Ref(AWS_STACK_NAME),
     Engine="postgres",
     EngineVersion="9.4.5",
