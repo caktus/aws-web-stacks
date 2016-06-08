@@ -47,6 +47,7 @@ from .vpc import (
 )
 from .assets import (
     assets_bucket,
+    distribution,
 )
 from .repository import repository
 
@@ -423,6 +424,10 @@ web_task_definition = TaskDefinition(
                 Environment(
                     Name="AWS_STORAGE_BUCKET_NAME",
                     Value=Ref(assets_bucket),
+                ),
+                Environment(
+                    Name="CDN_DOMAIN_NAME",
+                    Value=GetAtt(distribution, "DomainName"),
                 ),
             ],
         )
