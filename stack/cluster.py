@@ -429,6 +429,10 @@ web_task_definition = TaskDefinition(
                     Name="CDN_DOMAIN_NAME",
                     Value=GetAtt(distribution, "DomainName"),
                 ),
+                Environment(
+                    Name="PORT",
+                    Value=web_worker_port,
+                ),
             ],
         )
     ],
