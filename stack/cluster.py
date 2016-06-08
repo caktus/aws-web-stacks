@@ -129,6 +129,13 @@ deploy_condition = "Deploy"
 template.add_condition(deploy_condition, Not(Equals(app_revision, "")))
 
 
+secret_key = Ref(template.add_parameter(Parameter(
+    "SecretKey",
+    Description="Application secret key",
+    Type="String",
+)))
+
+
 template.add_mapping("ECSRegionMap", {
     "eu-west-1": {"AMI": "ami-4e6ffe3d"},
     "us-east-1": {"AMI": "ami-8f7687e2"},
@@ -437,6 +444,10 @@ web_task_definition = TaskDefinition(
                 Environment(
                     Name="PORT",
                     Value=web_worker_port,
+                ),
+                Environment(
+                    Name="SECRET_KEY",
+                    Value=secret_key,
                 ),
             ],
         )
