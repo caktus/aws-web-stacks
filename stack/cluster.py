@@ -49,6 +49,7 @@ from .assets import (
     assets_bucket,
     distribution,
 )
+from .domain import domain_name
 from .repository import repository
 
 
@@ -428,6 +429,10 @@ web_task_definition = TaskDefinition(
                 Environment(
                     Name="CDN_DOMAIN_NAME",
                     Value=GetAtt(distribution, "DomainName"),
+                ),
+                Environment(
+                    Name="DOMAIN_NAME",
+                    Value=domain_name,
                 ),
                 Environment(
                     Name="PORT",
