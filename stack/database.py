@@ -26,6 +26,17 @@ db_class = template.add_parameter(Parameter(
 ))
 
 
+db_allocated_storage = template.add_parameter(Parameter(
+    "DatabaseAllocatedStorage",
+    Default="5",
+    Description="The size of the database (Gb)",
+    Type="Number",
+    MinValue="5",
+    MaxValue="1024",
+    ConstraintDescription="must be between 5 and 1024Gb.",
+))
+
+
 db_security_group = ec2.SecurityGroup(
     'DatabaseSecurityGroup',
     template=template,
@@ -60,6 +71,7 @@ db_subnet_group = rds.DBSubnetGroup(
 db_instance = rds.DBInstance(
     "PostgreSQL",
     template=template,
+    AllocatedStorage=Ref(db_allocated_storage),
     DBInstanceClass=Ref(db_class),
     DBInstanceIdentifier=Ref(AWS_STACK_NAME),
     Engine="postgres",
