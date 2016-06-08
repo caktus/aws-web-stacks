@@ -51,6 +51,12 @@ from .assets import (
     assets_bucket,
     distribution,
 )
+from .database import (
+    db_instance,
+    db_name,
+    db_user,
+    db_password,
+)
 from .domain import domain_name
 from .repository import repository
 
@@ -482,6 +488,19 @@ web_task_definition = TaskDefinition(
                 Environment(
                     Name="SECRET_KEY",
                     Value=secret_key,
+                ),
+                Environment(
+                    Name="DATABASE_URL",
+                    Value=Join("", [
+                        "postgres://",
+                        Ref(db_user),
+                        ":",
+                        Ref(db_password),
+                        "@",
+                        GetAtt(db_instance, 'Endpoint.Address'),
+                        "/",
+                        Ref(db_name),
+                    ]),
                 ),
             ],
         )
