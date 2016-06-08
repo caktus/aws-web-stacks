@@ -26,7 +26,9 @@ from troposphere.ec2 import (
 from troposphere.ecs import (
     Cluster,
     ContainerDefinition,
+    LoadBalancer,
     PortMapping,
+    Service,
     TaskDefinition,
 )
 
@@ -82,6 +84,14 @@ web_worker_memory = Ref(template.add_parameter(Parameter(
     Description="Web worker memory",
     Type="Number",
     Default="700",
+)))
+
+
+web_worker_desired_count = Ref(template.add_parameter(Parameter(
+    "WebWorkerDesiredCount",
+    Description="Web worker task instance count",
+    Type="Number",
+    Default="2",
 )))
 
 
@@ -382,4 +392,53 @@ web_task_definition = TaskDefinition(
             )],
         )
     ],
+)
+
+
+app_service_role = iam.Role(
+    "AppServiceRole",
+    template=template,
+    AssumeRolePolicyDocument=dict(Statement=[dict(
+        Effect="Allow",
+        Principal=dict(Service=["ecs.amazonaws.com"]),
+        Action=["sts:AssumeRole"],
+    )]),
+    Path="/",
+    Policies=[
+        iam.Policy(
+            PolicyName="WebServicePolicy",
+            PolicyDocument=dict(
+                Statement=[dict(
+                    Effect="Allow",
+                    Action=[
+                        "elasticloadbalancing:Describe*",
+                        "elasticloadbalancing"
+                        ":DeregisterInstancesFromLoadBalancer",
+                        "elasticloadbalancing"
+                        ":RegisterInstancesWithLoadBalancer",
+                        "ec2:Describe*",
+                        "ec2:AuthorizeSecurityGroupIngress",
+                    ],
+                    Resource="*",
+                )],
+            ),
+        ),
+    ]
+)
+
+
+app_service = Service(
+    "AppService",
+    template=template,
+    Cluster=Ref(cluster),
+    Condition=deploy_condition,
+    DependsOn=[autoscaling_group_name],
+    DesiredCount=web_worker_desired_count,
+    LoadBalancers=[LoadBalancer(
+        ContainerName="WebWorker",
+        ContainerPort=web_worker_port,
+        LoadBalancerName=Ref(load_balancer),
+    )],
+    TaskDefinition=Ref(web_task_definition),
+    Role=Ref(app_service_role),
 )
