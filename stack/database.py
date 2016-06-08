@@ -125,4 +125,5 @@ db_instance = rds.DBInstance(
     DBSubnetGroupName=Ref(db_subnet_group),
     VPCSecurityGroups=[Ref(db_security_group)],
     BackupRetentionPeriod="7",
+    DeletionPolicy="Snapshot",
 )
