@@ -22,6 +22,9 @@ from troposphere.ec2 import (
 
 from troposphere.ecs import (
     Cluster,
+    ContainerDefinition,
+    PortMapping,
+    TaskDefinition,
 )
 
 from .template import template
@@ -300,4 +303,22 @@ autoscaling_group = autoscaling.AutoScalingGroup(
     # instance will be flagged as `unhealthy` and won't stop respawning'
     HealthCheckType="EC2",
     HealthCheckGracePeriod=300,
+)
+
+
+# ECS task
+web_task_definition = TaskDefinition(
+    "WebTask",
+    template=template,
+    ContainerDefinitions=[
+        ContainerDefinition(
+            Name="WebWorker",
+            #  1024 is full CPU
+            Essential=True,
+            PortMappings=[PortMapping(
+                ContainerPort=web_worker_port,
+                HostPort=web_worker_port,
+            )],
+        )
+    ],
 )
