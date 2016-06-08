@@ -1,4 +1,5 @@
 from troposphere import (
+    AWS_ACCOUNT_ID,
     AWS_REGION,
     AWS_STACK_ID,
     AWS_STACK_NAME,
@@ -6,10 +7,12 @@ from troposphere import (
     Base64,
     cloudformation,
     elasticloadbalancing as elb,
+    Equals,
     FindInMap,
     GetAtt,
     iam,
     Join,
+    Not,
     Output,
     Parameter,
     Ref,
@@ -27,6 +30,8 @@ from troposphere.ecs import (
     TaskDefinition,
 )
 
+from awacs import ecr
+
 from .template import template
 from .vpc import (
     vpc,
@@ -37,6 +42,7 @@ from .vpc import (
     container_a_subnet,
     container_b_subnet,
 )
+from .repository import repository
 
 
 certificate_id = Ref(template.add_parameter(Parameter(
@@ -93,6 +99,18 @@ desired_container_instances = Ref(template.add_parameter(Parameter(
     Type="Number",
     Default="3",
 )))
+
+
+app_revision = Ref(template.add_parameter(Parameter(
+    "WebAppRevision",
+    Description="An optional docker app revision to deploy",
+    Type="String",
+    Default="",
+)))
+
+
+deploy_condition = "Deploy"
+template.add_condition(deploy_condition, Not(Equals(app_revision, "")))
 
 
 template.add_mapping("ECSRegionMap", {
@@ -176,6 +194,21 @@ container_instance_role = iam.Role(
                     Action=[
                         "ecs:*",
                         "elasticloadbalancing:*",
+                    ],
+                    Resource="*",
+                )],
+            ),
+        ),
+        iam.Policy(
+            PolicyName='ECRManagementPolicy',
+            PolicyDocument=dict(
+                Statement=[dict(
+                    Effect='Allow',
+                    Action=[
+                        ecr.GetAuthorizationToken,
+                        ecr.GetDownloadUrlForLayer,
+                        ecr.BatchGetImage,
+                        ecr.BatchCheckLayerAvailability,
                     ],
                     Resource="*",
                 )],
@@ -326,6 +359,7 @@ autoscaling_group = autoscaling.AutoScalingGroup(
 web_task_definition = TaskDefinition(
     "WebTask",
     template=template,
+    Condition=deploy_condition,
     ContainerDefinitions=[
         ContainerDefinition(
             Name="WebWorker",
@@ -333,6 +367,15 @@ web_task_definition = TaskDefinition(
             Cpu=web_worker_cpu,
             Memory=web_worker_memory,
             Essential=True,
+            Image=Join("", [
+                Ref(AWS_ACCOUNT_ID),
+                ".dkr.ecr.",
+                Ref(AWS_REGION),
+                ".amazonaws.com/",
+                Ref(repository),
+                ":",
+                app_revision,
+            ]),
             PortMappings=[PortMapping(
                 ContainerPort=web_worker_port,
                 HostPort=web_worker_port,
