@@ -16,6 +16,47 @@ from .vpc import (
 )
 
 
+db_name = template.add_parameter(Parameter(
+    "DatabaseName",
+    Default="app",
+    Description="The database name",
+    Type="String",
+    MinLength="1",
+    MaxLength="64",
+    AllowedPattern="[a-zA-Z][a-zA-Z0-9]*",
+    ConstraintDescription=(
+        "must begin with a letter and contain only"
+        " alphanumeric characters."
+    )
+))
+
+
+db_user = template.add_parameter(Parameter(
+    "DatabaseUser",
+    Default="app",
+    Description="The database admin account username",
+    Type="String",
+    MinLength="1",
+    MaxLength="16",
+    AllowedPattern="[a-zA-Z][a-zA-Z0-9]*",
+    ConstraintDescription=(
+        "must begin with a letter and contain only"
+        " alphanumeric characters."
+    )
+))
+
+
+db_password = template.add_parameter(Parameter(
+    "DatabasePassword",
+    NoEcho=True,
+    Description="The database admin account password",
+    Type="String",
+    MinLength="10",
+    MaxLength="41",
+    AllowedPattern="[a-zA-Z0-9]*",
+    ConstraintDescription="must contain only alphanumeric characters."
+))
+
 db_class = template.add_parameter(Parameter(
     "DatabaseClass",
     Default="db.t2.small",
@@ -71,6 +112,7 @@ db_subnet_group = rds.DBSubnetGroup(
 db_instance = rds.DBInstance(
     "PostgreSQL",
     template=template,
+    DBName=Ref(db_name),
     AllocatedStorage=Ref(db_allocated_storage),
     DBInstanceClass=Ref(db_class),
     DBInstanceIdentifier=Ref(AWS_STACK_NAME),
@@ -78,6 +120,8 @@ db_instance = rds.DBInstance(
     EngineVersion="9.4.5",
     MultiAZ=True,
     StorageType="gp2",
+    MasterUsername=Ref(db_user),
+    MasterUserPassword=Ref(db_password),
     DBSubnetGroupName=Ref(db_subnet_group),
     VPCSecurityGroups=[Ref(db_security_group)],
     BackupRetentionPeriod="7",
