@@ -12,6 +12,7 @@ from troposphere import (
     GetAtt,
     iam,
     Join,
+    logs,
     Not,
     Output,
     Parameter,
@@ -28,6 +29,7 @@ from troposphere.ecs import (
     ContainerDefinition,
     Environment,
     LoadBalancer,
+    LogConfiguration,
     PortMapping,
     Service,
     TaskDefinition,
@@ -262,6 +264,19 @@ container_instance_role = iam.Role(
                 )],
             ),
         ),
+        iam.Policy(
+            PolicyName="LoggingPolicy",
+            PolicyDocument=dict(
+                Statement=[dict(
+                    Effect="Allow",
+                    Action=[
+                        "logs:Create*",
+                        "logs:PutLogEvents",
+                    ],
+                    Resource="arn:aws:logs:*:*:*",
+                )],
+            ),
+        ),
     ]
 )
 
@@ -316,6 +331,10 @@ container_instance_configuration = autoscaling.LaunchConfiguration(
                         # Register the cluster
                         "echo ECS_CLUSTER=",
                         Ref(cluster),
+                        " >> /etc/ecs/ecs.config\n",
+                        # Enable CloudWatch docker logging
+                        'echo \'ECS_AVAILABLE_LOGGING_DRIVERS=',
+                        '["json-file","awslogs"]\'',
                         " >> /etc/ecs/ecs.config\n",
                     ]))
                 ),
@@ -403,6 +422,14 @@ autoscaling_group = autoscaling.AutoScalingGroup(
 )
 
 
+web_log_group = logs.LogGroup(
+    "WebLogs",
+    template=template,
+    RetentionInDays=365,
+    DeletionPolicy="Retain",
+)
+
+
 # ECS task
 web_task_definition = TaskDefinition(
     "WebTask",
@@ -428,6 +455,13 @@ web_task_definition = TaskDefinition(
                 ContainerPort=web_worker_port,
                 HostPort=web_worker_port,
             )],
+            LogConfiguration=LogConfiguration(
+                LogDriver="awslogs",
+                Options={
+                    'awslogs-group': Ref(web_log_group),
+                    'awslogs-region': Ref(AWS_REGION),
+                }
+            ),
             Environment=[
                 Environment(
                     Name="AWS_STORAGE_BUCKET_NAME",
