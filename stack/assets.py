@@ -1,10 +1,13 @@
 from troposphere import (
+    Join,
     Output,
     GetAtt,
 )
 
 from troposphere.s3 import (
     Bucket,
+    CorsConfiguration,
+    CorsRules,
     PublicRead,
     VersioningConfiguration,
 )
@@ -19,6 +22,7 @@ from troposphere.cloudfront import (
 )
 
 from .template import template
+from .domain import domain_name
 
 
 # Create an S3 bucket that holds statics and media
@@ -30,6 +34,18 @@ assets_bucket = template.add_resource(
             Status="Enabled"
         ),
         DeletionPolicy="Retain",
+        CorsConfiguration=CorsConfiguration(
+            CorsRules=[CorsRules(
+                AllowedOrigins=[Join("", [
+                    "https://*.",
+                    domain_name,
+                ])],
+                AllowedMethods=["POST", "PUT", "HEAD", "GET", ],
+                AllowedHeaders=[
+                    "*",
+                ]
+            )]
+        ),
     )
 )
 
