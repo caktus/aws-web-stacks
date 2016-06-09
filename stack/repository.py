@@ -1,7 +1,9 @@
 from troposphere import (
+    AWS_ACCOUNT_ID,
+    AWS_REGION,
     Join,
     Ref,
-    AWS_ACCOUNT_ID,
+    Output,
 )
 from troposphere.ecr import Repository
 from awacs.aws import (
@@ -47,3 +49,17 @@ repository = Repository(
         ]
     ),
 )
+
+
+# Output ECR repository URL
+template.add_output(Output(
+    "RepositoryURL",
+    Description="The docker repository URL",
+    Value=Join("", [
+        Ref(AWS_ACCOUNT_ID),
+        ".dkr.ecr.",
+        Ref(AWS_REGION),
+        ".amazonaws.com/",
+        Ref(repository),
+    ]),
+))
