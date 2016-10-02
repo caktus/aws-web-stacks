@@ -59,13 +59,7 @@ from .database import (
 )
 from .domain import domain_name
 from .repository import repository
-
-
-certificate_id = Ref(template.add_parameter(Parameter(
-    "CertId",
-    Description="Web SSL certificate id",
-    Type="String",
-)))
+from .certificates import application as application_certificate
 
 
 container_instance_type = Ref(template.add_parameter(Parameter(
@@ -180,7 +174,7 @@ load_balancer = elb.LoadBalancer(
         InstanceProtocol='HTTP',
         InstancePort=web_worker_port,
         Protocol='HTTPS',
-        SSLCertificateId=certificate_id,
+        SSLCertificateId=application_certificate,
     )],
     HealthCheck=elb.HealthCheck(
         Target=Join("", ["HTTP:", web_worker_port, "/health-check"]),
