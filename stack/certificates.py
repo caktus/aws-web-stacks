@@ -10,7 +10,7 @@ from .domain import domain_name
 
 application = Ref(template.add_resource(
     Certificate(
-        'application',
+        'Certificate',
         DomainName=domain_name,
         DomainValidationOptions=[
             DomainValidationOption(
