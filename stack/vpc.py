@@ -1,8 +1,8 @@
 from troposphere import (
-    AWS_REGION,
     GetAtt,
-    Join,
+    GetAZs,
     Ref,
+    Select,
 )
 
 from troposphere.ec2 import (
@@ -102,7 +102,7 @@ loadbalancer_a_subnet = Subnet(
     template=template,
     VpcId=Ref(vpc),
     CidrBlock=loadbalancer_a_subnet_cidr,
-    AvailabilityZone=Join("", [Ref(AWS_REGION), "a"]),
+    AvailabilityZone=Select("0", GetAZs("")),
 )
 
 
@@ -120,7 +120,7 @@ loadbalancer_b_subnet = Subnet(
     template=template,
     VpcId=Ref(vpc),
     CidrBlock=loadbalancer_b_subnet_cidr,
-    AvailabilityZone=Join("", [Ref(AWS_REGION), "b"]),
+    AvailabilityZone=Select("1", GetAZs("")),
 )
 
 
@@ -156,7 +156,7 @@ container_a_subnet = Subnet(
     template=template,
     VpcId=Ref(vpc),
     CidrBlock=container_a_subnet_cidr,
-    AvailabilityZone=Join("", [Ref(AWS_REGION), "a"]),
+    AvailabilityZone=Select("0", GetAZs("")),
 )
 
 
@@ -174,7 +174,7 @@ container_b_subnet = Subnet(
     template=template,
     VpcId=Ref(vpc),
     CidrBlock=container_b_subnet_cidr,
-    AvailabilityZone=Join("", [Ref(AWS_REGION), "b"]),
+    AvailabilityZone=Select("1", GetAZs("")),
 )
 
 
