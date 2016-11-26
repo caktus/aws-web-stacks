@@ -54,16 +54,43 @@ db_password = template.add_parameter(Parameter(
     MinLength="10",
     MaxLength="41",
     AllowedPattern="[a-zA-Z0-9]*",
-    ConstraintDescription="must contain only alphanumeric characters."
+    ConstraintDescription="must consist of 10-41 alphanumeric characters."
 ))
+
 
 db_class = template.add_parameter(Parameter(
     "DatabaseClass",
-    Default="db.t2.small",
+    Default="db.t2.micro",
     Description="Database instance class",
     Type="String",
-    AllowedValues=['db.t2.small', 'db.t2.medium'],
+    AllowedValues=[
+        'db.t2.micro',
+        'db.t2.small',
+        'db.t2.medium',
+        'db.t2.large',
+    ],
     ConstraintDescription="must select a valid database instance type.",
+))
+
+
+db_engine_version = template.add_parameter(Parameter(
+    "DatabaseEngineVersion",
+    Default="",
+    Description="Database engine version to use",
+    Type="String",
+))
+
+
+db_multi_az = template.add_parameter(Parameter(
+    "DatabaseMultiAZ",
+    Default="false",
+    Description="Whether or not to create a MultiAZ database",
+    Type="String",
+    AllowedValues=[
+        "true",
+        "false",
+    ],
+    ConstraintDescription="must choose true or false.",
 ))
 
 
@@ -117,8 +144,8 @@ db_instance = rds.DBInstance(
     DBInstanceClass=Ref(db_class),
     DBInstanceIdentifier=Ref(AWS_STACK_NAME),
     Engine="postgres",
-    EngineVersion="9.4.5",
-    MultiAZ=True,
+    EngineVersion=Ref(db_engine_version),
+    MultiAZ=Ref(db_multi_az),
     StorageType="gp2",
     MasterUsername=Ref(db_user),
     MasterUserPassword=Ref(db_password),
