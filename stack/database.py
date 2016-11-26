@@ -59,10 +59,15 @@ db_password = template.add_parameter(Parameter(
 
 db_class = template.add_parameter(Parameter(
     "DatabaseClass",
-    Default="db.t2.small",
+    Default="db.t2.micro",
     Description="Database instance class",
     Type="String",
-    AllowedValues=['db.t2.small', 'db.t2.medium'],
+    AllowedValues=[
+        'db.t2.micro',
+        'db.t2.small',
+        'db.t2.medium',
+        'db.t2.large',
+    ],
     ConstraintDescription="must select a valid database instance type.",
 ))
 
@@ -117,8 +122,8 @@ db_instance = rds.DBInstance(
     DBInstanceClass=Ref(db_class),
     DBInstanceIdentifier=Ref(AWS_STACK_NAME),
     Engine="postgres",
-    EngineVersion="9.4.5",
-    MultiAZ=True,
+    EngineVersion="9.5.4",
+    MultiAZ=False,
     StorageType="gp2",
     MasterUsername=Ref(db_user),
     MasterUserPassword=Ref(db_password),
