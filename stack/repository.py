@@ -1,6 +1,7 @@
 from troposphere import (
     AWS_ACCOUNT_ID,
     AWS_REGION,
+    AWS_STACK_NAME,
     Join,
     Ref,
     Output,
@@ -21,7 +22,7 @@ from .template import template
 repository = Repository(
     "ApplicationRepository",
     template=template,
-    RepositoryName="application",
+    RepositoryName=Ref(AWS_STACK_NAME),
     # Allow all account users to manage images.
     RepositoryPolicyText=Policy(
         Version="2008-10-17",
