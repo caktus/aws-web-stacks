@@ -11,6 +11,7 @@ from troposphere import (
     FindInMap,
     GetAtt,
     iam,
+    If,
     Join,
     logs,
     Not,
@@ -103,6 +104,24 @@ web_worker_desired_count = Ref(template.add_parameter(Parameter(
 )))
 
 
+web_worker_protocol = Ref(template.add_parameter(Parameter(
+    "WebWorkerProtocol",
+    Description="Web worker instance protocol",
+    Type="String",
+    Default="HTTP",
+    AllowedValues=["HTTP", "HTTPS"],
+)))
+
+
+web_worker_health_check = Ref(template.add_parameter(Parameter(
+    "WebWorkerHealthCheck",
+    Description="Web worker health check URL path, e.g., \"/health-check\"; "
+                "will default to TCP-only health check if left blank",
+    Type="String",
+    Default="",
+)))
+
+
 max_container_instances = Ref(template.add_parameter(Parameter(
     "MaxScale",
     Description="Maximum container instances count",
@@ -129,6 +148,13 @@ app_revision = Ref(template.add_parameter(Parameter(
 
 deploy_condition = "Deploy"
 template.add_condition(deploy_condition, Not(Equals(app_revision, "")))
+
+
+tcp_health_check_condition = "TcpHealthCheck"
+template.add_condition(
+    tcp_health_check_condition,
+    Equals(web_worker_health_check, ""),
+)
 
 
 secret_key = Ref(template.add_parameter(Parameter(
@@ -169,15 +195,32 @@ load_balancer = elb.LoadBalancer(
         Ref(loadbalancer_b_subnet),
     ],
     SecurityGroups=[Ref(load_balancer_security_group)],
-    Listeners=[elb.Listener(
-        LoadBalancerPort=443,
-        InstanceProtocol='HTTP',
-        InstancePort=web_worker_port,
-        Protocol='HTTPS',
-        SSLCertificateId=application_certificate,
-    )],
+    Listeners=[
+        elb.Listener(
+            LoadBalancerPort=80,
+            InstanceProtocol=web_worker_protocol,
+            InstancePort=web_worker_port,
+            Protocol='HTTP',
+        ),
+        elb.Listener(
+            LoadBalancerPort=443,
+            InstanceProtocol=web_worker_protocol,
+            InstancePort=web_worker_port,
+            Protocol='HTTPS',
+            SSLCertificateId=application_certificate,
+        ),
+    ],
     HealthCheck=elb.HealthCheck(
-        Target=Join("", ["HTTP:", web_worker_port, "/health-check"]),
+        Target=If(
+            tcp_health_check_condition,
+            Join("", ["TCP:", web_worker_port]),
+            Join("", [
+                web_worker_protocol,
+                ":",
+                web_worker_port,
+                web_worker_health_check,
+            ]),
+        ),
         HealthyThreshold="2",
         UnhealthyThreshold="2",
         Interval="100",
