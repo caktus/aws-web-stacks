@@ -165,9 +165,15 @@ secret_key = Ref(template.add_parameter(Parameter(
 
 
 template.add_mapping("ECSRegionMap", {
-    "eu-west-1": {"AMI": "ami-a1491ad2"},
     "us-east-1": {"AMI": "ami-eca289fb"},
-    "us-west-2": {"AMI": "ami-9fadf8ff"},
+    "us-east-2": {"AMI": "ami-446f3521"},
+    "us-west-1": {"AMI": "ami-9fadf8ff"},
+    "us-west-2": {"AMI": "ami-7abc111a"},
+    "eu-west-1": {"AMI": "ami-a1491ad2"},
+    "eu-central-1": {"AMI": "ami-54f5303b"},
+    "ap-northeast-1": {"AMI": "ami-9cd57ffd"},
+    "ap-southeast-1": {"AMI": "ami-a900a3ca"},
+    "ap-southeast-2": {"AMI": "ami-5781be34"},
 })
 
 
