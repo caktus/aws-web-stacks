@@ -20,11 +20,6 @@ from troposphere import (
     Ref,
 )
 
-from troposphere.ec2 import (
-    SecurityGroup,
-    SecurityGroupRule,
-)
-
 from troposphere.ecs import (
     Cluster,
     ContainerDefinition,
@@ -40,27 +35,19 @@ from awacs import ecr
 
 from .template import template
 from .vpc import (
-    vpc,
     loadbalancer_a_subnet,
-    loadbalancer_a_subnet_cidr,
     loadbalancer_b_subnet,
-    loadbalancer_b_subnet_cidr,
     container_a_subnet,
     container_b_subnet,
 )
-from .assets import (
-    assets_bucket,
-    distribution,
-)
-from .database import (
-    db_instance,
-    db_name,
-    db_user,
-    db_password,
-)
-from .domain import domain_name
+from .assets import assets_bucket
+from .environment_variables import environment_variables
 from .repository import repository
 from .certificates import application as application_certificate
+from .security_groups import (
+    load_balancer_security_group,
+    container_security_group,
+)
 
 
 container_instance_type = Ref(template.add_parameter(Parameter(
@@ -68,7 +55,7 @@ container_instance_type = Ref(template.add_parameter(Parameter(
     Description="The container instance type",
     Type="String",
     Default="t2.micro",
-    AllowedValues=["t2.micro", "t2.small", "t2.medium"]
+    AllowedValues=["t2.micro", "t2.small", "t2.medium", "t2.large"]
 )))
 
 
@@ -157,13 +144,6 @@ template.add_condition(
 )
 
 
-secret_key = Ref(template.add_parameter(Parameter(
-    "SecretKey",
-    Description="Application secret key",
-    Type="String",
-)))
-
-
 template.add_mapping("ECSRegionMap", {
     "us-east-1": {"AMI": "ami-eca289fb"},
     "us-east-2": {"AMI": "ami-446f3521"},
@@ -178,20 +158,6 @@ template.add_mapping("ECSRegionMap", {
 
 
 # Web load balancer
-load_balancer_security_group = SecurityGroup(
-    "LoadBalancerSecurityGroup",
-    template=template,
-    GroupDescription="Web load balancer security group.",
-    VpcId=Ref(vpc),
-    SecurityGroupIngress=[
-        SecurityGroupRule(
-            IpProtocol="tcp",
-            FromPort="443",
-            ToPort="443",
-            CidrIp='0.0.0.0/0',
-        ),
-    ],
-)
 
 load_balancer = elb.LoadBalancer(
     'LoadBalancer',
@@ -336,29 +302,6 @@ container_instance_profile = iam.InstanceProfile(
     template=template,
     Path="/",
     Roles=[Ref(container_instance_role)],
-)
-
-
-container_security_group = SecurityGroup(
-    'ContainerSecurityGroup',
-    template=template,
-    GroupDescription="Container security group.",
-    VpcId=Ref(vpc),
-    SecurityGroupIngress=[
-        # HTTP from web public subnets
-        SecurityGroupRule(
-            IpProtocol="tcp",
-            FromPort=web_worker_port,
-            ToPort=web_worker_port,
-            CidrIp=loadbalancer_a_subnet_cidr,
-        ),
-        SecurityGroupRule(
-            IpProtocol="tcp",
-            FromPort=web_worker_port,
-            ToPort=web_worker_port,
-            CidrIp=loadbalancer_b_subnet_cidr,
-        ),
-    ],
 )
 
 
@@ -512,42 +455,14 @@ web_task_definition = TaskDefinition(
                 Options={
                     'awslogs-group': Ref(web_log_group),
                     'awslogs-region': Ref(AWS_REGION),
+                    'awslogs-stream-prefix': Ref(AWS_STACK_NAME),
                 }
             ),
             Environment=[
-                Environment(
-                    Name="AWS_STORAGE_BUCKET_NAME",
-                    Value=Ref(assets_bucket),
-                ),
-                Environment(
-                    Name="CDN_DOMAIN_NAME",
-                    Value=GetAtt(distribution, "DomainName"),
-                ),
-                Environment(
-                    Name="DOMAIN_NAME",
-                    Value=domain_name,
-                ),
-                Environment(
-                    Name="PORT",
-                    Value=web_worker_port,
-                ),
-                Environment(
-                    Name="SECRET_KEY",
-                    Value=secret_key,
-                ),
-                Environment(
-                    Name="DATABASE_URL",
-                    Value=Join("", [
-                        "postgres://",
-                        Ref(db_user),
-                        ":",
-                        Ref(db_password),
-                        "@",
-                        GetAtt(db_instance, 'Endpoint.Address'),
-                        "/",
-                        Ref(db_name),
-                    ]),
-                ),
+                Environment(Name=k, Value=v)
+                for k, v in environment_variables
+            ] + [
+                Environment(Name="PORT", Value=web_worker_port),
             ],
         )
     ],
