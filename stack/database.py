@@ -3,7 +3,6 @@ from troposphere import (
     Parameter,
     rds,
     Ref,
-    AWS_STACK_NAME,
 )
 
 from .template import template
@@ -142,7 +141,6 @@ db_instance = rds.DBInstance(
     DBName=Ref(db_name),
     AllocatedStorage=Ref(db_allocated_storage),
     DBInstanceClass=Ref(db_class),
-    DBInstanceIdentifier=Ref(AWS_STACK_NAME),
     Engine="postgres",
     EngineVersion=Ref(db_engine_version),
     MultiAZ=Ref(db_multi_az),
