@@ -1,3 +1,5 @@
+import os
+
 from troposphere import (
     GetAtt,
     GetAZs,
@@ -18,6 +20,9 @@ from troposphere.ec2 import (
 )
 
 from .template import template
+
+
+USE_NAT_GATEWAY = os.environ.get('USE_NAT_GATEWAY') == 'on'
 
 
 vpc = VPC(
@@ -78,21 +83,20 @@ SubnetRouteTableAssociation(
     SubnetId=Ref(public_subnet),
 )
 
+if USE_NAT_GATEWAY:
+    # NAT
+    nat_ip = EIP(
+        "NatIp",
+        template=template,
+        Domain="vpc",
+    )
 
-# NAT
-nat_ip = EIP(
-    "NatIp",
-    template=template,
-    Domain="vpc",
-)
-
-
-nat_gateway = NatGateway(
-    "NatGateway",
-    template=template,
-    AllocationId=GetAtt(nat_ip, "AllocationId"),
-    SubnetId=Ref(public_subnet),
-)
+    nat_gateway = NatGateway(
+        "NatGateway",
+        template=template,
+        AllocationId=GetAtt(nat_ip, "AllocationId"),
+        SubnetId=Ref(public_subnet),
+    )
 
 
 # Holds load balancer
@@ -132,21 +136,21 @@ SubnetRouteTableAssociation(
 )
 
 
-# Private route table
-private_route_table = RouteTable(
-    "PrivateRouteTable",
-    template=template,
-    VpcId=Ref(vpc),
-)
+if USE_NAT_GATEWAY:
+    # Private route table
+    private_route_table = RouteTable(
+        "PrivateRouteTable",
+        template=template,
+        VpcId=Ref(vpc),
+    )
 
-
-private_nat_route = Route(
-    "PrivateNatRoute",
-    template=template,
-    RouteTableId=Ref(private_route_table),
-    DestinationCidrBlock="0.0.0.0/0",
-    NatGatewayId=Ref(nat_gateway),
-)
+    private_nat_route = Route(
+        "PrivateNatRoute",
+        template=template,
+        RouteTableId=Ref(private_route_table),
+        DestinationCidrBlock="0.0.0.0/0",
+        NatGatewayId=Ref(nat_gateway),
+    )
 
 
 # Holds containers instances
@@ -156,15 +160,20 @@ container_a_subnet = Subnet(
     template=template,
     VpcId=Ref(vpc),
     CidrBlock=container_a_subnet_cidr,
+    MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Select("0", GetAZs("")),
 )
+
+
+container_route_table = Ref(private_route_table) if USE_NAT_GATEWAY\
+    else Ref(public_route_table)
 
 
 SubnetRouteTableAssociation(
     "ContainerARouteTableAssociation",
     template=template,
     SubnetId=Ref(container_a_subnet),
-    RouteTableId=Ref(private_route_table),
+    RouteTableId=container_route_table,
 )
 
 
@@ -174,6 +183,7 @@ container_b_subnet = Subnet(
     template=template,
     VpcId=Ref(vpc),
     CidrBlock=container_b_subnet_cidr,
+    MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Select("1", GetAZs("")),
 )
 
@@ -182,5 +192,5 @@ SubnetRouteTableAssociation(
     "ContainerBRouteTableAssociation",
     template=template,
     SubnetId=Ref(container_b_subnet),
-    RouteTableId=Ref(private_route_table),
+    RouteTableId=container_route_table,
 )
