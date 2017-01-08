@@ -36,11 +36,16 @@ assets_bucket = template.add_resource(
         DeletionPolicy="Retain",
         CorsConfiguration=CorsConfiguration(
             CorsRules=[CorsRules(
-                AllowedOrigins=[Join("", [
-                    "https://*.",
-                    domain_name,
-                ])],
-                AllowedMethods=["POST", "PUT", "HEAD", "GET", ],
+                AllowedOrigins=[
+                    Join("", ["https://", domain_name]),
+                    Join("", ["https://*.", domain_name]),
+                ],
+                AllowedMethods=[
+                    "POST",
+                    "PUT",
+                    "HEAD",
+                    "GET",
+                ],
                 AllowedHeaders=[
                     "*",
                 ]
