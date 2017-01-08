@@ -1,3 +1,5 @@
+import os
+
 from troposphere import (
     Ref
 )
@@ -29,7 +31,10 @@ load_balancer_security_group = SecurityGroup(
     ],
 )
 
-web_worker_port = 80
+if os.environ.get('USE_ECS') == 'on':
+    web_worker_port = Ref("WebWorkerPort")
+else:
+    web_worker_port = 80
 
 container_security_group = SecurityGroup(
     'ContainerSecurityGroup',
