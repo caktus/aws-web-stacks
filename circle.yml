@@ -4,7 +4,7 @@ machine:
 dependencies:
   override:
     - pip install -U -r requirements.txt
-    - pip install -U flake8
+    - pip install -U flake8 awscli
 compile:
   override:
     - mkdir content
@@ -19,4 +19,4 @@ deployment:
   production:
     branch: develop
     commands:
-      - aws s3 sync content/ s3://tobiasmcnulty-cloudformation-templates/ --acl public-read
+      - aws s3 sync content/ s3://aws-container-basics/ --acl public-read

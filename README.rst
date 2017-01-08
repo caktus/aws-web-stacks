@@ -25,16 +25,16 @@ one of the following:
 +---------------------+-------------------+---------------------------+
 
 .. |EB-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _EB-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app&templateURL=https://s3.amazonaws.com/tobiasmcnulty-cloudformation-templates/eb-no-nat.json
+.. _EB-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app&templateURL=https://s3.amazonaws.com/aws-container-basics/eb-no-nat.json
 
 .. |EB-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _EB-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app&templateURL=https://s3.amazonaws.com/tobiasmcnulty-cloudformation-templates/eb-nat.json
+.. _EB-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app&templateURL=https://s3.amazonaws.com/aws-container-basics/eb-nat.json
 
 .. |ECS-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _ECS-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app&templateURL=https://s3.amazonaws.com/tobiasmcnulty-cloudformation-templates/ecs-no-nat.json
+.. _ECS-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app&templateURL=https://s3.amazonaws.com/aws-container-basics/ecs-no-nat.json
 
 .. |ECS-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _ECS-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app&templateURL=https://s3.amazonaws.com/tobiasmcnulty-cloudformation-templates/ecs-nat.json
+.. _ECS-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app&templateURL=https://s3.amazonaws.com/aws-container-basics/ecs-nat.json
 
 
 Copyright 2017 Jean-Phillipe Serafin, Tobias McNulty.
