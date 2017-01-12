@@ -5,8 +5,8 @@ This repository aims to be the best library of CloudFormation templates for host
 web applications on AWS. The library supports either Elastic Container Service (ECS) or
 Elastic Beanstalk (EB) and provides auxilary managed services such as a Postgres RDS instance,
 Redis instance, (free) SSL certificate via AWS Certificate Manager, S3 bucket for static assets,
-etc. All resources are created in a self-contained VPC, which may use a NAT gateway (if you
-want to pay for that) or not.
+ECS repository for hosting Docker images, etc. All resources are created in a self-contained VPC,
+which may use a NAT gateway (if you want to pay for that) or not.
 
 The CloudFormation templates are written in `troposphere <https://github.com/cloudtools/troposphere>`_,
 which allows for some validation at build time and simplifies the management of several related
