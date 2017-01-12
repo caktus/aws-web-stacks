@@ -36,6 +36,9 @@ one of the following:
 .. |ECS-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
 .. _ECS-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-with-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/ecs-nat.json
 
+Elastic Beanstalk or the Elastic Container Service?
+---------------------------------------------------
+
 Elastic Beanstalk is the recommended starting point, unless more complex container service
 definitions are required. Elastic Beanstalk comes with a preconfigured autoscaling configuration,
 allows for automated, managed updates to the underlying servers, allows changing environment
@@ -44,9 +47,16 @@ for managing deployments. The Elastic Beanstalk environment uses the
 `multicontainer docker environment <http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_docker_ecs.html>`_
 to maximize flexibility in terms of the application(s) and container(s) deployed to the stack.
 
+
+NAT Gateways
+------------
+
 `NAT Gateways <http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-gateway.html>`_
 have the added benefit of preventing network connections to EC2 instances within the VPC, but
 come at an added cost (and no free tier).
+
+Stack Creation Process
+----------------------
 
 Creating a stack takes approximately 30-35 minutes. The CloudFront distribution and RDS instance
 typically take the longest to finish, and the EB environment or ECS service creation
