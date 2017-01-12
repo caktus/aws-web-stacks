@@ -36,11 +36,37 @@ one of the following:
 .. |ECS-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
 .. _ECS-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-with-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/ecs-nat.json
 
+Elastic Beanstalk is the recommended starting point, unless more complex container service
+definitions are required. Elastic Beanstalk comes with a preconfigured autoscaling configuration,
+allows for automated, managed updates to the underlying servers, allows changing environment
+variables without recreating the underlying service, and comes with its own command line tool
+for managing deployments. The Elastic Beanstalk environment uses the
+`multicontainer docker environment <http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_docker_ecs.html>`_
+to maximize flexibility in terms of the application(s) and container(s) deployed to the stack.
+
+`NAT Gateways <http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-gateway.html>`_
+have the added benefit of preventing network connections to EC2 instances within the VPC, but
+come at an added cost (and no free tier).
+
+Creating a stack takes approximately 30-35 minutes. The CloudFront distribution and RDS instance
+typically take the longest to finish, and the EB environment or ECS service creation
+will not begin until all of its dependencies, including the CloudFront distribution and RDS
+instance, have been created.
+
+SSL Certificate
+---------------
+
+The automatically-generated SSL certificate requires approval from the domain owner. After
+initiating stack creation, be on the lookout for an email from Amazon to the domain owner
+(as seen in a ``whois`` query) and follow the link to approve the certificate. If you're using
+a ``.io`` domain, be aware that
+`prior steps <https://aws.amazon.com/premiumsupport/knowledge-center/resend-validation-email-io/>`_
+are necessary before AWS can discover the domain owner's email for ``.io`` domains.
+
 Environment Variables
 ---------------------
 
-Once your environment is created (typically 20-30 minutes, the CloudFront distribution and RDS
-instance usually take the longest), you'll have an Elastic Beanstalk (EB) or Elastic Compute Service
+Once your environment is created you'll have an Elastic Beanstalk (EB) or Elastic Compute Service
 (ECS) environment with the environment variables you need to run a containerized web application.
 These environment variables are:
 
