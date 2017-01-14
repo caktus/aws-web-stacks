@@ -24,17 +24,32 @@ one of the following:
 | With NAT Gateway    | |EB-NAT|_         | |ECS-NAT|_                |
 +---------------------+-------------------+---------------------------+
 
+If you'd like to review the CloudFormation template first, or update an existing stack, you may also
+wish to use the JSON template directly:
+
++---------------------+-------------------+---------------------------+
+|                     | Elastic Beanstalk | Elastic Container Service |
++=====================+===================+===========================+
+| Without NAT Gateway | `eb-no-nat.json`_ | `ecs-no-nat.json`_        |
++---------------------+-------------------+---------------------------+
+| With NAT Gateway    | `eb-nat.json`_    | `ecs-nat.json`_           |
++---------------------+-------------------+---------------------------+
+
 .. |EB-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
 .. _EB-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-no-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/eb-no-nat.json
+.. _eb-no-nat.json: https://s3.amazonaws.com/aws-container-basics/eb-no-nat.json
 
 .. |EB-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
 .. _EB-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-with-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/eb-nat.json
+.. _eb-nat.json: https://s3.amazonaws.com/aws-container-basics/eb-nat.json
 
 .. |ECS-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
 .. _ECS-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-no-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/ecs-no-nat.json
+.. _ecs-no-nat.json: https://s3.amazonaws.com/aws-container-basics/ecs-no-nat.json
 
 .. |ECS-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
 .. _ECS-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-with-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/ecs-nat.json
+.. _ecs-nat.json: https://s3.amazonaws.com/aws-container-basics/ecs-nat.json
 
 Elastic Beanstalk or the Elastic Container Service?
 ---------------------------------------------------
