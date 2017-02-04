@@ -132,7 +132,7 @@ template.add_resource(Environment(
     "EBEnvironment",
     Description="AWS Elastic Beanstalk Environment",
     ApplicationName=Ref(eb_application),
-    SolutionStackName="64bit Amazon Linux 2016.09 v2.4.0 running "
+    SolutionStackName="64bit Amazon Linux 2016.09 v2.5.0 running "
                       "Multi-container Docker 1.12.6 (Generic)",
     # VersionLabel=Ref(eb_application_version),
 
