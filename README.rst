@@ -1,9 +1,9 @@
 AWS Container Basics
 ====================
 
-This repository aims to be the best library of CloudFormation templates for hosting containerized
-web applications on AWS. The library supports either Elastic Container Service (ECS) or
-Elastic Beanstalk (EB) and provides auxilary managed services such as a Postgres RDS instance,
+AWS Container Basics is a library of CloudFormation templates that dramatically simplify hosting
+containerized web applications on AWS. The library supports either Elastic Container Service (ECS)
+or Elastic Beanstalk (EB) and provides auxilary managed services such as a Postgres RDS instance,
 Redis instance, (free) SSL certificate via AWS Certificate Manager, S3 bucket for static assets,
 ECS repository for hosting Docker images, etc. All resources are created in a self-contained VPC,
 which may use a NAT gateway (if you want to pay for that) or not.
@@ -160,40 +160,40 @@ pipeline.
 Next, create a ``Dockerrun.aws.json`` file in your project directory, pointing it to the image you
 just pushed::
 
-	{
-	  "AWSEBDockerrunVersion": 2,
-	  "volumes": [
-	    {
-	      "name": "my-app",
-	      "host": {
-	        "sourcePath": "/var/app/current/my-app"
-	      }
-	    }
-	  ],
-	  "containerDefinitions": [
-	    {
-	      "name": "my-app",
-	      "image": "<account-id>.dkr.ecr.us-east-1.amazonaws.com/<stack-name>:latest",
-	      "essential": true,
-	      "memory": 512,
-	      "portMappings": [
-	        {
-	          "hostPort": 80,
-	          "containerPort": 8000
-	        }
-	      ],
-	      "mountPoints": [
-	        {
-	          "sourceVolume": "my-app",
-	          "containerPath": "/var/www/html",
-	          "readOnly": true
-	        }
-	      ]
-	    }
-	  ]
-	}
+    {
+      "AWSEBDockerrunVersion": 2,
+      "containerDefinitions": [
+        {
+          "name": "my-app",
+          "image": "<account-id>.dkr.ecr.<region>.amazonaws.com/<stack-name>:latest",
+          "essential": true,
+          "memory": 512,
+          "portMappings": [
+            {
+              "hostPort": 80,
+              "containerPort": 8000
+            }
+          ],
+          "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+              "awslogs-region": "<region>",
+              "awslogs-group": "ContainerLogs",
+              "awslogs-stream-prefix": "my-app"
+            }
+          }
+        }
+      ]
+    }
 
-You can add and link other container definitions, such as an Nginx proxy, if desired.
+You can add and link other container definitions, such as an Nginx proxy or background task
+workers, if desired.
+
+A single CloudWatch Logs group, ``ContainerLogs``, will be created for you. If you change or
+customize the ``awslogs-group`` configuration above, you will need to manually create any
+additional log groups, e.g.::
+
+    aws --profile <aws-profile-name> logs create-log-group --log-group-name <log-group-name>
 
 Finally, you'll need to install the AWS and EB command line tools, commit or stage for commit the
 ``Dockerrun.aws.json`` file, and deploy the application::
