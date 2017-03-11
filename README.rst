@@ -178,7 +178,7 @@ just pushed::
             "logDriver": "awslogs",
             "options": {
               "awslogs-region": "<region>",
-              "awslogs-group": "ContainerLogs",
+              "awslogs-group": "<log group>",
               "awslogs-stream-prefix": "my-app"
             }
           }
@@ -189,11 +189,12 @@ just pushed::
 You can add and link other container definitions, such as an Nginx proxy or background task
 workers, if desired.
 
-A single CloudWatch Logs group, ``ContainerLogs``, will be created for you. If you change or
-customize the ``awslogs-group`` configuration above, you will need to manually create any
-additional log groups, e.g.::
+A single CloudWatch Logs group will be created for you. You can find its name by navigating
+to the AWS CloudWatch Logs console (after stack creation has finished). If prefer to create
+your own log group, you can do so with the ``aws`` command line tool::
 
-    aws --profile <aws-profile-name> logs create-log-group --log-group-name <log-group-name>
+    pip install -U awscli
+    aws logs create-log-group --log-group-name <log-group-name> --region <region>
 
 Finally, you'll need to install the AWS and EB command line tools, commit or stage for commit the
 ``Dockerrun.aws.json`` file, and deploy the application::
