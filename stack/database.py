@@ -118,7 +118,7 @@ db_multi_az = template.add_parameter(Parameter(
 
 db_allocated_storage = template.add_parameter(Parameter(
     "DatabaseAllocatedStorage",
-    Default="5",
+    Default="20",
     Description="The size of the database (Gb)",
     Type="Number",
     MinValue="5",
