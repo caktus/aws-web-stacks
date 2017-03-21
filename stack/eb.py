@@ -16,7 +16,7 @@ from awacs.sts import AssumeRole
 
 from .template import template
 from .certificates import application as application_certificate
-from .environment_variables import environment_variables
+from .common import container_instance_type, environment_variables
 from .security_groups import (
     load_balancer_security_group,
     container_security_group,
@@ -168,13 +168,18 @@ template.add_resource(Environment(
         # Launch config settings
         OptionSettings(
             Namespace="aws:autoscaling:launchconfiguration",
+            OptionName="InstanceType",
+            Value=container_instance_type,
+        ),
+        OptionSettings(
+            Namespace="aws:autoscaling:launchconfiguration",
             OptionName="EC2KeyName",
-            Value=Ref(key_name)
+            Value=Ref(key_name),
         ),
         OptionSettings(
             Namespace="aws:autoscaling:launchconfiguration",
             OptionName="IamInstanceProfile",
-            Value=Ref(web_server_instance_profile)
+            Value=Ref(web_server_instance_profile),
         ),
         OptionSettings(
             Namespace="aws:autoscaling:launchconfiguration",

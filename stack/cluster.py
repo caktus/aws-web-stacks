@@ -41,22 +41,13 @@ from .vpc import (
     container_b_subnet,
 )
 from .assets import assets_bucket
-from .environment_variables import environment_variables
+from .common import container_instance_type, environment_variables
 from .repository import repository
 from .certificates import application as application_certificate
 from .security_groups import (
     load_balancer_security_group,
     container_security_group,
 )
-
-
-container_instance_type = Ref(template.add_parameter(Parameter(
-    "ContainerInstanceType",
-    Description="The container instance type",
-    Type="String",
-    Default="t2.micro",
-    AllowedValues=["t2.micro", "t2.small", "t2.medium", "t2.large"]
-)))
 
 
 web_worker_port = Ref(template.add_parameter(Parameter(
