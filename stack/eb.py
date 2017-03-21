@@ -252,6 +252,22 @@ template.add_resource(Environment(
         #     OptionName="InstanceRefreshEnabled",
         #     Value="true", # refresh instances weekly
         # ),
+        # Logging configuration
+        OptionSettings(
+            Namespace="aws:elasticbeanstalk:cloudwatch:logs",
+            OptionName="StreamLogs",
+            Value="true",
+        ),
+        OptionSettings(
+            Namespace="aws:elasticbeanstalk:cloudwatch:logs",
+            OptionName="DeleteOnTerminate",
+            Value="false",
+        ),
+        OptionSettings(
+            Namespace="aws:elasticbeanstalk:cloudwatch:logs",
+            OptionName="RetentionInDays",
+            Value="365",
+        ),
         # Environment variables
         OptionSettings(
             Namespace="aws:elb:listener:443",

@@ -5,6 +5,7 @@ from . import cache  # noqa: F401
 from . import certificates  # noqa: F401
 from . import database  # noqa: F401
 from . import domain  # noqa: F401
+from . import logs  # noqa: F401
 from . import repository  # noqa: F401
 from . import vpc  # noqa: F401
 from . import template

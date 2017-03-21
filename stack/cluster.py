@@ -13,7 +13,6 @@ from troposphere import (
     iam,
     If,
     Join,
-    logs,
     Not,
     Output,
     Parameter,
@@ -44,6 +43,7 @@ from .assets import assets_bucket
 from .common import container_instance_type, environment_variables
 from .repository import repository
 from .certificates import application as application_certificate
+from .logs import container_log_group
 from .security_groups import (
     load_balancer_security_group,
     container_security_group,
@@ -408,14 +408,6 @@ autoscaling_group = autoscaling.AutoScalingGroup(
 )
 
 
-web_log_group = logs.LogGroup(
-    "WebLogs",
-    template=template,
-    RetentionInDays=365,
-    DeletionPolicy="Retain",
-)
-
-
 # ECS task
 web_task_definition = TaskDefinition(
     "WebTask",
@@ -444,7 +436,7 @@ web_task_definition = TaskDefinition(
             LogConfiguration=LogConfiguration(
                 LogDriver="awslogs",
                 Options={
-                    'awslogs-group': Ref(web_log_group),
+                    'awslogs-group': Ref(container_log_group),
                     'awslogs-region': Ref(AWS_REGION),
                     'awslogs-stream-prefix': Ref(AWS_STACK_NAME),
                 }
