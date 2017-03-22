@@ -93,7 +93,6 @@ secret_key = Ref(template.add_parameter(Parameter(
 
 environment_variables = [
     ("AWS_STORAGE_BUCKET_NAME", Ref(assets_bucket)),
-    ("CDN_DOMAIN_NAME", GetAtt(distribution, "DomainName")),
     ("DOMAIN_NAME", domain_name),
     ("SECRET_KEY", secret_key),
     ("DATABASE_URL", Join("", [
@@ -113,3 +112,9 @@ environment_variables = [
         GetAtt(redis_instance, 'RedisEndpoint.Port'),
     ])),
 ]
+
+if distribution:
+    # not supported by GovCloud, so add it only if it was created
+    environment_variables.append(
+        ("CDN_DOMAIN_NAME", GetAtt(distribution, "DomainName"))
+    )

@@ -117,6 +117,38 @@ The following is a partial list of resources created by this stack, when Elastic
   with multiple EC2 instances, resources will be spread across multiple availability zones
   automatically.
 
+GovCloud Support
+----------------
+
+`AWS GovCloud <https://aws.amazon.com/govcloud-us/>`_ does not support Elastic Beanstalk,
+Elastic Container Service, Certificate Manager, or CloudFront. You can still create a reduced
+stack in GovCloud by downloading one of the following templates and uploading it to CloudFormation
+via the AWS Management Console:
+
++---------------------+-------------------+
+| Without NAT Gateway | `gc-no-nat.json`_ |
++---------------------+-------------------+
+| With NAT Gateway    | `gc-nat.json`_    |
++---------------------+-------------------+
+
+.. _gc-no-nat.json: https://s3.amazonaws.com/aws-container-basics/gc-no-nat.json
+.. _gc-nat.json: https://s3.amazonaws.com/aws-container-basics/gc-nat.json
+
+This template will create:
+
+* a VPC and the associated subnets,
+* an RDS instance,
+* a Redis instance
+* an Elastic Load Balancer (ELB),
+* an Auto Scaling Group and associated Launch Configuration, and
+* the number of EC2 instances you specify during stack creation (using the specified AMI)
+
+There is no way to manage environment variables when using straight EC2 instances like this,
+so you are responsible for selecting the appropriate AMI and configuring it to serve your
+application on the specified port, with all of the necessary secrets and environment variables.
+Note that the Elastic Load Balancer will not direct traffic to your instances until the health
+check you specify during stack creation returns a successful response.
+
 Environment Variables
 ---------------------
 
