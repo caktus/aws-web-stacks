@@ -7,16 +7,12 @@ dependencies:
     - pip install -U flake8 awscli
 compile:
   override:
-    - mkdir content
-    - python -c 'import stack' > content/eb-no-nat.json
-    - USE_NAT_GATEWAY=on python -c 'import stack' > content/eb-nat.json
-    - USE_ECS=on python -c 'import stack' > content/ecs-no-nat.json
-    - USE_ECS=on USE_NAT_GATEWAY=on python -c 'import stack' > content/ecs-nat.json
+    - make templates
 test:
   override:
-    - flake8 .
+    - make check
 deployment:
   production:
     branch: develop
     commands:
-      - aws s3 sync content/ s3://aws-container-basics/ --acl public-read
+      - make upload
