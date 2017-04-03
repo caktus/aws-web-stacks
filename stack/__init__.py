@@ -8,10 +8,12 @@ from . import vpc  # noqa: F401
 from . import template
 
 if os.environ.get('USE_ECS') == 'on':
+    from . import repository  # noqa: F401
     from . import cluster  # noqa: F401
 elif os.environ.get('USE_GOVCLOUD') == 'on':
     from . import instances  # noqa: F401
 else:
+    from . import repository  # noqa: F401
     from . import eb  # noqa: F401
 
 print(template.template.to_json())
