@@ -5,6 +5,7 @@ from troposphere import (
 from .assets import (
     assets_bucket,
     distribution,
+    private_assets_bucket,
 )
 from .cache import (
     redis_instance,
@@ -93,6 +94,7 @@ secret_key = Ref(template.add_parameter(Parameter(
 
 environment_variables = [
     ("AWS_STORAGE_BUCKET_NAME", Ref(assets_bucket)),
+    ("AWS_PRIVATE_STORAGE_BUCKET_NAME", Ref(private_assets_bucket)),
     ("DOMAIN_NAME", domain_name),
     ("SECRET_KEY", secret_key),
     ("DATABASE_URL", Join("", [

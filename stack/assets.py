@@ -7,6 +7,7 @@ from troposphere import (
 )
 
 from troposphere.s3 import (
+    AuthenticatedRead,
     Bucket,
     CorsConfiguration,
     CorsRules,
@@ -63,6 +64,45 @@ template.add_output(Output(
     Description="Assets bucket domain name",
     Value=GetAtt(assets_bucket, "DomainName")
 ))
+
+
+# Create an S3 bucket that holds user uploads or other non-public files
+private_assets_bucket = template.add_resource(
+    Bucket(
+        "PrivateAssetsBucket",
+        AccessControl=AuthenticatedRead,
+        VersioningConfiguration=VersioningConfiguration(
+            Status="Enabled"
+        ),
+        DeletionPolicy="Retain",
+        CorsConfiguration=CorsConfiguration(
+            CorsRules=[CorsRules(
+                AllowedOrigins=[
+                    Join("", ["https://", domain_name]),
+                    Join("", ["https://*.", domain_name]),
+                ],
+                AllowedMethods=[
+                    "POST",
+                    "PUT",
+                    "HEAD",
+                    "GET",
+                ],
+                AllowedHeaders=[
+                    "*",
+                ]
+            )]
+        ),
+    )
+)
+
+
+# Output S3 asset bucket name
+template.add_output(Output(
+    "PrivateAssetsBucketDomainName",
+    Description="Private assets bucket domain name",
+    Value=GetAtt(private_assets_bucket, "DomainName")
+))
+
 
 if os.environ.get('USE_GOVCLOUD') != 'on':
     # Create a CloudFront CDN distribution
