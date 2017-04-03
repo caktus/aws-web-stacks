@@ -38,6 +38,21 @@ key_name = template.add_parameter(Parameter(
     ConstraintDescription="must be the name of an existing EC2 KeyPair."
 ))
 
+solution_stack = template.add_parameter(Parameter(
+    "SolutionStack",
+    Description="Name of the solution stack to use for this EB environment "
+                "(do NOT change this value after initial stack creation)",
+    Type="String",
+    Default="64bit Amazon Linux 2016.09 v2.5.1 running Multi-container Docker 1.12.6 (Generic)",
+    AllowedValues=[
+        "64bit Amazon Linux 2016.09 v2.5.1 running Multi-container Docker 1.12.6 (Generic)",
+        "64bit Amazon Linux 2016.09 v2.5.0 running Multi-container Docker 1.12.6 (Generic)",
+        "64bit Amazon Linux 2016.03 v2.1.6 running Multi-container Docker 1.11.2 (Generic)",
+        "64bit Amazon Linux 2016.03 v2.1.0 running Multi-container Docker 1.9.1 (Generic)",
+        "64bit Amazon Linux 2015.03 v1.4.6 running Multi-container Docker 1.6.2 (Generic)",
+    ],
+))
+
 template.add_mapping("Region2Principal", {
     'ap-northeast-1': {
         'EC2Principal': 'ec2.amazonaws.com',
@@ -132,9 +147,7 @@ template.add_resource(Environment(
     "EBEnvironment",
     Description="AWS Elastic Beanstalk Environment",
     ApplicationName=Ref(eb_application),
-    SolutionStackName="64bit Amazon Linux 2016.09 v2.5.0 running "
-                      "Multi-container Docker 1.12.6 (Generic)",
-    # VersionLabel=Ref(eb_application_version),
+    SolutionStackName=Ref(solution_stack),
 
     OptionSettings=[
         # VPC settings
