@@ -1,4 +1,5 @@
 import os
+from itertools import product
 
 from troposphere import (
     Ref
@@ -22,19 +23,31 @@ load_balancer_security_group = SecurityGroup(
     GroupDescription="Web load balancer security group.",
     VpcId=Ref(vpc),
     SecurityGroupIngress=[
+        # allow incoming traffic from the public internet to the load balancer
+        # on ports 80 and 443
         SecurityGroupRule(
             IpProtocol="tcp",
-            FromPort="443",
-            ToPort="443",
-            CidrIp='0.0.0.0/0',
-        ),
+            FromPort=port,
+            ToPort=port,
+            CidrIp="0.0.0.0/0",
+        ) for port in ["80", "443"]
     ],
 )
 
+# allow traffic from the load balancer subnets to the web workers
 if os.environ.get('USE_ECS') == 'on':
-    web_worker_port = Ref("WebWorkerPort")
+    # if using ECS, allow traffic to the configured WebWorkerPort
+    web_worker_ports = [Ref("WebWorkerPort")]
+elif os.environ.get('USE_GOVCLOUD') == 'on':
+    # if using GovCloud (real EC2 instances), allow traffic to the configured
+    # WebWorkerPort and port 443
+    web_worker_ports = [Ref("WebWorkerPort"), "443"]
 else:
-    web_worker_port = 80
+    # otherwise, if using Elastic Beanstalk, allow traffic only to EB's default
+    # web worker port (80)
+    web_worker_ports = ["80"]
+
+cidrs = [loadbalancer_a_subnet_cidr, loadbalancer_b_subnet_cidr]
 
 container_security_group = SecurityGroup(
     'ContainerSecurityGroup',
@@ -45,15 +58,9 @@ container_security_group = SecurityGroup(
         # HTTP from web public subnets
         SecurityGroupRule(
             IpProtocol="tcp",
-            FromPort=web_worker_port,
-            ToPort=web_worker_port,
-            CidrIp=loadbalancer_a_subnet_cidr,
-        ),
-        SecurityGroupRule(
-            IpProtocol="tcp",
-            FromPort=web_worker_port,
-            ToPort=web_worker_port,
-            CidrIp=loadbalancer_b_subnet_cidr,
-        ),
+            FromPort=port,
+            ToPort=port,
+            CidrIp=cidr,
+        ) for port, cidr in product(*[web_worker_ports, cidrs])
     ],
 )
