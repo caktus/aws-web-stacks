@@ -58,9 +58,9 @@ arn_prefix = Ref(template.add_parameter(Parameter(
 
 web_worker_port = Ref(template.add_parameter(Parameter(
     "WebWorkerPort",
-    Description="Web worker container exposed port",
+    Description="Default web worker exposed port (non-HTTPS)",
     Type="Number",
-    Default="8000",
+    Default="80",
 )))
 
 
@@ -129,6 +129,16 @@ load_balancer = elb.LoadBalancer(
             InstanceProtocol=web_worker_protocol,
             InstancePort=web_worker_port,
             Protocol='HTTP',
+        ),
+        # configure the default HTTPS listener to pass TCP traffic directly,
+        # since GovCloud doesn't support the Certificate Manager (this can be
+        # modified to enable SSL termination at the load balancer via the AWS
+        # console, if needed)
+        elb.Listener(
+            LoadBalancerPort=443,
+            InstanceProtocol='TCP',
+            InstancePort=443,
+            Protocol='TCP',
         ),
     ],
     HealthCheck=elb.HealthCheck(
