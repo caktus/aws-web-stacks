@@ -16,7 +16,8 @@ from awacs.sts import AssumeRole
 
 from .template import template
 from .certificates import application as application_certificate
-from .common import container_instance_type, environment_variables
+from .common import container_instance_type
+from .environment import environment_variables
 from .security_groups import (
     load_balancer_security_group,
     container_security_group,

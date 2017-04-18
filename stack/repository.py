@@ -15,6 +15,7 @@ from awacs.aws import (
 )
 import awacs.ecr as ecr
 
+from .common import arn_prefix
 from .template import template
 
 
@@ -32,7 +33,8 @@ repository = Repository(
                 Effect=Allow,
                 Principal=AWSPrincipal([
                     Join("", [
-                        "arn:aws:iam::",
+                        arn_prefix,
+                        ":iam::",
                         Ref(AWS_ACCOUNT_ID),
                         ":root",
                     ]),

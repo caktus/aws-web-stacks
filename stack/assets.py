@@ -1,9 +1,11 @@
 import os
 
 from troposphere import (
+    iam,
     Join,
     Output,
     GetAtt,
+    Ref,
 )
 
 from troposphere.s3 import (
@@ -24,6 +26,7 @@ from troposphere.cloudfront import (
     S3Origin,
 )
 
+from .common import arn_prefix
 from .template import template
 from .domain import domain_name
 
@@ -102,6 +105,36 @@ template.add_output(Output(
     Description="Private assets bucket domain name",
     Value=GetAtt(private_assets_bucket, "DomainName")
 ))
+
+
+# central asset management policy for use in instance roles
+assets_management_policy = iam.Policy(
+    PolicyName="AssetsManagementPolicy",
+    PolicyDocument=dict(
+        Statement=[
+            dict(
+                Effect="Allow",
+                Action=["s3:ListBucket"],
+                Resource=Join("", [arn_prefix, ":s3:::", Ref(assets_bucket)]),
+            ),
+            dict(
+                Effect="Allow",
+                Action=["s3:*"],
+                Resource=Join("", [arn_prefix, ":s3:::", Ref(assets_bucket), "/*"]),
+            ),
+            dict(
+                Effect="Allow",
+                Action=["s3:ListBucket"],
+                Resource=Join("", [arn_prefix, ":s3:::", Ref(private_assets_bucket)]),
+            ),
+            dict(
+                Effect="Allow",
+                Action=["s3:*"],
+                Resource=Join("", [arn_prefix, ":s3:::", Ref(private_assets_bucket), "/*"]),
+            ),
+        ],
+    ),
+)
 
 
 if os.environ.get('USE_GOVCLOUD') != 'on':
