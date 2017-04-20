@@ -20,8 +20,9 @@ from .vpc import (
     container_a_subnet,
     container_b_subnet,
 )
-from .assets import assets_bucket
+from .assets import assets_management_policy
 from .common import container_instance_type
+from .logs import logging_policy
 from .security_groups import (
     load_balancer_security_group,
     container_security_group,
@@ -45,15 +46,6 @@ key_name = template.add_parameter(Parameter(
     Type="AWS::EC2::KeyPair::KeyName",
     ConstraintDescription="must be the name of an existing EC2 KeyPair."
 ))
-
-
-arn_prefix = Ref(template.add_parameter(Parameter(
-    "ArnPrefix",
-    Description="The prefix to use for Amazon Resource Names (ARNs).",
-    Type="String",
-    Default="arn:aws-us-gov",
-    AllowedValues=["arn:aws", "arn:aws-us-gov"],
-)))
 
 
 web_worker_port = Ref(template.add_parameter(Parameter(
@@ -178,49 +170,8 @@ container_instance_role = iam.Role(
     )]),
     Path="/",
     Policies=[
-        iam.Policy(
-            PolicyName="AssetsManagementPolicy",
-            PolicyDocument=dict(
-                Statement=[dict(
-                    Effect="Allow",
-                    Action=[
-                        "s3:ListBucket",
-                    ],
-                    Resource=Join("", [
-                        arn_prefix,
-                        ":s3:::",
-                        Ref(assets_bucket),
-                    ]),
-                ), dict(
-                    Effect="Allow",
-                    Action=[
-                        "s3:*",
-                    ],
-                    Resource=Join("", [
-                        arn_prefix,
-                        ":s3:::",
-                        Ref(assets_bucket),
-                        "/*",
-                    ]),
-                )],
-            ),
-        ),
-        iam.Policy(
-            PolicyName="LoggingPolicy",
-            PolicyDocument=dict(
-                Statement=[dict(
-                    Effect="Allow",
-                    Action=[
-                        "logs:Create*",
-                        "logs:PutLogEvents",
-                    ],
-                    Resource=Join("", [
-                        arn_prefix,
-                        ":logs:*:*:*",
-                    ]),
-                )],
-            ),
-        ),
+        assets_management_policy,
+        logging_policy,
     ]
 )
 

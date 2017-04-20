@@ -39,8 +39,10 @@ from .vpc import (
     container_a_subnet,
     container_b_subnet,
 )
-from .assets import assets_bucket
-from .common import container_instance_type, environment_variables
+from .assets import assets_management_policy
+from .common import container_instance_type
+from .environment import environment_variables
+from .logs import logging_policy
 from .repository import repository
 from .certificates import application as application_certificate
 from .logs import container_log_group
@@ -217,31 +219,8 @@ container_instance_role = iam.Role(
     )]),
     Path="/",
     Policies=[
-        iam.Policy(
-            PolicyName="AssetsManagementPolicy",
-            PolicyDocument=dict(
-                Statement=[dict(
-                    Effect="Allow",
-                    Action=[
-                        "s3:ListBucket",
-                    ],
-                    Resource=Join("", [
-                        "arn:aws:s3:::",
-                        Ref(assets_bucket),
-                    ]),
-                ), dict(
-                    Effect="Allow",
-                    Action=[
-                        "s3:*",
-                    ],
-                    Resource=Join("", [
-                        "arn:aws:s3:::",
-                        Ref(assets_bucket),
-                        "/*",
-                    ]),
-                )],
-            ),
-        ),
+        assets_management_policy,
+        logging_policy,
         iam.Policy(
             PolicyName="ECSManagementPolicy",
             PolicyDocument=dict(
@@ -267,19 +246,6 @@ container_instance_role = iam.Role(
                         ecr.BatchCheckLayerAvailability,
                     ],
                     Resource="*",
-                )],
-            ),
-        ),
-        iam.Policy(
-            PolicyName="LoggingPolicy",
-            PolicyDocument=dict(
-                Statement=[dict(
-                    Effect="Allow",
-                    Action=[
-                        "logs:Create*",
-                        "logs:PutLogEvents",
-                    ],
-                    Resource="arn:aws:logs:*:*:*",
                 )],
             ),
         ),
