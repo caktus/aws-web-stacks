@@ -29,6 +29,8 @@ vpc = VPC(
     "Vpc",
     template=template,
     CidrBlock="10.0.0.0/16",
+    EnableDnsSupport=True,
+    EnableDnsHostnames=True,
 )
 
 
