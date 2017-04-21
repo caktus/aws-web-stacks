@@ -2,9 +2,8 @@ import os
 
 from troposphere import (
     GetAtt,
-    GetAZs,
+    Parameter,
     Ref,
-    Select,
 )
 
 from troposphere.ec2 import (
@@ -23,6 +22,20 @@ from .template import template
 
 
 USE_NAT_GATEWAY = os.environ.get('USE_NAT_GATEWAY') == 'on'
+
+
+primary_az = template.add_parameter(Parameter(
+    "PrimaryAZ",
+    Description="The primary availability zone for creating resources.",
+    Type="AWS::EC2::AvailabilityZone::Name",
+))
+
+
+secondary_az = template.add_parameter(Parameter(
+    "SecondaryAZ",
+    Description="The secondary availability zone for creating resources.",
+    Type="AWS::EC2::AvailabilityZone::Name",
+))
 
 
 vpc = VPC(
@@ -108,7 +121,7 @@ loadbalancer_a_subnet = Subnet(
     template=template,
     VpcId=Ref(vpc),
     CidrBlock=loadbalancer_a_subnet_cidr,
-    AvailabilityZone=Select("0", GetAZs("")),
+    AvailabilityZone=Ref(primary_az),
 )
 
 
@@ -126,7 +139,7 @@ loadbalancer_b_subnet = Subnet(
     template=template,
     VpcId=Ref(vpc),
     CidrBlock=loadbalancer_b_subnet_cidr,
-    AvailabilityZone=Select("1", GetAZs("")),
+    AvailabilityZone=Ref(secondary_az),
 )
 
 
@@ -163,7 +176,7 @@ container_a_subnet = Subnet(
     VpcId=Ref(vpc),
     CidrBlock=container_a_subnet_cidr,
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
-    AvailabilityZone=Select("0", GetAZs("")),
+    AvailabilityZone=Ref(primary_az),
 )
 
 
@@ -186,7 +199,7 @@ container_b_subnet = Subnet(
     VpcId=Ref(vpc),
     CidrBlock=container_b_subnet_cidr,
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
-    AvailabilityZone=Select("1", GetAZs("")),
+    AvailabilityZone=Ref(secondary_az),
 )
 
 
