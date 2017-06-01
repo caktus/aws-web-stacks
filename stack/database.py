@@ -127,6 +127,18 @@ db_allocated_storage = template.add_parameter(Parameter(
 ))
 
 
+db_storage_encrypted = template.add_parameter(Parameter(
+    "DatabaseStorageEncrypted",
+    Default="false",
+    Description="Whether or not to encrypt the underlying database storage",
+    Type="String",
+    AllowedValues=[
+        'true',
+        'false',
+    ],
+))
+
+
 db_security_group = ec2.SecurityGroup(
     'DatabaseSecurityGroup',
     template=template,
@@ -167,6 +179,7 @@ db_instance = rds.DBInstance(
     Engine="postgres",
     EngineVersion=Ref(db_engine_version),
     MultiAZ=Ref(db_multi_az),
+    StorageEncrypted=Ref(db_storage_encrypted),
     StorageType="gp2",
     MasterUsername=Ref(db_user),
     MasterUserPassword=Ref(db_password),
