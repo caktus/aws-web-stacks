@@ -158,6 +158,9 @@ These environment variables are:
 
 * ``AWS_STORAGE_BUCKET_NAME``: The name of the S3 bucket in which your application should store
   static assets
+* ``AWS_PRIVATE_STORAGE_BUCKET_NAME``: The name of the S3 bucket in which your application should
+store private/uploaded files or media. Make sure you configure your storage backend to require
+authentication to read objects and encrypt them at rest, if needed.
 * ``CDN_DOMAIN_NAME``: The domain name of the CloudFront distribution connected to the above S3
   bucket; you should use this (or the S3 bucket URL directly) to refer to static assets in your HTML
 * ``DOMAIN_NAME``: The domain name you specified when creating the stack, which will
