@@ -245,4 +245,9 @@ console.
 
 Good luck!
 
+Contributing
+------------
+
+Please read `contributing guidelines here <https://github.com/tobiasmcnulty/aws-container-basics/blob/develop/CONTRIBUTING.rst>`_.
+
 Copyright 2017 Jean-Phillipe Serafin, Tobias McNulty.
