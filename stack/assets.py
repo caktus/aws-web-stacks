@@ -9,10 +9,10 @@ from troposphere import (
 )
 
 from troposphere.s3 import (
-    AuthenticatedRead,
     Bucket,
     CorsConfiguration,
     CorsRules,
+    Private,
     PublicRead,
     VersioningConfiguration,
 )
@@ -73,7 +73,7 @@ template.add_output(Output(
 private_assets_bucket = template.add_resource(
     Bucket(
         "PrivateAssetsBucket",
-        AccessControl=AuthenticatedRead,
+        AccessControl=Private,
         VersioningConfiguration=VersioningConfiguration(
             Status="Enabled"
         ),
