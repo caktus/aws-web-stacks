@@ -1,4 +1,4 @@
-from troposphere import GetAtt, Join, Ref
+from troposphere import GetAtt, Join, If, Ref
 
 from .assets import (
     assets_bucket,
@@ -6,7 +6,7 @@ from .assets import (
     private_assets_bucket,
 )
 from .cache import (
-    redis_instance,
+    cache_cluster, cache_engine, using_redis_condition
 )
 from .common import (
     secret_key,
@@ -35,11 +35,20 @@ environment_variables = [
         "/",
         Ref(db_name),
     ])),
-    ("REDIS_URL", Join("", [
-        "redis://",
-        GetAtt(redis_instance, 'RedisEndpoint.Address'),
+    ("CACHE_URL", Join("", [
+        Ref(cache_engine),
+        "://",
+        If(
+            using_redis_condition,
+            GetAtt(cache_cluster, 'RedisEndpoint.Address'),
+            GetAtt(cache_cluster, 'ConfigurationEndpoint.Address')
+        ),
         ":",
-        GetAtt(redis_instance, 'RedisEndpoint.Port'),
+        If(
+            using_redis_condition,
+            GetAtt(cache_cluster, 'RedisEndpoint.Port'),
+            GetAtt(cache_cluster, 'ConfigurationEndpoint.Port')
+        ),
     ])),
 ]
 
