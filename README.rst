@@ -2,11 +2,11 @@ AWS Container Basics
 ====================
 
 AWS Container Basics is a library of CloudFormation templates that dramatically simplify hosting
-containerized web applications on AWS. The library supports either Elastic Container Service (ECS)
-or Elastic Beanstalk (EB) and provides auxilary managed services such as a Postgres RDS instance,
-Redis instance, (free) SSL certificate via AWS Certificate Manager, S3 bucket for static assets,
-ECS repository for hosting Docker images, etc. All resources are created in a self-contained VPC,
-which may use a NAT gateway (if you want to pay for that) or not.
+containerized web applications on AWS. The library supports either Elastic Container Service (ECS),
+Elastic Beanstalk (EB), or EC2 instances (via an AMI you specify) and provides auxilary managed
+services such as a Postgres RDS instance, Redis instance, (free) SSL certificate via AWS Certificate
+Manager, S3 bucket for static assets, ECS repository for hosting Docker images, etc. All resources
+are created in a self-contained VPC, which may use a NAT gateway (if you want to pay for that) or not.
 
 The CloudFormation templates are written in `troposphere <https://github.com/cloudtools/troposphere>`_,
 which allows for some validation at build time and simplifies the management of several related
@@ -16,24 +16,24 @@ If a NAT gateway is not used, it's possible to create a fully-managed, self-cont
 environment for your application entirely within the free tier on AWS. To try it out, select
 one of the following:
 
-+---------------------+-------------------+---------------------------+
-|                     | Elastic Beanstalk | Elastic Container Service |
-+=====================+===================+===========================+
-| Without NAT Gateway | |EB-No-NAT|_      | |ECS-No-NAT|_             |
-+---------------------+-------------------+---------------------------+
-| With NAT Gateway    | |EB-NAT|_         | |ECS-NAT|_                |
-+---------------------+-------------------+---------------------------+
++---------------------+-------------------+---------------------------+---------------+
+|                     | Elastic Beanstalk | Elastic Container Service | EC2 Instances |
++=====================+===================+===========================+===============+
+| Without NAT Gateway | |EB-No-NAT|_      | |ECS-No-NAT|_             | |EC2-No-NAT|_ |
++---------------------+-------------------+---------------------------+---------------+
+| With NAT Gateway    | |EB-NAT|_         | |ECS-NAT|_                | |EC2-NAT|_    |
++---------------------+-------------------+---------------------------+---------------+
 
 If you'd like to review the CloudFormation template first, or update an existing stack, you may also
 wish to use the JSON template directly:
 
-+---------------------+-------------------+---------------------------+
-|                     | Elastic Beanstalk | Elastic Container Service |
-+=====================+===================+===========================+
-| Without NAT Gateway | `eb-no-nat.json`_ | `ecs-no-nat.json`_        |
-+---------------------+-------------------+---------------------------+
-| With NAT Gateway    | `eb-nat.json`_    | `ecs-nat.json`_           |
-+---------------------+-------------------+---------------------------+
++---------------------+-------------------+---------------------------+--------------------+
+|                     | Elastic Beanstalk | Elastic Container Service | EC2 Instances      |
++=====================+===================+===========================+====================+
+| Without NAT Gateway | `eb-no-nat.json`_ | `ecs-no-nat.json`_        | `ec2-no-nat.json`_ |
++---------------------+-------------------+---------------------------+--------------------+
+| With NAT Gateway    | `eb-nat.json`_    | `ecs-nat.json`_           | `ec2-nat.json`_    |
++---------------------+-------------------+---------------------------+--------------------+
 
 .. |EB-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
 .. _EB-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-no-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/eb-no-nat.json
@@ -51,14 +51,23 @@ wish to use the JSON template directly:
 .. _ECS-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-with-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/ecs-nat.json
 .. _ecs-nat.json: https://s3.amazonaws.com/aws-container-basics/ecs-nat.json
 
-Elastic Beanstalk or the Elastic Container Service?
----------------------------------------------------
+.. |EC2-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
+.. _EC2-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ec2-app-no-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/ec2-no-nat.json
+.. _ec2-no-nat.json: https://s3.amazonaws.com/aws-container-basics/ec2-no-nat.json
+
+.. |EC2-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
+.. _EC2-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ec2-app-with-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/ec2-nat.json
+.. _ec2-nat.json: https://s3.amazonaws.com/aws-container-basics/ec2-nat.json
+
+Elastic Beanstalk, Elastic Container Service, or EC2 instances?
+---------------------------------------------------------------
 
 Elastic Beanstalk is the recommended starting point, unless more complex container service
-definitions are required. Elastic Beanstalk comes with a preconfigured autoscaling configuration,
-allows for automated, managed updates to the underlying servers, allows changing environment
-variables without recreating the underlying service, and comes with its own command line tool
-for managing deployments. The Elastic Beanstalk environment uses the
+definitions are required or you prefer to configure application servers manually using Ansible,
+Salt, Chef, Puppet, or another such tool. Elastic Beanstalk comes with a preconfigured autoscaling
+configuration, allows for automated, managed updates to the underlying servers, allows changing
+environment variables without recreating the underlying service, and comes with its own command line
+tool for managing deployments. The Elastic Beanstalk environment uses the
 `multicontainer docker environment <http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_docker_ecs.html>`_
 to maximize flexibility in terms of the application(s) and container(s) deployed to the stack.
 

@@ -1,32 +1,21 @@
 from troposphere import (
     autoscaling,
     AWS_STACK_NAME,
-    elasticloadbalancing as elb,
     Equals,
-    GetAtt,
     iam,
-    If,
     Join,
-    Output,
     Parameter,
     Ref,
 )
 
 
 from .template import template
-from .vpc import (
-    loadbalancer_a_subnet,
-    loadbalancer_b_subnet,
-    container_a_subnet,
-    container_b_subnet,
-)
+from .vpc import container_a_subnet, container_b_subnet
 from .assets import assets_management_policy
 from .common import container_instance_type
+from .load_balancer import load_balancer, web_worker_health_check
 from .logs import logging_policy
-from .security_groups import (
-    load_balancer_security_group,
-    container_security_group,
-)
+from .security_groups import container_security_group
 
 
 ami = Ref(template.add_parameter(Parameter(
@@ -48,37 +37,11 @@ key_name = template.add_parameter(Parameter(
 ))
 
 
-web_worker_port = Ref(template.add_parameter(Parameter(
-    "WebWorkerPort",
-    Description="Default web worker exposed port (non-HTTPS)",
-    Type="Number",
-    Default="80",
-)))
-
-
 web_worker_desired_count = Ref(template.add_parameter(Parameter(
     "WebWorkerDesiredCount",
     Description="Web worker task instance count",
     Type="Number",
     Default="2",
-)))
-
-
-web_worker_protocol = Ref(template.add_parameter(Parameter(
-    "WebWorkerProtocol",
-    Description="Web worker instance protocol",
-    Type="String",
-    Default="HTTP",
-    AllowedValues=["HTTP", "HTTPS"],
-)))
-
-
-web_worker_health_check = Ref(template.add_parameter(Parameter(
-    "WebWorkerHealthCheck",
-    Description="Web worker health check URL path, e.g., \"/health-check\"; "
-                "will default to TCP-only health check if left blank",
-    Type="String",
-    Default="",
 )))
 
 
@@ -103,60 +66,6 @@ template.add_condition(
     tcp_health_check_condition,
     Equals(web_worker_health_check, ""),
 )
-
-
-# Web load balancer
-
-load_balancer = elb.LoadBalancer(
-    'LoadBalancer',
-    template=template,
-    Subnets=[
-        Ref(loadbalancer_a_subnet),
-        Ref(loadbalancer_b_subnet),
-    ],
-    SecurityGroups=[Ref(load_balancer_security_group)],
-    Listeners=[
-        elb.Listener(
-            LoadBalancerPort=80,
-            InstanceProtocol=web_worker_protocol,
-            InstancePort=web_worker_port,
-            Protocol='HTTP',
-        ),
-        # configure the default HTTPS listener to pass TCP traffic directly,
-        # since GovCloud doesn't support the Certificate Manager (this can be
-        # modified to enable SSL termination at the load balancer via the AWS
-        # console, if needed)
-        elb.Listener(
-            LoadBalancerPort=443,
-            InstanceProtocol='TCP',
-            InstancePort=443,
-            Protocol='TCP',
-        ),
-    ],
-    HealthCheck=elb.HealthCheck(
-        Target=If(
-            tcp_health_check_condition,
-            Join("", ["TCP:", web_worker_port]),
-            Join("", [
-                web_worker_protocol,
-                ":",
-                web_worker_port,
-                web_worker_health_check,
-            ]),
-        ),
-        HealthyThreshold="2",
-        UnhealthyThreshold="2",
-        Interval="100",
-        Timeout="10",
-    ),
-    CrossZone=True,
-)
-
-template.add_output(Output(
-    "LoadBalancerDNSName",
-    Description="Loadbalancer DNS",
-    Value=GetAtt(load_balancer, "DNSName")
-))
 
 
 # EC2 instance role
