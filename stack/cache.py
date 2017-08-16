@@ -1,5 +1,7 @@
 from troposphere import (
     ec2,
+    Equals,
+    If,
     Parameter,
     elasticache,
     Ref,
@@ -13,6 +15,19 @@ from .vpc import (
     container_b_subnet,
     container_b_subnet_cidr,
 )
+
+
+cache_engine = template.add_parameter(Parameter(
+    "CacheEngine",
+    Default="redis",
+    Description="Cache engine (redis or memcached)",
+    Type="String",
+    AllowedValues=[
+        'redis',
+        'memcached',
+    ],
+    ConstraintDescription="must select a valid cache engine.",
+))
 
 
 cache_node_type = template.add_parameter(Parameter(
@@ -43,6 +58,13 @@ cache_node_type = template.add_parameter(Parameter(
 ))
 
 
+using_redis_condition = "UsingRedis"
+template.add_condition(
+    using_redis_condition,
+    Equals(Ref(cache_engine), "redis"),
+)
+
+
 cache_security_group = ec2.SecurityGroup(
     'CacheSecurityGroup',
     template=template,
@@ -52,14 +74,14 @@ cache_security_group = ec2.SecurityGroup(
         # Redis in from web clusters
         ec2.SecurityGroupRule(
             IpProtocol="tcp",
-            FromPort="6379",
-            ToPort="6379",
+            FromPort=If(using_redis_condition, "6379", "11211"),
+            ToPort=If(using_redis_condition, "6379", "11211"),
             CidrIp=container_a_subnet_cidr,
         ),
         ec2.SecurityGroupRule(
             IpProtocol="tcp",
-            FromPort="6379",
-            ToPort="6379",
+            FromPort=If(using_redis_condition, "6379", "11211"),
+            ToPort=If(using_redis_condition, "6379", "11211"),
             CidrIp=container_b_subnet_cidr,
         ),
     ],
@@ -74,13 +96,13 @@ cache_subnet_group = elasticache.SubnetGroup(
 )
 
 
-redis_instance = elasticache.CacheCluster(
-    "Redis",
+cache_cluster = elasticache.CacheCluster(
+    "CacheCluser",
     template=template,
-    Engine="redis",
+    Engine=Ref(cache_engine),
     CacheNodeType=Ref(cache_node_type),
     NumCacheNodes=1,  # Must be 1 for redis, but still required
-    Port=6379,
+    Port=If(using_redis_condition, 6379, 11211),
     VpcSecurityGroupIds=[Ref(cache_security_group)],
     CacheSubnetGroupName=Ref(cache_subnet_group),
 )
