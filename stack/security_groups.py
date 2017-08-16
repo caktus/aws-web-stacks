@@ -35,8 +35,8 @@ load_balancer_security_group = SecurityGroup(
 )
 
 # allow traffic from the load balancer subnets to the web workers
-if os.environ.get('USE_ECS') == 'on':
-    # if using ECS, allow traffic to the configured WebWorkerPort
+if os.environ.get('USE_ECS') == 'on' or os.environ.get('USE_EC2') == 'on':
+    # if using ECS or EC2, allow traffic to the configured WebWorkerPort
     web_worker_ports = [Ref("WebWorkerPort")]
 elif os.environ.get('USE_GOVCLOUD') == 'on':
     # if using GovCloud (real EC2 instances), allow traffic to the configured

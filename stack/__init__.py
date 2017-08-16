@@ -10,10 +10,10 @@ from . import template
 if os.environ.get('USE_ECS') == 'on':
     from . import repository  # noqa: F401
     from . import cluster  # noqa: F401
-elif os.environ.get('USE_GOVCLOUD') == 'on':
-    from . import instances  # noqa: F401
-else:
+elif os.environ.get('USE_EB') == 'on':
     from . import repository  # noqa: F401
     from . import eb  # noqa: F401
+else:  # USE_GOVCLOUD and USE_EC2 both provide EC2 instances
+    from . import instances  # noqa: F401
 
 print(template.template.to_json())

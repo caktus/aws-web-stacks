@@ -6,15 +6,11 @@ from troposphere import (
     autoscaling,
     Base64,
     cloudformation,
-    elasticloadbalancing as elb,
     Equals,
     FindInMap,
-    GetAtt,
     iam,
-    If,
     Join,
     Not,
-    Output,
     Parameter,
     Ref,
 )
@@ -33,31 +29,15 @@ from troposphere.ecs import (
 from awacs import ecr
 
 from .template import template
-from .vpc import (
-    loadbalancer_a_subnet,
-    loadbalancer_b_subnet,
-    container_a_subnet,
-    container_b_subnet,
-)
+from .vpc import container_a_subnet, container_b_subnet
 from .assets import assets_management_policy
 from .common import container_instance_type
 from .environment import environment_variables
+from .load_balancer import load_balancer, web_worker_port
 from .logs import logging_policy
 from .repository import repository
-from .certificates import application as application_certificate
 from .logs import container_log_group
-from .security_groups import (
-    load_balancer_security_group,
-    container_security_group,
-)
-
-
-web_worker_port = Ref(template.add_parameter(Parameter(
-    "WebWorkerPort",
-    Description="Web worker container exposed port",
-    Type="Number",
-    Default="8000",
-)))
+from .security_groups import container_security_group
 
 
 web_worker_cpu = Ref(template.add_parameter(Parameter(
@@ -81,24 +61,6 @@ web_worker_desired_count = Ref(template.add_parameter(Parameter(
     Description="Web worker task instance count",
     Type="Number",
     Default="2",
-)))
-
-
-web_worker_protocol = Ref(template.add_parameter(Parameter(
-    "WebWorkerProtocol",
-    Description="Web worker instance protocol",
-    Type="String",
-    Default="HTTP",
-    AllowedValues=["HTTP", "HTTPS"],
-)))
-
-
-web_worker_health_check = Ref(template.add_parameter(Parameter(
-    "WebWorkerHealthCheck",
-    Description="Web worker health check URL path, e.g., \"/health-check\"; "
-                "will default to TCP-only health check if left blank",
-    Type="String",
-    Default="",
 )))
 
 
@@ -130,13 +92,6 @@ deploy_condition = "Deploy"
 template.add_condition(deploy_condition, Not(Equals(app_revision, "")))
 
 
-tcp_health_check_condition = "TcpHealthCheck"
-template.add_condition(
-    tcp_health_check_condition,
-    Equals(web_worker_health_check, ""),
-)
-
-
 template.add_mapping("ECSRegionMap", {
     "us-east-1": {"AMI": "ami-eca289fb"},
     "us-east-2": {"AMI": "ami-446f3521"},
@@ -148,57 +103,6 @@ template.add_mapping("ECSRegionMap", {
     "ap-southeast-1": {"AMI": "ami-a900a3ca"},
     "ap-southeast-2": {"AMI": "ami-5781be34"},
 })
-
-
-# Web load balancer
-
-load_balancer = elb.LoadBalancer(
-    'LoadBalancer',
-    template=template,
-    Subnets=[
-        Ref(loadbalancer_a_subnet),
-        Ref(loadbalancer_b_subnet),
-    ],
-    SecurityGroups=[Ref(load_balancer_security_group)],
-    Listeners=[
-        elb.Listener(
-            LoadBalancerPort=80,
-            InstanceProtocol=web_worker_protocol,
-            InstancePort=web_worker_port,
-            Protocol='HTTP',
-        ),
-        elb.Listener(
-            LoadBalancerPort=443,
-            InstanceProtocol=web_worker_protocol,
-            InstancePort=web_worker_port,
-            Protocol='HTTPS',
-            SSLCertificateId=application_certificate,
-        ),
-    ],
-    HealthCheck=elb.HealthCheck(
-        Target=If(
-            tcp_health_check_condition,
-            Join("", ["TCP:", web_worker_port]),
-            Join("", [
-                web_worker_protocol,
-                ":",
-                web_worker_port,
-                web_worker_health_check,
-            ]),
-        ),
-        HealthyThreshold="2",
-        UnhealthyThreshold="2",
-        Interval="100",
-        Timeout="10",
-    ),
-    CrossZone=True,
-)
-
-template.add_output(Output(
-    "LoadBalancerDNSName",
-    Description="Loadbalancer DNS",
-    Value=GetAtt(load_balancer, "DNSName")
-))
 
 
 # ECS cluster
