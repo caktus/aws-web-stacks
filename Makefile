@@ -13,6 +13,7 @@ templates:
 	USE_ECS=on USE_NAT_GATEWAY=on python -c 'import stack' > content/ecs-nat.json
 	USE_GOVCLOUD=on python -c 'import stack' > content/gc-no-nat.json
 	USE_GOVCLOUD=on USE_NAT_GATEWAY=on python -c 'import stack' > content/gc-nat.json
+	cd content/; mkdir -p `cat ../version.txt`; for file in `ls *nat.json`; do cp $$file `cat ../version.txt`/`echo $$file|cut -d'.' -f1`-`cat ../version.txt`.json; done
 
 upload:
 	aws s3 sync content/ s3://aws-container-basics/ --acl public-read
