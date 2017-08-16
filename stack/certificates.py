@@ -1,12 +1,8 @@
 from troposphere import Ref
-from troposphere.certificatemanager import (
-    Certificate,
-    DomainValidationOption,
-)
+from troposphere.certificatemanager import Certificate, DomainValidationOption
 
-from .template import template
 from .domain import domain_name
-
+from .template import template
 
 application = Ref(template.add_resource(
     Certificate(

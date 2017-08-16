@@ -1,22 +1,11 @@
 import os
 
-from troposphere import (
-    elasticloadbalancing as elb,
-    Equals,
-    GetAtt,
-    If,
-    Join,
-    Output,
-    Parameter,
-    Ref,
-)
+from troposphere import elasticloadbalancing as elb
+from troposphere import Equals, GetAtt, If, Join, Output, Parameter, Ref
 
-from .template import template
-from .vpc import (
-    loadbalancer_a_subnet,
-    loadbalancer_b_subnet,
-)
 from .security_groups import load_balancer_security_group
+from .template import template
+from .vpc import loadbalancer_a_subnet, loadbalancer_b_subnet
 
 web_worker_health_check = Ref(template.add_parameter(Parameter(
     "WebWorkerHealthCheck",

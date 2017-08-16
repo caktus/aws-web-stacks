@@ -1,23 +1,17 @@
+import awacs.ecr as ecr
+from awacs.aws import Allow, AWSPrincipal, Policy, Statement
 from troposphere import (
     AWS_ACCOUNT_ID,
     AWS_REGION,
     AWS_STACK_NAME,
     Join,
-    Ref,
     Output,
+    Ref
 )
 from troposphere.ecr import Repository
-from awacs.aws import (
-    Allow,
-    Policy,
-    AWSPrincipal,
-    Statement,
-)
-import awacs.ecr as ecr
 
 from .common import arn_prefix
 from .template import template
-
 
 # Create an `ECR` docker repository
 repository = Repository(

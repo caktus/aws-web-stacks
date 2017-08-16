@@ -1,25 +1,19 @@
 import os
 
-from troposphere import (
-    GetAtt,
-    Parameter,
-    Ref,
-)
-
+from troposphere import GetAtt, Parameter, Ref
 from troposphere.ec2 import (
     EIP,
+    VPC,
     InternetGateway,
     NatGateway,
     Route,
     RouteTable,
     Subnet,
     SubnetRouteTableAssociation,
-    VPC,
-    VPCGatewayAttachment,
+    VPCGatewayAttachment
 )
 
 from .template import template
-
 
 USE_NAT_GATEWAY = os.environ.get('USE_NAT_GATEWAY') == 'on'
 

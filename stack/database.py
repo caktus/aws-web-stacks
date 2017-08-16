@@ -1,19 +1,13 @@
-from troposphere import (
-    ec2,
-    Parameter,
-    rds,
-    Ref,
-)
+from troposphere import Parameter, Ref, ec2, rds
 
 from .template import template
 from .vpc import (
-    vpc,
     container_a_subnet,
     container_a_subnet_cidr,
     container_b_subnet,
     container_b_subnet_cidr,
+    vpc
 )
-
 
 db_name = template.add_parameter(Parameter(
     "DatabaseName",

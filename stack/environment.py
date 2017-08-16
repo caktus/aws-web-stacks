@@ -1,24 +1,10 @@
-from troposphere import GetAtt, Join, If, Ref
+from troposphere import GetAtt, If, Join, Ref
 
-from .assets import (
-    assets_bucket,
-    distribution,
-    private_assets_bucket,
-)
-from .cache import (
-    cache_cluster, cache_engine, using_redis_condition
-)
-from .common import (
-    secret_key,
-)
-from .database import (
-    db_instance,
-    db_name,
-    db_user,
-    db_password,
-)
+from .assets import assets_bucket, distribution, private_assets_bucket
+from .cache import cache_cluster, cache_engine, using_redis_condition
+from .common import secret_key
+from .database import db_instance, db_name, db_password, db_user
 from .domain import domain_name
-
 
 environment_variables = [
     ("AWS_STORAGE_BUCKET_NAME", Ref(assets_bucket)),

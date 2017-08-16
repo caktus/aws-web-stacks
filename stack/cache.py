@@ -1,21 +1,13 @@
-from troposphere import (
-    ec2,
-    Equals,
-    If,
-    Parameter,
-    elasticache,
-    Ref,
-)
+from troposphere import Equals, If, Parameter, Ref, ec2, elasticache
 
 from .template import template
 from .vpc import (
-    vpc,
     container_a_subnet,
     container_a_subnet_cidr,
     container_b_subnet,
     container_b_subnet_cidr,
+    vpc
 )
-
 
 cache_engine = template.add_parameter(Parameter(
     "CacheEngine",

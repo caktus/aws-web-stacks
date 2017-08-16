@@ -1,35 +1,26 @@
 import os
 
-from troposphere import (
-    iam,
-    Join,
-    Output,
-    GetAtt,
-    Ref,
-)
-
-from troposphere.s3 import (
-    Bucket,
-    CorsConfiguration,
-    CorsRules,
-    Private,
-    PublicRead,
-    VersioningConfiguration,
-)
-
+from troposphere import GetAtt, Join, Output, Ref, iam
 from troposphere.cloudfront import (
     DefaultCacheBehavior,
     Distribution,
     DistributionConfig,
     ForwardedValues,
     Origin,
-    S3Origin,
+    S3Origin
+)
+from troposphere.s3 import (
+    Bucket,
+    CorsConfiguration,
+    CorsRules,
+    Private,
+    PublicRead,
+    VersioningConfiguration
 )
 
 from .common import arn_prefix
-from .template import template
 from .domain import domain_name
-
+from .template import template
 
 # Create an S3 bucket that holds statics and media
 assets_bucket = template.add_resource(

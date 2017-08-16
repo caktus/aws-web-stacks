@@ -1,34 +1,29 @@
-from troposphere import (
-    GetAtt, Join, Output,
-    Parameter, Ref, FindInMap
-)
-
+from awacs.aws import Action, Allow, Policy, Principal, Statement
+from awacs.sts import AssumeRole
+from troposphere import FindInMap, GetAtt, Join, Output, Parameter, Ref
 from troposphere.elasticbeanstalk import (
-    Application, Environment,
+    Application,
+    Environment,
     OptionSettings
 )
-
-from troposphere.iam import Role, InstanceProfile
 from troposphere.iam import PolicyType as IAMPolicy
+from troposphere.iam import InstanceProfile, Role
 
-from awacs.aws import Allow, Statement, Action, Principal, Policy
-from awacs.sts import AssumeRole
-
-from .template import template
 from .certificates import application as application_certificate
 from .common import container_instance_type
 from .environment import environment_variables
 from .security_groups import (
-    load_balancer_security_group,
     container_security_group,
+    load_balancer_security_group
 )
+from .template import template
 from .vpc import (
-    vpc,
-    loadbalancer_a_subnet,
-    loadbalancer_b_subnet,
+    USE_NAT_GATEWAY,
     container_a_subnet,
     container_b_subnet,
-    USE_NAT_GATEWAY,
+    loadbalancer_a_subnet,
+    loadbalancer_b_subnet,
+    vpc
 )
 
 key_name = template.add_parameter(Parameter(

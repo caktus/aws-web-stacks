@@ -1,6 +1,4 @@
-from troposphere import (
-    Template,
-)
+from troposphere import Template
 
 # The CloudFormation template
 template = Template()

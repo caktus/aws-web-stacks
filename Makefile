@@ -2,6 +2,7 @@
 
 check:
 	flake8 stack/
+	isort --recursive --check-only --diff stack/
 
 templates:
 	mkdir -p content

@@ -1,20 +1,20 @@
+from awacs import ecr
 from troposphere import (
     AWS_ACCOUNT_ID,
     AWS_REGION,
     AWS_STACK_ID,
     AWS_STACK_NAME,
-    autoscaling,
     Base64,
-    cloudformation,
     Equals,
     FindInMap,
-    iam,
     Join,
     Not,
     Parameter,
     Ref,
+    autoscaling,
+    cloudformation,
+    iam
 )
-
 from troposphere.ecs import (
     Cluster,
     ContainerDefinition,
@@ -23,22 +23,18 @@ from troposphere.ecs import (
     LogConfiguration,
     PortMapping,
     Service,
-    TaskDefinition,
+    TaskDefinition
 )
 
-from awacs import ecr
-
-from .template import template
-from .vpc import container_a_subnet, container_b_subnet
 from .assets import assets_management_policy
 from .common import container_instance_type
 from .environment import environment_variables
 from .load_balancer import load_balancer, web_worker_port
-from .logs import logging_policy
+from .logs import container_log_group, logging_policy
 from .repository import repository
-from .logs import container_log_group
 from .security_groups import container_security_group
-
+from .template import template
+from .vpc import container_a_subnet, container_b_subnet
 
 web_worker_cpu = Ref(template.add_parameter(Parameter(
     "WebWorkerCPU",

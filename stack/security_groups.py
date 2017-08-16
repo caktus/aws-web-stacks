@@ -1,21 +1,11 @@
 import os
 from itertools import product
 
-from troposphere import (
-    Ref
-)
-from troposphere.ec2 import (
-    SecurityGroup,
-    SecurityGroupRule,
-)
+from troposphere import Ref
+from troposphere.ec2 import SecurityGroup, SecurityGroupRule
 
-from .vpc import (
-    vpc,
-    loadbalancer_a_subnet_cidr,
-    loadbalancer_b_subnet_cidr,
-)
 from .template import template
-
+from .vpc import loadbalancer_a_subnet_cidr, loadbalancer_b_subnet_cidr, vpc
 
 load_balancer_security_group = SecurityGroup(
     "LoadBalancerSecurityGroup",

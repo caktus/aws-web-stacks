@@ -1,8 +1,7 @@
-from troposphere import iam, Join, logs
+from troposphere import Join, iam, logs
 
 from .common import arn_prefix
 from .template import template
-
 
 container_log_group = logs.LogGroup(
     "ContainerLogs",
