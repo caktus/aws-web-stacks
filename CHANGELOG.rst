@@ -9,7 +9,7 @@ Features:
 
 * A new stack type was added to support creating infrastructure with EC2 instances and an AMI of
   your choice with AWS Certificate Manager enabled (previously, the only option was to use one of
-  the GovCloud stacks, which did not include an auto-generated SSL certificate).
+  the GovCloud stacks, which did not include an auto-generated SSL certificate). See: PR #7.
 
 Bug fixes:
 
@@ -20,7 +20,7 @@ Backwards-incompatible changes:
 
 * Support for memcached added, with ``REDIS_URL`` renamed to ``CACHE_URL`` and the associated
   CloudFormation resource renamed from ``Redis`` to ``CacheCluster``. **This change will cause your
-  Redis instance to be deleted and recreated.**
+  Redis instance to be deleted and recreated.** See: PR #8.
 * Support for RDS encryption added. **This change will require your RDS instance to be deleted and
   recreated.**
 
