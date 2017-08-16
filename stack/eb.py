@@ -44,8 +44,9 @@ solution_stack = template.add_parameter(Parameter(
     Description="Name of the solution stack to use for this EB environment "
                 "(do NOT change this value after initial stack creation)",
     Type="String",
-    Default="64bit Amazon Linux 2016.09 v2.5.2 running Multi-container Docker 1.12.6 (Generic)",
+    Default="64bit Amazon Linux 2017.03 v2.7.3 running Multi-container Docker 17.03.1-ce (Generic)",
     AllowedValues=[
+        "64bit Amazon Linux 2017.03 v2.7.3 running Multi-container Docker 17.03.1-ce (Generic)",
         "64bit Amazon Linux 2016.09 v2.5.2 running Multi-container Docker 1.12.6 (Generic)",
         "64bit Amazon Linux 2016.09 v2.5.0 running Multi-container Docker 1.12.6 (Generic)",
         "64bit Amazon Linux 2016.09 v2.4.0 running Multi-container Docker 1.12.6 (Generic)",
