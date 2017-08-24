@@ -94,8 +94,9 @@ The automatically-generated SSL certificate requires approval from the domain ow
 initiating stack creation, be on the lookout for an email from Amazon to the domain owner
 (as seen in a ``whois`` query) and follow the link to approve the certificate. If you're using
 a ``.io`` domain, be aware that
-`prior steps <https://aws.amazon.com/premiumsupport/knowledge-center/resend-validation-email-io/>`_
-are necessary before AWS can discover the domain owner's email for ``.io`` domains.
+`prior steps <http://docs.aws.amazon.com/acm/latest/userguide/troubleshoot-iodomains.html>`_
+may be necessary to receive email for ``.io`` domains, because domain owner emails cannot
+be discovered via ``whois``.
 
 Resources Created
 -----------------
