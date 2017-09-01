@@ -5,6 +5,7 @@ from .cache import cache_cluster, cache_engine, using_redis_condition
 from .common import secret_key
 from .database import db_instance, db_name, db_password, db_user
 from .domain import domain_name
+from .search import es_domain
 
 environment_variables = [
     ("AWS_STORAGE_BUCKET_NAME", Ref(assets_bucket)),
@@ -36,6 +37,7 @@ environment_variables = [
             GetAtt(cache_cluster, 'ConfigurationEndpoint.Port')
         ),
     ])),
+    ("ELASTICSEARCH_ENDPOINT", GetAtt(es_domain, "DomainEndpoint")),
 ]
 
 if distribution:
