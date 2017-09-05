@@ -1,4 +1,4 @@
-from troposphere import GetAtt, If, Join, Ref
+from troposphere import AWS_REGION, GetAtt, If, Join, Ref
 
 from .assets import assets_bucket, distribution, private_assets_bucket
 from .cache import cache_cluster, cache_engine, using_redis_condition
@@ -8,6 +8,7 @@ from .domain import domain_name
 from .search import es_domain
 
 environment_variables = [
+    ("AWS_REGION", Ref(AWS_REGION)),
     ("AWS_STORAGE_BUCKET_NAME", Ref(assets_bucket)),
     ("AWS_PRIVATE_STORAGE_BUCKET_NAME", Ref(private_assets_bucket)),
     ("DOMAIN_NAME", domain_name),
@@ -38,6 +39,9 @@ environment_variables = [
         ),
     ])),
     ("ELASTICSEARCH_ENDPOINT", GetAtt(es_domain, "DomainEndpoint")),
+    ("ELASTICSEARCH_PORT", "443"),
+    ("ELASTICSEARCH_USE_SSL", "on"),
+    ("ELASTICSEARCH_VERIFY_CERTS", "on"),
 ]
 
 if distribution:
