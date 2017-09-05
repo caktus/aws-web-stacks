@@ -1,17 +1,19 @@
-from awacs.aws import Action, Allow, Policy, Principal, Statement
+from awacs import ecr
+from awacs.aws import Allow, Policy, Principal, Statement
 from awacs.sts import AssumeRole
-from troposphere import FindInMap, GetAtt, Join, Output, Parameter, Ref
+from troposphere import FindInMap, GetAtt, Join, Output, Parameter, Ref, iam
 from troposphere.elasticbeanstalk import (
     Application,
     Environment,
     OptionSettings
 )
-from troposphere.iam import PolicyType as IAMPolicy
 from troposphere.iam import InstanceProfile, Role
 
+from .assets import assets_management_policy
 from .certificates import application as application_certificate
 from .common import container_instance_type
 from .environment import environment_variables
+from .logs import logging_policy
 from .security_groups import (
     container_security_group,
     load_balancer_security_group
@@ -103,20 +105,83 @@ web_server_role = Role(
             )
         ]
     ),
-    Path="/"
+    Path="/",
+    Policies=[
+        assets_management_policy,
+        logging_policy,
+        iam.Policy(
+            PolicyName="EBBucketAccess",
+            PolicyDocument=dict(
+                Statement=[dict(
+                    Effect="Allow",
+                    Action=[
+                        "s3:Get*",
+                        "s3:List*",
+                        "s3:PutObject",
+                    ],
+                    Resource=[
+                        "arn:aws:s3:::elasticbeanstalk-*",
+                        "arn:aws:s3:::elasticbeanstalk-*/*",
+                    ],
+                )],
+            ),
+        ),
+        iam.Policy(
+            PolicyName="EBXRayAccess",
+            PolicyDocument=dict(
+                Statement=[dict(
+                    Effect="Allow",
+                    Action=[
+                        "xray:PutTraceSegments",
+                        "xray:PutTelemetryRecords",
+                    ],
+                    Resource="*",
+                )],
+            ),
+        ),
+        iam.Policy(
+            PolicyName="EBCloudWatchLogsAccess",
+            PolicyDocument=dict(
+                Statement=[dict(
+                    Effect="Allow",
+                    Action=[
+                        "logs:PutLogEvents",
+                        "logs:CreateLogStream",
+                    ],
+                    Resource="arn:aws:logs:*:*:log-group:/aws/elasticbeanstalk*",
+                )],
+            ),
+        ),
+        iam.Policy(
+            PolicyName="ECSManagementPolicy",
+            PolicyDocument=dict(
+                Statement=[dict(
+                    Effect="Allow",
+                    Action=[
+                        "ecs:*",
+                        "elasticloadbalancing:*",
+                    ],
+                    Resource="*",
+                )],
+            ),
+        ),
+        iam.Policy(
+            PolicyName='ECRManagementPolicy',
+            PolicyDocument=dict(
+                Statement=[dict(
+                    Effect='Allow',
+                    Action=[
+                        ecr.GetAuthorizationToken,
+                        ecr.GetDownloadUrlForLayer,
+                        ecr.BatchGetImage,
+                        ecr.BatchCheckLayerAvailability,
+                    ],
+                    Resource="*",
+                )],
+            ),
+        ),
+    ]
 )
-
-template.add_resource(IAMPolicy(
-    "WebServerRolePolicy",
-    PolicyName="WebServerRole",
-    PolicyDocument=Policy(
-        Statement=[
-            Statement(Effect=Allow, NotAction=Action("iam", "*"),
-                      Resource=["*"])
-        ]
-    ),
-    Roles=[Ref(web_server_role)],
-))
 
 web_server_instance_profile = InstanceProfile(
     "WebServerInstanceProfile",
