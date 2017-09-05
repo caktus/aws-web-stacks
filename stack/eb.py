@@ -36,20 +36,12 @@ key_name = template.add_parameter(Parameter(
 
 solution_stack = template.add_parameter(Parameter(
     "SolutionStack",
-    Description="Name of the solution stack to use for this EB environment "
-                "(do NOT change this value after initial stack creation)",
+    Description="Elastic Beanstalk solution stack name (do NOT change after "
+                "stack creation). You most likely want to copy the italicized "
+                "text from: http://docs.aws.amazon.com/elasticbeanstalk/latest"
+                "/dg/concepts.platforms.html#concepts.platforms.mcdocker",
     Type="String",
-    Default="64bit Amazon Linux 2017.03 v2.7.3 running Multi-container Docker 17.03.1-ce (Generic)",
-    AllowedValues=[
-        "64bit Amazon Linux 2017.03 v2.7.3 running Multi-container Docker 17.03.1-ce (Generic)",
-        "64bit Amazon Linux 2016.09 v2.5.2 running Multi-container Docker 1.12.6 (Generic)",
-        "64bit Amazon Linux 2016.09 v2.5.0 running Multi-container Docker 1.12.6 (Generic)",
-        "64bit Amazon Linux 2016.09 v2.4.0 running Multi-container Docker 1.12.6 (Generic)",
-        "64bit Amazon Linux 2016.09 v2.3.0 running Multi-container Docker 1.11.2 (Generic)",
-        "64bit Amazon Linux 2016.03 v2.1.6 running Multi-container Docker 1.11.2 (Generic)",
-        "64bit Amazon Linux 2016.03 v2.1.0 running Multi-container Docker 1.9.1 (Generic)",
-        "64bit Amazon Linux 2015.03 v1.4.6 running Multi-container Docker 1.6.2 (Generic)",
-    ],
+    Default="",
 ))
 
 template.add_mapping("Region2Principal", {
