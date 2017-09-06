@@ -16,8 +16,8 @@ Bug fixes:
   than IAM. This release limits permissions granted to Elastic Beanstalk stalks considerably,
   granting permissions only previously granted to the ECS configuration, plus permissions
   included in the ``AWSElasticBeanstalkWebTier`` and ``AWSElasticBeanstalkMulticontainerDocker``
-  AWS managed policies. *Please look out for and report any permission-related issues with
-  Elastic Beanstalk.* See: PR #11
+  AWS managed policies. **Please look out for and report any permission-related issues with
+  Elastic Beanstalk stacks.** See: PR #11
 
 
 `1.0.1`_ (2017-09-05)
