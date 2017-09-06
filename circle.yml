@@ -13,6 +13,6 @@ test:
     - make check
 deployment:
   production:
-    branch: develop
+    branch: master
     commands:
       - make upload
