@@ -2,6 +2,15 @@ Change Log
 ==========
 
 
+`1.0.1`_ (2017-09-05)
+-----------------------
+
+Bug fixes:
+
+* Remove the drop down list of Multicontainer Docker solution stacks, which was impossible to
+  keep up to date. You'll need to copy/paste the current solution stack name from the `AWS
+  website <http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/concepts.platforms.html#concepts.platforms.mcdocker>`_.
+
 `1.0.0`_ (2017-08-16)
 -----------------------
 
@@ -31,5 +40,6 @@ Backwards-incompatible changes:
 * Initial public release
 
 
+.. _1.0.1: https://aws-container-basics.s3.amazonaws.com/index.html?prefix=1.0.1/
 .. _1.0.0: https://aws-container-basics.s3.amazonaws.com/index.html?prefix=1.0.0/
 .. _0.9.0: https://aws-container-basics.s3.amazonaws.com/index.html?prefix=0.9.0/
