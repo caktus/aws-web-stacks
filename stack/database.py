@@ -97,6 +97,16 @@ db_engine_version = template.add_parameter(Parameter(
 ))
 
 
+db_backup_retention_days = template.add_parameter(Parameter(
+    "DatabaseBackupRetentionDays",
+    Default="30",
+    Description="The number of days for which automated backups are retained",
+    Type="Number",
+    MinValue="1",
+    MaxValue="30",
+))
+
+
 db_multi_az = template.add_parameter(Parameter(
     "DatabaseMultiAZ",
     Default="false",
@@ -179,6 +189,6 @@ db_instance = rds.DBInstance(
     MasterUserPassword=Ref(db_password),
     DBSubnetGroupName=Ref(db_subnet_group),
     VPCSecurityGroups=[Ref(db_security_group)],
-    BackupRetentionPeriod="7",
+    BackupRetentionPeriod=Ref(db_backup_retention_days),
     DeletionPolicy="Snapshot",
 )
