@@ -16,7 +16,7 @@ db_name = template.add_parameter(Parameter(
     Type="String",
     MinLength="1",
     MaxLength="64",
-    AllowedPattern="[a-zA-Z][a-zA-Z0-9]*",
+    AllowedPattern="[a-zA-Z][a-zA-Z0-9_]*",
     ConstraintDescription=(
         "must begin with a letter and contain only"
         " alphanumeric characters."
