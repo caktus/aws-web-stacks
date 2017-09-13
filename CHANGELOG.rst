@@ -2,6 +2,17 @@ Change Log
 ==========
 
 
+1.1.1 (unreleased)
+------------------
+
+Features:
+
+* ...
+
+Bug fixes:
+
+* Underscores are now allowed in database names
+
 `1.1.0`_ (2017-09-05)
 -----------------------
 
