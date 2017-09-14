@@ -102,7 +102,7 @@ db_backup_retention_days = template.add_parameter(Parameter(
     Default="30",
     Description="The number of days for which automated backups are retained",
     Type="Number",
-    MinValue="1",
+    MinValue="0",
     MaxValue="30",
 ))
 
