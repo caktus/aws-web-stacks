@@ -18,6 +18,8 @@ Bug fixes:
   static media. See: PR #16
 * Disabling Elasticsearch via parameters is not possible in EB and ECS environments, so this
   feature has been disabled for now. See: PR #15
+* Elasticsearch has been removed from the GovCloud template, as it's not supported in that
+  region.
 
 
 `1.1.0`_ (2017-09-05)

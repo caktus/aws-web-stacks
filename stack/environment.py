@@ -1,3 +1,5 @@
+import os
+
 from troposphere import AWS_REGION, GetAtt, If, Join, Ref
 
 from .assets import assets_bucket, distribution, private_assets_bucket
@@ -5,7 +7,13 @@ from .cache import cache_cluster, cache_engine, using_redis_condition
 from .common import secret_key
 from .database import db_instance, db_name, db_password, db_user
 from .domain import domain_name
-from .search import es_domain
+
+if os.environ.get('USE_GOVCLOUD') != 'on':
+    # not supported by GovCloud, so add it only if it was created (and in this
+    # case we want to avoid importing if it's not needed)
+    from .search import es_domain
+else:
+    es_domain = None
 
 environment_variables = [
     ("AWS_REGION", Ref(AWS_REGION)),
@@ -38,10 +46,6 @@ environment_variables = [
             GetAtt(cache_cluster, 'ConfigurationEndpoint.Port')
         ),
     ])),
-    ("ELASTICSEARCH_ENDPOINT", GetAtt(es_domain, "DomainEndpoint")),
-    ("ELASTICSEARCH_PORT", "443"),
-    ("ELASTICSEARCH_USE_SSL", "on"),
-    ("ELASTICSEARCH_VERIFY_CERTS", "on"),
 ]
 
 if distribution:
@@ -49,3 +53,12 @@ if distribution:
     environment_variables.append(
         ("CDN_DOMAIN_NAME", GetAtt(distribution, "DomainName"))
     )
+
+if es_domain:
+    # not supported by GovCloud, so add it only if it was created
+    environment_variables += [
+        ("ELASTICSEARCH_ENDPOINT", GetAtt(es_domain, "DomainEndpoint")),
+        ("ELASTICSEARCH_PORT", "443"),
+        ("ELASTICSEARCH_USE_SSL", "on"),
+        ("ELASTICSEARCH_VERIFY_CERTS", "on"),
+    ]
