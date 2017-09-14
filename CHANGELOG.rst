@@ -7,12 +7,15 @@ Change Log
 
 Features:
 
-* The retention period for RDS snapshots can now be customized or even disabled via
-  CloudFormation parameters in the create/update stack form. See: PR #12
+* The retention period for automated RDS backups can now be customized or even disabled via
+  CloudFormation parameters in the create/update stack form. The default number of retention
+  days was also changed from 7 to 30. This change should not require replacement of your
+  RDS instances, but as always, be on the lookout for unintended resource replacement when
+  updating existing stacks. See: PR #12. Thanks @copelco for the change.
 
 Bug fixes:
 
-* Underscores are now allowed in database names. See: PR #13
+* Underscores are now allowed in database names. See: PR #13. Thanks @copelco for the change.
 * The CloudFront distribution now passes querystring parameters to the origin. This provides
   a safer default for sites that may use querystring parameters to force re-fetching updated
   static media. See: PR #16
