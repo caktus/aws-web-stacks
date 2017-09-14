@@ -100,7 +100,8 @@ db_engine_version = template.add_parameter(Parameter(
 db_backup_retention_days = template.add_parameter(Parameter(
     "DatabaseBackupRetentionDays",
     Default="30",
-    Description="The number of days for which automated backups are retained",
+    Description="The number of days for which automated backups are retained. Setting to 0 "
+                "disables automated backups.",
     Type="Number",
     MinValue="0",
     MaxValue="30",
