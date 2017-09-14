@@ -144,7 +144,7 @@ if os.environ.get('USE_GOVCLOUD') != 'on':
                 DefaultCacheBehavior=DefaultCacheBehavior(
                     TargetOriginId="Assets",
                     ForwardedValues=ForwardedValues(
-                        QueryString=False
+                        QueryString=True
                     ),
                     ViewerProtocolPolicy="allow-all",
                 ),

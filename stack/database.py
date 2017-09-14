@@ -16,7 +16,7 @@ db_name = template.add_parameter(Parameter(
     Type="String",
     MinLength="1",
     MaxLength="64",
-    AllowedPattern="[a-zA-Z][a-zA-Z0-9]*",
+    AllowedPattern="[a-zA-Z][a-zA-Z0-9_]*",
     ConstraintDescription=(
         "must begin with a letter and contain only"
         " alphanumeric characters."
@@ -94,6 +94,16 @@ db_engine_version = template.add_parameter(Parameter(
     Default="",
     Description="Database engine version to use",
     Type="String",
+))
+
+
+db_backup_retention_days = template.add_parameter(Parameter(
+    "DatabaseBackupRetentionDays",
+    Default="30",
+    Description="The number of days for which automated backups are retained. Setting to 0 "
+                "disables automated backups.",
+    Type="Number",
+    AllowedValues=[str(x) for x in range(36)],  # 0-35 are the supported values
 ))
 
 
@@ -179,6 +189,6 @@ db_instance = rds.DBInstance(
     MasterUserPassword=Ref(db_password),
     DBSubnetGroupName=Ref(db_subnet_group),
     VPCSecurityGroups=[Ref(db_security_group)],
-    BackupRetentionPeriod="7",
+    BackupRetentionPeriod=Ref(db_backup_retention_days),
     DeletionPolicy="Snapshot",
 )

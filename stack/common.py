@@ -2,8 +2,6 @@ from troposphere import Parameter, Ref
 
 from .template import template
 
-dont_create_value = "(none)"
-
 arn_prefix = Ref(template.add_parameter(Parameter(
     "ArnPrefix",
     Description="The prefix to use for Amazon Resource Names (ARNs).",
