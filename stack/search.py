@@ -1,14 +1,13 @@
 import os
 
 from awacs.aws import Action, Allow, Policy, Principal, Statement
-from troposphere import Equals, GetAtt, Not, Output, Parameter, Ref
+from troposphere import GetAtt, Output, Parameter, Ref
 from troposphere.elasticsearch import (
     Domain,
     EBSOptions,
     ElasticsearchClusterConfig
 )
 
-from .common import dont_create_value
 from .template import template
 
 # TODO: clean up naming for this role so it's the same for all configurations
@@ -19,13 +18,12 @@ else:
 
 es_instance_type = template.add_parameter(Parameter(
     "ElasticsearchInstanceType",
-    Default=dont_create_value,
+    Default='t2.small.elasticsearch',
     Description="Elasticsearch instance type. Note: not all types are supported in all regions; see: "
                 "http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/"
                 "aes-supported-instance-types.html",
     Type="String",
     AllowedValues=[
-        dont_create_value,
         't2.micro.elasticsearch',
         't2.small.elasticsearch',
         't2.medium.elasticsearch',
@@ -84,9 +82,6 @@ es_volume_size = template.add_parameter(Parameter(
     Type="Number",
 ))
 
-es_condition = "Elasticsearch"
-template.add_condition(es_condition, Not(Equals(Ref(es_instance_type), dont_create_value)))
-
 
 # Create an Elasticsearch domain
 es_domain = template.add_resource(
@@ -101,7 +96,6 @@ es_domain = template.add_resource(
                 ),
             ]
         ),
-        Condition=es_condition,
         EBSOptions=EBSOptions(
             EBSEnabled=True,
             VolumeSize=Ref(es_volume_size),
