@@ -2,16 +2,23 @@ Change Log
 ==========
 
 
-1.1.1 (unreleased)
-------------------
+`1.1.1`_ (2017-09-14)
+---------------------
 
 Features:
 
-* ...
+* The retention period for RDS snapshots can now be customized or even disabled via
+  CloudFormation parameters in the create/update stack form. See: PR #12
 
 Bug fixes:
 
-* Underscores are now allowed in database names
+* Underscores are now allowed in database names. See: PR #13
+* The CloudFront distribution now passes querystring parameters to the origin. This provides
+  a safer default for sites that may use querystring parameters to force re-fetching updated
+  static media. See: PR #16
+* Disabling Elasticsearch via parameters is not possible in EB and ECS environments, so this
+  feature has been disabled for now. See: PR #15
+
 
 `1.1.0`_ (2017-09-05)
 -----------------------
