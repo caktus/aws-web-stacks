@@ -83,6 +83,7 @@ Backwards-incompatible changes:
 * Initial public release
 
 
+.. _1.1.1: https://aws-container-basics.s3.amazonaws.com/index.html?prefix=1.1.1/
 .. _1.1.0: https://aws-container-basics.s3.amazonaws.com/index.html?prefix=1.1.0/
 .. _1.0.1: https://aws-container-basics.s3.amazonaws.com/index.html?prefix=1.0.1/
 .. _1.0.0: https://aws-container-basics.s3.amazonaws.com/index.html?prefix=1.0.0/
