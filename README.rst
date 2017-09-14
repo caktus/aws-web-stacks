@@ -133,8 +133,8 @@ The following is a partial list of resources created by this stack, when Elastic
 GovCloud Support
 ----------------
 
-`AWS GovCloud <https://aws.amazon.com/govcloud-us/>`_ does not support Elastic Beanstalk,
-Elastic Container Service, Certificate Manager, or CloudFront. You can still create a reduced
+`AWS GovCloud <https://aws.amazon.com/govcloud-us/>`_ does not support Elastic Beanstalk, Elastic
+Container Service, Certificate Manager, CloudFront, or Elasticsearch. You can still create a reduced
 stack in GovCloud by downloading one of the following templates and uploading it to CloudFormation
 via the AWS Management Console:
 
