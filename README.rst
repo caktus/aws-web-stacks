@@ -4,9 +4,10 @@ AWS Container Basics
 AWS Container Basics is a library of CloudFormation templates that dramatically simplify hosting
 containerized web applications on AWS. The library supports either Elastic Container Service (ECS),
 Elastic Beanstalk (EB), or EC2 instances (via an AMI you specify) and provides auxilary managed
-services such as a Postgres RDS instance, Redis instance, (free) SSL certificate via AWS Certificate
-Manager, S3 bucket for static assets, ECS repository for hosting Docker images, etc. All resources
-are created in a self-contained VPC, which may use a NAT gateway (if you want to pay for that) or not.
+services such as a Postgres RDS instance, Redis instance, Elasticsearch instance (free) SSL certificate
+via AWS Certificate Manager, S3 bucket for static assets, ECS repository for hosting Docker images, etc.
+All resources (except Elasticsearch, which does not support VPCs) are created in a self-contained VPC,
+which may use a NAT gateway (if you want to pay for that) or not.
 
 The CloudFormation templates are written in `troposphere <https://github.com/cloudtools/troposphere>`_,
 which allows for some validation at build time and simplifies the management of several related
@@ -116,6 +117,8 @@ The following is a partial list of resources created by this stack, when Elastic
 * **EBApplication** (``AWS::ElasticBeanstalk::Application``): The Elastic Beanstalk application.
 * **EBEnvironment** (``AWS::ElasticBeanstalk::Environment``): The Elastic Beanstalk environment,
   which will be pre-configured with the environment variables specified below.
+* **Elasticsearch** (``AWS::Elasticsearch::Domain``): An Elasticsearch instance, which your
+  application may use for full-text search, logging, etc.
 * **PostgreSQL** (``AWS::RDS::DBInstance``): The Postgres RDS instance for your application.
   Includes a security group to allow access only from your EB or ECS instances in this stack.
 * **Redis** (``AWS::ElastiCache::CacheCluster``): The Redis ElasticCache instance for your
@@ -173,6 +176,12 @@ These environment variables are:
   authentication to read objects and encrypt them at rest, if needed.
 * ``CDN_DOMAIN_NAME``: The domain name of the CloudFront distribution connected to the above S3
   bucket; you should use this (or the S3 bucket URL directly) to refer to static assets in your HTML
+* ``ELASTICSEARCH_ENDPOINT``: The domain name of the Elasticsearch instance.
+* ``ELASTICSEARCH_PORT``: The recommended port for connecting to Elasticsearch (defaults to 443).
+* ``ELASTICSEARCH_USE_SSL``: Whether or not to use SSL (defaults to ``'on'``).
+* ``ELASTICSEARCH_VERIFY_CERTS``: Whether or not to verify Elasticsearch SSL certificates. This
+  should work fine with AWS Elasticsearch (the instance provides a valid certificate), so this
+  defaults to ``'on'`` as well.
 * ``DOMAIN_NAME``: The domain name you specified when creating the stack, which will
   be associated with the automatically-generated SSL certificate.
 * ``SECRET_KEY``: The secret key you specified when creating this stack
@@ -184,6 +193,22 @@ These environment variables are:
 
 When running an EB stack, you can view and edit the keys and values for all environment variables
 on the fly via the Elastic Beanstalk console or command line tools.
+
+Elasticsearch Authentication
+----------------------------
+
+Since AWS Elasticsearch does not support VPCs, the Elasticsearch instance in this stack does not
+accept connections from all clients. The default policy associated with the instance requires
+HTTP(S) requests to be signed using the `AWS Signature Version 4
+<http://docs.aws.amazon.com/general/latest/gr/sigv4_signing.html>`_. The instance role associated
+with the EC2 instances created in this stack (whether using Elastic Beanstalk, Elastic Container
+Service, or EC2 directly) is authorized to make requests to the Elasticsearch instance. Those
+credentials may be obtained from the `EC2 instance meta data
+<http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#instance-metadata-security-credentials>`_.
+
+If you're using Python, credentials may be obtained automatically using Boto and requests signed
+using the `aws-requests-auth <https://github.com/DavidMuller/aws-requests-auth#using-boto-to-automatically-gather-aws-credentials>`_
+package.
 
 Deployment to Elastic Beanstalk
 -------------------------------
