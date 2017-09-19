@@ -1,3 +1,5 @@
+from itertools import chain
+
 import troposphere.ec2 as ec2
 import troposphere.iam as iam
 from troposphere import Base64, FindInMap, Join, Output, Parameter, Ref, Tags
@@ -127,6 +129,7 @@ security_group = template.add_resource(ec2.SecurityGroup(
 # Elastic IP for EC2 instance
 eip = template.add_resource(ec2.EIP("Eip"))
 
+
 # The Dokku EC2 instance
 ec2_instance = template.add_resource(ec2.Instance(
     'Ec2Instance',
@@ -156,8 +159,8 @@ ec2_instance = template.add_resource(ec2.Instance(
         ' DOKKU_KEY_FILE=/home/ubuntu/.ssh/authorized_keys',  # use the key configured by key_name
         ' bash bootstrap.sh',
         '\n',
-        'sudo -u dokku dokku config:set --global'
-    ] + [' %s=%s' % env_pair for env_pair in environment_variables] + ['\n']
+        'dokku config:set --global',
+    ] + list(chain(*[(' %s=' % k, v) for k, v in environment_variables])) + ['\n']
     )),
     Tags=Tags(
         Name=Ref("AWS::StackName"),
