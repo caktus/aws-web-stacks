@@ -1,8 +1,8 @@
-from itertools import chain
-
+import troposphere.cloudformation as cloudformation
 import troposphere.ec2 as ec2
 import troposphere.iam as iam
 from troposphere import Base64, FindInMap, Join, Output, Parameter, Ref, Tags
+from troposphere.policies import CreationPolicy, ResourceSignal
 
 from .assets import assets_management_policy
 from .common import container_instance_type
@@ -131,8 +131,9 @@ eip = template.add_resource(ec2.EIP("Eip"))
 
 
 # The Dokku EC2 instance
+ec2_instance_name = 'Ec2Instance'
 ec2_instance = template.add_resource(ec2.Instance(
-    'Ec2Instance',
+    ec2_instance_name,
     ImageId=FindInMap("RegionMap", Ref("AWS::Region"), "AMI"),
     InstanceType=container_instance_type,
     KeyName=Ref(key_name),
@@ -147,21 +148,113 @@ ec2_instance = template.add_resource(ec2.Instance(
             )
         ),
     ],
+    CreationPolicy=CreationPolicy(
+        ResourceSignal=ResourceSignal(
+            Timeout='PT10M',  # 10 minutes
+        ),
+    ),
     UserData=Base64(Join('', [
         '#!/bin/bash\n',
+        # install cfn helper scripts; modified from:
+        # http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-helper-scripts-reference.html
         'sudo apt-get update\n',
-        'wget https://raw.githubusercontent.com/dokku/dokku/', Ref(dokku_version), '/bootstrap.sh\n',
-        'sudo',
-        ' DOKKU_TAG=', Ref(dokku_version),
-        ' DOKKU_VHOST_ENABLE=', Ref(dokku_vhost_enable),
-        ' DOKKU_WEB_CONFIG=', Ref(dokku_web_config),
-        ' DOKKU_HOSTNAME=', domain_name,
-        ' DOKKU_KEY_FILE=/home/ubuntu/.ssh/authorized_keys',  # use the key configured by key_name
-        ' bash bootstrap.sh',
-        '\n',
-        'dokku config:set --global',
-    ] + list(chain(*[(' %s=' % k, v) for k, v in environment_variables])) + ['\n']
-    )),
+        'apt-get -y install python-pip\n',
+        'pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n',
+        'cp /usr/local/init/ubuntu/cfn-hup /etc/init.d/cfn-hup\n',
+        'chmod +x /etc/init.d/cfn-hup\n',
+        # don't start cfn-hup yet, since we need to install cfn-hup.conf first
+        'update-rc.d cfn-hup defaults\n',
+        # call our "on_first_boot" configset (defined below):
+        'cfn-init --stack="', Ref('AWS::StackName'), '" --region=', Ref('AWS::Region'),
+        ' -r %s -c on_first_boot\n' % ec2_instance_name,
+        # send the exit code from cfn-init to our CreationPolicy:
+        'cfn-signal -e $? --stack="', Ref('AWS::StackName'), '" --region=', Ref('AWS::Region'),
+        ' --resource %s\n' % ec2_instance_name,
+    ])),
+    Metadata=cloudformation.Metadata(
+        cloudformation.Init(
+            cloudformation.InitConfigSets(
+                on_first_boot=['install_dokku', 'set_dokku_env', 'start_cfn_hup'],
+                on_metadata_update=['set_dokku_env'],
+            ),
+            # TODO: figure out how to reinstall Dokku if the version is changed (?)
+            install_dokku=cloudformation.InitConfig(
+                commands={
+                    '01_fetch': {
+                        'command': Join('', [
+                            'wget https://raw.githubusercontent.com/dokku/dokku/',
+                            Ref(dokku_version),
+                            '/bootstrap.sh',
+                        ]),
+                        'cwd': '~',
+                    },
+                    '02_install': {
+                        # docker-ce fails to install with this error if bootstrap.sh is run without sudo:
+                        # "debconf: delaying package configuration, since apt-utils is not installed"
+                        'command': 'sudo -E bash bootstrap.sh',  # use -E to make sure bash gets our env
+                        'env': {
+                            'DOKKU_TAG': Ref(dokku_version),
+                            'DOKKU_VHOST_ENABLE': Ref(dokku_vhost_enable),
+                            'DOKKU_WEB_CONFIG': Ref(dokku_web_config),
+                            'DOKKU_HOSTNAME': domain_name,
+                            'DOKKU_KEY_FILE': '/home/ubuntu/.ssh/authorized_keys',  # use the key configured by key_name
+                        },
+                        'cwd': '~',
+                    },
+                },
+            ),
+            set_dokku_env=cloudformation.InitConfig(
+                commands={
+                    '01_set_env': {
+                        # redirect output to /dev/null so we don't write environment variables to log file
+                        'command': 'dokku config:set --global {} >/dev/null'.format(
+                            ' '.join(['=$'.join([k, k]) for k in dict(environment_variables).keys()]),
+                        ),
+                        'env': dict(environment_variables),
+                    },
+                },
+            ),
+            start_cfn_hup=cloudformation.InitConfig(
+                commands={
+                    '01_start': {
+                        'command': 'service cfn-hup start',
+                    },
+                },
+                files={
+                    '/etc/cfn/cfn-hup.conf': {
+                        'content': Join('', [
+                            '[main]\n',
+                            'stack=', Ref('AWS::StackName'), '\n',
+                            'region=', Ref('AWS::Region'), '\n',
+                            'umask=022\n',
+                            'interval=1\n',  # check for changes every minute
+                            'verbose=true\n',
+                        ]),
+                        'mode': '000400',
+                        'owner': 'root',
+                        'group': 'root',
+                    },
+                    '/etc/cfn/hooks.d/cfn-auto-reloader.conf': {
+                        'content': Join('', [
+                            # trigger the on_metadata_update configset on any changes to Ec2Instance metadata
+                            '[cfn-auto-reloader-hook]\n',
+                            'triggers=post.update\n',
+                            'path=Resources.%s.Metadata\n' % ec2_instance_name,
+                            'action=/usr/local/bin/cfn-init',
+                            ' --stack=', Ref('AWS::StackName'),
+                            ' --resource=%s' % ec2_instance_name,
+                            ' --configsets=on_metadata_update',
+                            ' --region=', Ref('AWS::Region'), '\n',
+                            'runas=root\n',
+                        ]),
+                        'mode': '000400',
+                        'owner': 'root',
+                        'group': 'root',
+                    },
+                },
+            ),
+        ),
+    ),
     Tags=Tags(
         Name=Ref("AWS::StackName"),
     ),
