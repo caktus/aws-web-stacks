@@ -344,6 +344,15 @@ via Amazon Certificate Manager, so let's create one with Let's Encrypt instance:
 
 The Python sample app should now be accessible over HTTPS at https://python-sample.your.domain/
 
+Updating Environment Variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If metadata associated with the Dokku EC2 instance changes, updates to environment variables, if
+any, will be passed to the live server via `cfn-hup
+<http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-hup.html>`_. Depending on the
+nature of the update this may or may not result the instance being stopped and restarted. Inspect
+the stack update confirmation page carefully to avoid any unexpected instance recreations.
+
 Contributing
 ------------
 
