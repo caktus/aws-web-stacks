@@ -300,6 +300,10 @@ console.
 Dokku
 -----
 
+The CloudFormation stack creation should not finish until Dokku is fully installed; `cfn-signal
+<http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-signal.html>`_ is used in the
+template to signal CloudFormation once the installation is complete.
+
 DNS
 ~~~
 
@@ -310,15 +314,26 @@ for your chosen domain.
 For help creating a DNS record, please refer to the `Dokku DNS documentation
 <http://dokku.viewdocs.io/dokku/configuration/dns/>`_.
 
+Environment Variables
+~~~~~~~~~~~~~~~~~~~~~
+
+The environment variables for the other resources created in this stack will be passed to Dokku
+as global environment variables.
+
+If metadata associated with the Dokku EC2 instance changes, updates to environment variables, if
+any, will be passed to the live server via `cfn-hup
+<http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-hup.html>`_. Depending on the
+nature of the update this may or may not result the instance being stopped and restarted. Inspect
+the stack update confirmation page carefully to avoid any unexpected instance recreations.
+
 Deployment
 ~~~~~~~~~~
 
-Dokku may take 5-10 minutes to install, even after the stack creation has finished. Once installation
-is complete, create a new app on the remote server::
+You can create a new app on the remote server like so::
 
     ssh dokku@<your domain or IP> apps:create python-sample
 
-and deploy Heroku's Python sample to that app::
+and then deploy Heroku's Python sample to that app::
 
     git clone https://github.com/heroku/python-sample.git
     cd python-sample
@@ -343,15 +358,6 @@ via Amazon Certificate Manager, so let's create one with Let's Encrypt instance:
     ssh dokku@<your domain or IP> letsencrypt python-sample
 
 The Python sample app should now be accessible over HTTPS at https://python-sample.your.domain/
-
-Updating Environment Variables
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If metadata associated with the Dokku EC2 instance changes, updates to environment variables, if
-any, will be passed to the live server via `cfn-hup
-<http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-hup.html>`_. Depending on the
-nature of the update this may or may not result the instance being stopped and restarted. Inspect
-the stack update confirmation page carefully to avoid any unexpected instance recreations.
 
 Contributing
 ------------
