@@ -45,7 +45,7 @@ dokku_vhost_enable = template.add_parameter(Parameter(
 
 root_size = template.add_parameter(Parameter(
     "RootVolumeSize",
-    Description="The size of the root volumne (in GB).",
+    Description="The size of the root volume (in GB).",
     Type="Number",
     Default="30",
 ))
