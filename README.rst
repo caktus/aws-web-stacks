@@ -300,6 +300,10 @@ console.
 Dokku
 -----
 
+When creating a Dokku stack, you may find it advantageous to upload your normal SSH public key to
+AWS, rather than using one that AWS generates. This way, you'll already be set up to deploy to your
+Dokku instance without needing to keep track of an extra SSH private key.
+
 The CloudFormation stack creation should not finish until Dokku is fully installed; `cfn-signal
 <http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-signal.html>`_ is used in the
 template to signal CloudFormation once the installation is complete.
@@ -329,7 +333,9 @@ the stack update confirmation page carefully to avoid any unexpected instance re
 Deployment
 ~~~~~~~~~~
 
-You can create a new app on the remote server like so::
+You can create a new app on the remote server like so, using the same SSH key that you specified
+during the stack creation process (if you did use your default public key, add ``-i /path/to/key.pub``
+to this command)::
 
     ssh dokku@<your domain or IP> apps:create python-sample
 
@@ -350,12 +356,14 @@ For additional help deploying to your new instance, please refer to the `Dokku d
 Let's Encrypt
 ~~~~~~~~~~~~~
 
-The Dokku option does not create a load balancer and hence does not include a free SSL certificate
-via Amazon Certificate Manager, so let's create one with Let's Encrypt instance::
+The Dokku stack does not create a load balancer and hence does not include a free SSL certificate
+via Amazon Certificate Manager, so let's create one with the Let's Encrypt plugin, and add a cron
+job to automatically renew the cert as needed::
 
     ssh ubuntu@<your domain or IP> sudo dokku plugin:install https://github.com/dokku/dokku-letsencrypt.git
     ssh dokku@<your domain or IP> config:set --no-restart python-sample DOKKU_LETSENCRYPT_EMAIL=your@email.tld
     ssh dokku@<your domain or IP> letsencrypt python-sample
+    ssh dokku@<your domain or IP> letsencrypt:cron-job --add python-sample
 
 The Python sample app should now be accessible over HTTPS at https://python-sample.your.domain/
 
