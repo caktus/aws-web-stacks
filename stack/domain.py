@@ -7,3 +7,10 @@ domain_name = Ref(template.add_parameter(Parameter(
     Description="The domain name",
     Type="String",
 )))
+
+domain_name_alternates = Ref(template.add_parameter(Parameter(
+    "DomainNameAlternates",
+    Description="A comma-separated list of Alternate FQDNs to be included in "
+                "the Subject Alternative Name extension of the SSL certificate.",
+    Type="CommaDelimitedList",
+)))

@@ -6,7 +6,7 @@ from .assets import assets_bucket, distribution, private_assets_bucket
 from .cache import cache_cluster, cache_engine, using_redis_condition
 from .common import secret_key
 from .database import db_instance, db_name, db_password, db_user
-from .domain import domain_name
+from .domain import domain_name, domain_name_alternates
 
 if os.environ.get('USE_GOVCLOUD') != 'on':
     # not supported by GovCloud, so add it only if it was created (and in this
@@ -20,6 +20,7 @@ environment_variables = [
     ("AWS_STORAGE_BUCKET_NAME", Ref(assets_bucket)),
     ("AWS_PRIVATE_STORAGE_BUCKET_NAME", Ref(private_assets_bucket)),
     ("DOMAIN_NAME", domain_name),
+    ("ALTERNATE_DOMAIN_NAMES", Join(',', domain_name_alternates)),
     ("SECRET_KEY", secret_key),
     ("DATABASE_URL", Join("", [
         "postgres://",
