@@ -157,7 +157,7 @@ ec2_instance = template.add_resource(ec2.Instance(
         '#!/bin/bash\n',
         # install cfn helper scripts; modified from:
         # http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-helper-scripts-reference.html
-        'sudo apt-get update\n',
+        'apt-get update\n',
         'apt-get -y install python-pip\n',
         'pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n',
         'cp /usr/local/init/ubuntu/cfn-hup /etc/init.d/cfn-hup\n',
