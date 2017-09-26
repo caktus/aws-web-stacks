@@ -1,6 +1,6 @@
 import os
 
-from troposphere import GetAtt, Join, Output, Ref, iam
+from troposphere import Equals, GetAtt, If, Join, Output, Ref, Split, iam
 from troposphere.cloudfront import (
     DefaultCacheBehavior,
     Distribution,
@@ -19,35 +19,55 @@ from troposphere.s3 import (
 )
 
 from .common import arn_prefix
-from .domain import domain_name
+from .domain import domain_name, domain_name_alternates
 from .template import template
+
+no_alt_domains_condition = "NoAlternateDomains"
+template.add_condition(
+    no_alt_domains_condition,
+    # Equals() only supports strings, so convert domain_name_alternates to one first
+    Equals(Join("", domain_name_alternates), ""),
+)
+
+common_bucket_conf = dict(
+    VersioningConfiguration=VersioningConfiguration(
+        Status="Enabled"
+    ),
+    DeletionPolicy="Retain",
+    CorsConfiguration=CorsConfiguration(
+        CorsRules=[CorsRules(
+            AllowedOrigins=Split(";", Join("", [
+                "https://", domain_name,
+                If(
+                    no_alt_domains_condition,
+                    # if we don't have any alternate domains, return an empty string
+                    "",
+                    # otherwise, return the ';https://' that will be needed by the first domain
+                    ";https://",
+                ),
+                # then, add all the alternate domains, joined together with ';https://'
+                Join(";https://", domain_name_alternates),
+                # now that we have a string of origins separated by ';', Split() is used to make it into a list again
+            ])),
+            AllowedMethods=[
+                "POST",
+                "PUT",
+                "HEAD",
+                "GET",
+            ],
+            AllowedHeaders=[
+                "*",
+            ],
+        )],
+    ),
+)
 
 # Create an S3 bucket that holds statics and media
 assets_bucket = template.add_resource(
     Bucket(
         "AssetsBucket",
         AccessControl=PublicRead,
-        VersioningConfiguration=VersioningConfiguration(
-            Status="Enabled"
-        ),
-        DeletionPolicy="Retain",
-        CorsConfiguration=CorsConfiguration(
-            CorsRules=[CorsRules(
-                AllowedOrigins=[
-                    Join("", ["https://", domain_name]),
-                    Join("", ["https://*.", domain_name]),
-                ],
-                AllowedMethods=[
-                    "POST",
-                    "PUT",
-                    "HEAD",
-                    "GET",
-                ],
-                AllowedHeaders=[
-                    "*",
-                ]
-            )]
-        ),
+        **common_bucket_conf,
     )
 )
 
@@ -65,27 +85,7 @@ private_assets_bucket = template.add_resource(
     Bucket(
         "PrivateAssetsBucket",
         AccessControl=Private,
-        VersioningConfiguration=VersioningConfiguration(
-            Status="Enabled"
-        ),
-        DeletionPolicy="Retain",
-        CorsConfiguration=CorsConfiguration(
-            CorsRules=[CorsRules(
-                AllowedOrigins=[
-                    Join("", ["https://", domain_name]),
-                    Join("", ["https://*.", domain_name]),
-                ],
-                AllowedMethods=[
-                    "POST",
-                    "PUT",
-                    "HEAD",
-                    "GET",
-                ],
-                AllowedHeaders=[
-                    "*",
-                ]
-            )]
-        ),
+        **common_bucket_conf,
     )
 )
 
@@ -144,7 +144,15 @@ if os.environ.get('USE_GOVCLOUD') != 'on':
                 DefaultCacheBehavior=DefaultCacheBehavior(
                     TargetOriginId="Assets",
                     ForwardedValues=ForwardedValues(
-                        QueryString=True
+                        # Cache results *should* vary based on querystring (e.g., 'style.css?v=3')
+                        QueryString=True,
+                        # make sure headers needed by CORS policy above get through to S3
+                        # http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/header-caching.html#header-caching-web-cors
+                        Headers=[
+                            'Origin',
+                            'Access-Control-Request-Headers',
+                            'Access-Control-Request-Method',
+                        ],
                     ),
                     ViewerProtocolPolicy="allow-all",
                 ),
