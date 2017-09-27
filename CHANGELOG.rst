@@ -2,6 +2,23 @@ Change Log
 ==========
 
 
+`1.1.2`_ (2017-09-26)
+---------------------
+
+Features:
+
+* A comma-separted list of alternate domain names may now be provided to the stack as a
+  CloudFormation Parameter. Additional domains, if any, will be supplied as Allowed Origins
+  in the CORS rules associated with the S3 buckets and will be added to the Subject
+  Alternative Name extension of the auto-generated SSL certificate. Wildcard domains are
+  supported in both cases, e.g., "*.example.com".
+
+Bug fixes:
+
+* The CloudFront distribution now passes through the ``Origin`` and related HTTP headers to
+  the underlying S3 bucket. Prior to this fix, some resources (such as fonts) may have failed
+  to load when accessed via the CloudFront distribution URL.
+
 `1.1.1`_ (2017-09-14)
 ---------------------
 
@@ -83,6 +100,7 @@ Backwards-incompatible changes:
 * Initial public release
 
 
+.. _1.1.2: https://aws-container-basics.s3.amazonaws.com/index.html?prefix=1.1.2/
 .. _1.1.1: https://aws-container-basics.s3.amazonaws.com/index.html?prefix=1.1.1/
 .. _1.1.0: https://aws-container-basics.s3.amazonaws.com/index.html?prefix=1.1.0/
 .. _1.0.1: https://aws-container-basics.s3.amazonaws.com/index.html?prefix=1.0.1/
