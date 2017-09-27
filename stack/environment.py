@@ -11,7 +11,7 @@ from .domain import domain_name, domain_name_alternates
 if os.environ.get('USE_GOVCLOUD') != 'on':
     # not supported by GovCloud, so add it only if it was created (and in this
     # case we want to avoid importing if it's not needed)
-    from .search import es_domain
+    from .search import es_condition, es_domain
 else:
     es_domain = None
 
@@ -58,8 +58,8 @@ if distribution:
 if es_domain:
     # not supported by GovCloud, so add it only if it was created
     environment_variables += [
-        ("ELASTICSEARCH_ENDPOINT", GetAtt(es_domain, "DomainEndpoint")),
-        ("ELASTICSEARCH_PORT", "443"),
-        ("ELASTICSEARCH_USE_SSL", "on"),
-        ("ELASTICSEARCH_VERIFY_CERTS", "on"),
+        ("ELASTICSEARCH_ENDPOINT", If(es_condition, GetAtt(es_domain, "DomainEndpoint"), "")),
+        ("ELASTICSEARCH_PORT", If(es_condition, "443", "")),
+        ("ELASTICSEARCH_USE_SSL", If(es_condition, "on", "")),
+        ("ELASTICSEARCH_VERIFY_CERTS", If(es_condition, "on", "")),
     ]
