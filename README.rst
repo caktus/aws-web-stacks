@@ -335,7 +335,7 @@ Deployment
 
 You can create a new app on the remote server like so, using the same SSH key that you specified
 during the stack creation process (if you didn't use your shell's default SSH key, you'll need to
-add ``-i /path/to/key.pub`` to this command)::
+add ``-i /path/to/private_key`` to this command)::
 
     ssh dokku@<your domain or IP> apps:create python-sample
 
