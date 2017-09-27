@@ -7,7 +7,7 @@ Change Log
 
 Features:
 
-* The RDS instance, Elasticache instance, and Elasticsearch instance can all now be optionally
+* The RDS instance, ElastiCache instance, and Elasticsearch instance can all now be optionally
   removed from the stack by setting the instance type to ``(none)`` in the relevant CloudFormation
   parameter.
 * Support for using a single `Dokku <http://dokku.viewdocs.io/dokku/>`_ instance as an application
