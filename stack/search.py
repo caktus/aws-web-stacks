@@ -119,10 +119,12 @@ template.add_output(Output(
     "ElasticsearchDomainEndpoint",
     Description="Elasticsearch domain endpoint",
     Value=GetAtt(es_domain, "DomainEndpoint"),
+    Condition=es_condition,
 ))
 
 template.add_output(Output(
     "ElasticsearchDomainArn",
     Description="Elasticsearch domain ARN",
     Value=GetAtt(es_domain, "DomainArn"),
+    Condition=es_condition,
 ))
