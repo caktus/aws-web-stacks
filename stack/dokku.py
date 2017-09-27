@@ -198,6 +198,7 @@ ec2_instance = template.add_resource(ec2.Instance(
                             'DOKKU_WEB_CONFIG': Ref(dokku_web_config),
                             'DOKKU_HOSTNAME': domain_name,
                             'DOKKU_KEY_FILE': '/home/ubuntu/.ssh/authorized_keys',  # use the key configured by key_name
+                            'DOKKU_SKIP_KEY_FILE': 'false',  # should be the default, but be explicit just in case
                         },
                         'cwd': '~',
                     },
