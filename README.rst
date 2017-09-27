@@ -17,24 +17,24 @@ If a NAT gateway is not used, it's possible to create a fully-managed, self-cont
 environment for your application entirely within the free tier on AWS. To try it out, select
 one of the following:
 
-+---------------------+-------------------+---------------------------+---------------+
-|                     | Elastic Beanstalk | Elastic Container Service | EC2 Instances |
-+=====================+===================+===========================+===============+
-| Without NAT Gateway | |EB-No-NAT|_      | |ECS-No-NAT|_             | |EC2-No-NAT|_ |
-+---------------------+-------------------+---------------------------+---------------+
-| With NAT Gateway    | |EB-NAT|_         | |ECS-NAT|_                | |EC2-NAT|_    |
-+---------------------+-------------------+---------------------------+---------------+
++---------------------+-------------------+---------------------------+---------------+-----------------+
+|                     | Elastic Beanstalk | Elastic Container Service | EC2 Instances | Dokku           |
++=====================+===================+===========================+===============+=================+
+| Without NAT Gateway | |EB-No-NAT|_      | |ECS-No-NAT|_             | |EC2-No-NAT|_ | |Dokku-No-NAT|_ |
++---------------------+-------------------+---------------------------+---------------+-----------------+
+| With NAT Gateway    | |EB-NAT|_         | |ECS-NAT|_                | |EC2-NAT|_    | n/a             |
++---------------------+-------------------+---------------------------+---------------+-----------------+
 
 If you'd like to review the CloudFormation template first, or update an existing stack, you may also
 wish to use the JSON template directly:
 
-+---------------------+-------------------+---------------------------+--------------------+
-|                     | Elastic Beanstalk | Elastic Container Service | EC2 Instances      |
-+=====================+===================+===========================+====================+
-| Without NAT Gateway | `eb-no-nat.json`_ | `ecs-no-nat.json`_        | `ec2-no-nat.json`_ |
-+---------------------+-------------------+---------------------------+--------------------+
-| With NAT Gateway    | `eb-nat.json`_    | `ecs-nat.json`_           | `ec2-nat.json`_    |
-+---------------------+-------------------+---------------------------+--------------------+
++---------------------+-------------------+---------------------------+--------------------+----------------------+
+|                     | Elastic Beanstalk | Elastic Container Service | EC2 Instances      | Dokku                |
++=====================+===================+===========================+====================+======================+
+| Without NAT Gateway | `eb-no-nat.json`_ | `ecs-no-nat.json`_        | `ec2-no-nat.json`_ | `dokku-no-nat.json`_ |
++---------------------+-------------------+---------------------------+--------------------+----------------------+
+| With NAT Gateway    | `eb-nat.json`_    | `ecs-nat.json`_           | `ec2-nat.json`_    | n/a                  |
++---------------------+-------------------+---------------------------+--------------------+----------------------+
 
 .. |EB-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
 .. _EB-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-no-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/eb-no-nat.json
@@ -60,18 +60,32 @@ wish to use the JSON template directly:
 .. _EC2-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ec2-app-with-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/ec2-nat.json
 .. _ec2-nat.json: https://s3.amazonaws.com/aws-container-basics/ec2-nat.json
 
-Elastic Beanstalk, Elastic Container Service, or EC2 instances?
----------------------------------------------------------------
+.. |Dokku-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
+.. _Dokku-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=dokku-no-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/dokku-no-nat.json
+.. _dokku-no-nat.json: https://s3.amazonaws.com/aws-container-basics/dokku-no-nat.json
 
-Elastic Beanstalk is the recommended starting point, unless more complex container service
-definitions are required or you prefer to configure application servers manually using Ansible,
-Salt, Chef, Puppet, or another such tool. Elastic Beanstalk comes with a preconfigured autoscaling
-configuration, allows for automated, managed updates to the underlying servers, allows changing
+
+Elastic Beanstalk, Elastic Container Service, EC2, or Dokku?
+------------------------------------------------------------
+
+**Elastic Beanstalk** is the recommended starting point. Elastic Beanstalk comes with a preconfigured
+autoscaling configuration, allows for automated, managed updates to the underlying servers, allows changing
 environment variables without recreating the underlying service, and comes with its own command line
 tool for managing deployments. The Elastic Beanstalk environment uses the
 `multicontainer docker environment <http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_docker_ecs.html>`_
 to maximize flexibility in terms of the application(s) and container(s) deployed to the stack.
 
+**Elastic Container Service (ECS)** might be useful if complex container service definitions are required.
+
+If you prefer to configure application servers manually using Ansible, Salt, Chef, Puppet, or another such tool,
+choose the **EC2** option. Be aware that the instances created are managed by an autoscaling group, so you should
+suspend the autoscaling processes on this autoscaling group if you don't want it to bring up new (unprovisioned)
+instances.
+
+For very simple, Heroku-like deploys, choose the **Dokku** option. This will give you a single EC2 instance
+based on Ubuntu 16.04 LTS with `Dokku <http://dokku.viewdocs.io/dokku/>`_ pre-installed and global environment
+variables configured that will allow your app to find the Postgres, Redis or Memcached, and Elasticsearch nodes
+created with this stack.
 
 NAT Gateways
 ------------
@@ -91,10 +105,11 @@ instance, have been created.
 SSL Certificate
 ---------------
 
-The automatically-generated SSL certificate requires approval from the domain owner. After
-initiating stack creation, be on the lookout for an email from Amazon to the domain owner
-(as seen in a ``whois`` query) and follow the link to approve the certificate. If you're using
-a ``.io`` domain, be aware that
+For the Elastic Beanstalk, Elastic Container Service, and EC2 (non-GovCloud) options, an
+automatically-generated SSL certificate is included. The certificate requires approval from the
+domain owner before it can be issued, and *your stack creation will not finish until you approve
+the request*. Be on the lookout for an email from Amazon to the domain owner (as seen in a ``whois``
+query) and follow the link to approve the certificate. If you're using a ``.io`` domain, be aware that
 `prior steps <http://docs.aws.amazon.com/acm/latest/userguide/troubleshoot-iodomains.html>`_
 may be necessary to receive email for ``.io`` domains, because domain owner emails cannot
 be discovered via ``whois``.
@@ -169,6 +184,7 @@ Once your environment is created you'll have an Elastic Beanstalk (EB) or Elasti
 (ECS) environment with the environment variables you need to run a containerized web application.
 These environment variables are:
 
+* ``AWS_REGION``: The AWS region in which your stack was created.
 * ``AWS_STORAGE_BUCKET_NAME``: The name of the S3 bucket in which your application should store
   static assets
 * ``AWS_PRIVATE_STORAGE_BUCKET_NAME``: The name of the S3 bucket in which your application should
@@ -176,7 +192,9 @@ These environment variables are:
   authentication to read objects and encrypt them at rest, if needed.
 * ``CDN_DOMAIN_NAME``: The domain name of the CloudFront distribution connected to the above S3
   bucket; you should use this (or the S3 bucket URL directly) to refer to static assets in your HTML
-* ``ELASTICSEARCH_ENDPOINT``: The domain name of the Elasticsearch instance.
+* ``ELASTICSEARCH_ENDPOINT``: The domain name of the Elasticsearch instance. If ``(none)`` is selected
+  for the ``ElasticsearchInstanceType`` during stack creation, the value of this variable will be
+  ``'none-created'``.
 * ``ELASTICSEARCH_PORT``: The recommended port for connecting to Elasticsearch (defaults to 443).
 * ``ELASTICSEARCH_USE_SSL``: Whether or not to use SSL (defaults to ``'on'``).
 * ``ELASTICSEARCH_VERIFY_CERTS``: Whether or not to verify Elasticsearch SSL certificates. This
@@ -189,11 +207,14 @@ These environment variables are:
   stack. These domains, if any, will also be included in the automatically-generated SSL certificate
   and S3 CORS configuration.
 * ``SECRET_KEY``: The secret key you specified when creating this stack
-* ``DATABASE_URL``: The URL to the RDS instance created as part of this stack.
-* ``REDIS_URL``: The URL to the Redis instance created as part of this stack (may be used as a cache
-  or session storage, e.g.). Note that Redis supports multiple databases and no database ID is
-  included as part of the URL, so you should append a forward slash and the integer index of the
-  database, if needed, e.g., ``/0``.
+* ``DATABASE_URL``: The URL to the RDS instance created as part of this stack. If ``(none)`` is
+  selected for the ``DatabaseClass`` during stack creation, the value of this variable will be
+  ``'none-created'``.
+* ``CACHE_URL``: The URL to the Redis or Memcached instance created as part of this stack (may be
+  used as a cache or session storage, e.g.). If using Redis, note that it supports multiple
+  databases and no database ID is included as part of the URL, so you should append a forward slash
+  and the integer index of the database, if needed, e.g., ``/0``. If ``(none)`` is selected for the
+  ``CacheNodeType`` during stack creation, the value of this variable will be ``'none-created'``.
 
 When running an EB stack, you can view and edit the keys and values for all environment variables
 on the fly via the Elastic Beanstalk console or command line tools.
@@ -282,11 +303,81 @@ Once complete, the EB environment should be running a copy of your container. To
 issues with the deployment, review events and logs via the Elastic Beanstack section of the AWS
 console.
 
-Good luck!
+Dokku
+-----
+
+When creating a Dokku stack, you may find it advantageous to upload your normal SSH public key to
+AWS, rather than using one that AWS generates. This way, you'll already be set up to deploy to your
+Dokku instance without needing to keep track of an extra SSH private key.
+
+The CloudFormation stack creation should not finish until Dokku is fully installed; `cfn-signal
+<http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-signal.html>`_ is used in the
+template to signal CloudFormation once the installation is complete.
+
+DNS
+~~~
+
+After the stack is created, you'll want to inspect the Outputs for the PublicIP of the instance and
+create a DNS ``A`` record (possibly including a wildcard record, if you're using vhost-based apps)
+for your chosen domain.
+
+For help creating a DNS record, please refer to the `Dokku DNS documentation
+<http://dokku.viewdocs.io/dokku/configuration/dns/>`_.
+
+Environment Variables
+~~~~~~~~~~~~~~~~~~~~~
+
+The environment variables for the other resources created in this stack will be passed to Dokku
+as global environment variables.
+
+If metadata associated with the Dokku EC2 instance changes, updates to environment variables, if
+any, will be passed to the live server via `cfn-hup
+<http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-hup.html>`_. Depending on the
+nature of the update this may or may not result the instance being stopped and restarted. Inspect
+the stack update confirmation page carefully to avoid any unexpected instance recreations.
+
+Deployment
+~~~~~~~~~~
+
+You can create a new app on the remote server like so, using the same SSH key that you specified
+during the stack creation process (if you didn't use your shell's default SSH key, you'll need to
+add ``-i /path/to/private_key`` to this command)::
+
+    ssh dokku@<your domain or IP> apps:create python-sample
+
+and then deploy Heroku's Python sample to that app::
+
+    git clone https://github.com/heroku/python-sample.git
+    cd python-sample
+    git remote add dokku dokku@<your domain or IP>:python-sample
+    git push dokku master
+
+You should be able to watch the build complete in the output from the ``git push`` command. If the
+deploy completes successfully, you should be able to see "Hello world!" at
+http://python-sample.your.domain/
+
+For additional help deploying to your new instance, please refer to the `Dokku documentation
+<http://dokku.viewdocs.io/dokku/deployment/application-deployment/>`_.
+
+Let's Encrypt
+~~~~~~~~~~~~~
+
+The Dokku stack does not create a load balancer and hence does not include a free SSL certificate
+via Amazon Certificate Manager, so let's create one with the Let's Encrypt plugin, and add a cron
+job to automatically renew the cert as needed::
+
+    ssh ubuntu@<your domain or IP> sudo dokku plugin:install https://github.com/dokku/dokku-letsencrypt.git
+    ssh dokku@<your domain or IP> config:set --no-restart python-sample DOKKU_LETSENCRYPT_EMAIL=your@email.tld
+    ssh dokku@<your domain or IP> letsencrypt python-sample
+    ssh dokku@<your domain or IP> letsencrypt:cron-job --add python-sample
+
+The Python sample app should now be accessible over HTTPS at https://python-sample.your.domain/
 
 Contributing
 ------------
 
 Please read `contributing guidelines here <https://github.com/tobiasmcnulty/aws-container-basics/blob/develop/CONTRIBUTING.rst>`_.
+
+Good luck and have fun!
 
 Copyright 2017 Jean-Phillipe Serafin, Tobias McNulty.

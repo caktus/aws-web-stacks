@@ -16,6 +16,7 @@ from troposphere.ec2 import (
 from .template import template
 
 USE_NAT_GATEWAY = os.environ.get('USE_NAT_GATEWAY') == 'on'
+USE_DOKKU = os.environ.get('USE_DOKKU') == 'on'
 
 
 primary_az = template.add_parameter(Parameter(
@@ -108,41 +109,39 @@ if USE_NAT_GATEWAY:
     )
 
 
-# Holds load balancer
-loadbalancer_a_subnet_cidr = "10.0.2.0/24"
-loadbalancer_a_subnet = Subnet(
-    "LoadbalancerASubnet",
-    template=template,
-    VpcId=Ref(vpc),
-    CidrBlock=loadbalancer_a_subnet_cidr,
-    AvailabilityZone=Ref(primary_az),
-)
+if not USE_DOKKU:
+    # Holds load balancer
+    loadbalancer_a_subnet_cidr = "10.0.2.0/24"
+    loadbalancer_a_subnet = Subnet(
+        "LoadbalancerASubnet",
+        template=template,
+        VpcId=Ref(vpc),
+        CidrBlock=loadbalancer_a_subnet_cidr,
+        AvailabilityZone=Ref(primary_az),
+    )
 
+    SubnetRouteTableAssociation(
+        "LoadbalancerASubnetRouteTableAssociation",
+        template=template,
+        RouteTableId=Ref(public_route_table),
+        SubnetId=Ref(loadbalancer_a_subnet),
+    )
 
-SubnetRouteTableAssociation(
-    "LoadbalancerASubnetRouteTableAssociation",
-    template=template,
-    RouteTableId=Ref(public_route_table),
-    SubnetId=Ref(loadbalancer_a_subnet),
-)
+    loadbalancer_b_subnet_cidr = "10.0.3.0/24"
+    loadbalancer_b_subnet = Subnet(
+        "LoadbalancerBSubnet",
+        template=template,
+        VpcId=Ref(vpc),
+        CidrBlock=loadbalancer_b_subnet_cidr,
+        AvailabilityZone=Ref(secondary_az),
+    )
 
-
-loadbalancer_b_subnet_cidr = "10.0.3.0/24"
-loadbalancer_b_subnet = Subnet(
-    "LoadbalancerBSubnet",
-    template=template,
-    VpcId=Ref(vpc),
-    CidrBlock=loadbalancer_b_subnet_cidr,
-    AvailabilityZone=Ref(secondary_az),
-)
-
-
-SubnetRouteTableAssociation(
-    "LoadbalancerBSubnetRouteTableAssociation",
-    template=template,
-    RouteTableId=Ref(public_route_table),
-    SubnetId=Ref(loadbalancer_b_subnet),
-)
+    SubnetRouteTableAssociation(
+        "LoadbalancerBSubnetRouteTableAssociation",
+        template=template,
+        RouteTableId=Ref(public_route_table),
+        SubnetId=Ref(loadbalancer_b_subnet),
+    )
 
 
 if USE_NAT_GATEWAY:

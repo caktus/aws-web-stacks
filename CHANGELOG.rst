@@ -2,6 +2,21 @@ Change Log
 ==========
 
 
+`1.2.0`_ (2017-09-27)
+---------------------
+
+Features:
+
+* The RDS instance, ElastiCache instance, and Elasticsearch instance can all now be optionally
+  removed from the stack by setting the instance type to ``(none)`` in the relevant CloudFormation
+  parameter.
+* Support for using a single `Dokku <http://dokku.viewdocs.io/dokku/>`_ instance as an application
+  server was added. Dokku is installed automatically on an Ubuntu 16.04 LTS instance, configured
+  with the options selected via CloudFormation parameters, and provided the environment variables
+  needed to access the related resources (such as the database, cache, or Elasticsearch instance)
+  created with this stack. For more information, please see `the README
+  <https://github.com/tobiasmcnulty/aws-container-basics/blob/master/README.rst#dokku>`_.
+
 `1.1.2`_ (2017-09-26)
 ---------------------
 
