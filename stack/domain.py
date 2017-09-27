@@ -1,4 +1,4 @@
-from troposphere import Parameter, Ref
+from troposphere import Equals, Join, Parameter, Ref
 
 from .template import template
 
@@ -14,3 +14,10 @@ domain_name_alternates = Ref(template.add_parameter(Parameter(
                 "the Subject Alternative Name extension of the SSL certificate.",
     Type="CommaDelimitedList",
 )))
+
+no_alt_domains = "NoAlternateDomains"
+template.add_condition(
+    no_alt_domains,
+    # Equals() only supports strings, so convert domain_name_alternates to one first
+    Equals(Join("", domain_name_alternates), ""),
+)

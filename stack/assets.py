@@ -1,6 +1,6 @@
 import os
 
-from troposphere import Equals, GetAtt, If, Join, Output, Ref, Split, iam
+from troposphere import GetAtt, If, Join, Output, Ref, Split, iam
 from troposphere.cloudfront import (
     DefaultCacheBehavior,
     Distribution,
@@ -19,15 +19,8 @@ from troposphere.s3 import (
 )
 
 from .common import arn_prefix
-from .domain import domain_name, domain_name_alternates
+from .domain import domain_name, domain_name_alternates, no_alt_domains
 from .template import template
-
-no_alt_domains_condition = "NoAlternateDomains"
-template.add_condition(
-    no_alt_domains_condition,
-    # Equals() only supports strings, so convert domain_name_alternates to one first
-    Equals(Join("", domain_name_alternates), ""),
-)
 
 common_bucket_conf = dict(
     VersioningConfiguration=VersioningConfiguration(
@@ -39,7 +32,7 @@ common_bucket_conf = dict(
             AllowedOrigins=Split(";", Join("", [
                 "https://", domain_name,
                 If(
-                    no_alt_domains_condition,
+                    no_alt_domains,
                     # if we don't have any alternate domains, return an empty string
                     "",
                     # otherwise, return the ';https://' that will be needed by the first domain
