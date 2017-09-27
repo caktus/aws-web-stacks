@@ -1,5 +1,6 @@
-from troposphere import Parameter, Ref, ec2, rds
+from troposphere import Equals, Not, Parameter, Ref, ec2, rds
 
+from .common import dont_create_value
 from .template import template
 from .vpc import (
     container_a_subnet,
@@ -57,6 +58,7 @@ db_class = template.add_parameter(Parameter(
     Description="Database instance class",
     Type="String",
     AllowedValues=[
+        dont_create_value,
         'db.t1.micro',
         'db.m1.small',
         'db.m4.large',
@@ -142,11 +144,14 @@ db_storage_encrypted = template.add_parameter(Parameter(
     ],
 ))
 
+db_condition = "DatabaseCondition"
+template.add_condition(db_condition, Not(Equals(Ref(db_class), dont_create_value)))
 
 db_security_group = ec2.SecurityGroup(
     'DatabaseSecurityGroup',
     template=template,
     GroupDescription="Database security group.",
+    Condition=db_condition,
     VpcId=Ref(vpc),
     SecurityGroupIngress=[
         # Postgres in from web clusters
@@ -169,6 +174,7 @@ db_security_group = ec2.SecurityGroup(
 db_subnet_group = rds.DBSubnetGroup(
     "DatabaseSubnetGroup",
     template=template,
+    Condition=db_condition,
     DBSubnetGroupDescription="Subnets available for the RDS DB Instance",
     SubnetIds=[Ref(container_a_subnet), Ref(container_b_subnet)],
 )
@@ -178,6 +184,7 @@ db_instance = rds.DBInstance(
     "PostgreSQL",
     template=template,
     DBName=Ref(db_name),
+    Condition=db_condition,
     AllocatedStorage=Ref(db_allocated_storage),
     DBInstanceClass=Ref(db_class),
     Engine="postgres",

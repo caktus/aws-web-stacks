@@ -1,5 +1,6 @@
-from troposphere import Equals, If, Parameter, Ref, ec2, elasticache
+from troposphere import Equals, If, Not, Parameter, Ref, ec2, elasticache
 
+from .common import dont_create_value
 from .template import template
 from .vpc import (
     container_a_subnet,
@@ -28,6 +29,7 @@ cache_node_type = template.add_parameter(Parameter(
     Description="Cache instance class",
     Type="String",
     AllowedValues=[
+        dont_create_value,
         'cache.t2.micro',
         'cache.t2.small',
         'cache.t2.medium',
@@ -50,6 +52,10 @@ cache_node_type = template.add_parameter(Parameter(
 ))
 
 
+cache_condition = "CacheCondition"
+template.add_condition(cache_condition, Not(Equals(Ref(cache_node_type), dont_create_value)))
+
+
 using_redis_condition = "UsingRedis"
 template.add_condition(
     using_redis_condition,
@@ -61,6 +67,7 @@ cache_security_group = ec2.SecurityGroup(
     'CacheSecurityGroup',
     template=template,
     GroupDescription="Cache security group.",
+    Condition=cache_condition,
     VpcId=Ref(vpc),
     SecurityGroupIngress=[
         # Redis in from web clusters
@@ -84,6 +91,7 @@ cache_subnet_group = elasticache.SubnetGroup(
     "CacheSubnetGroup",
     template=template,
     Description="Subnets available for the cache instance",
+    Condition=cache_condition,
     SubnetIds=[Ref(container_a_subnet), Ref(container_b_subnet)],
 )
 
@@ -93,6 +101,7 @@ cache_cluster = elasticache.CacheCluster(
     template=template,
     Engine=Ref(cache_engine),
     CacheNodeType=Ref(cache_node_type),
+    Condition=cache_condition,
     NumCacheNodes=1,  # Must be 1 for redis, but still required
     Port=If(using_redis_condition, 6379, 11211),
     VpcSecurityGroupIds=[Ref(cache_security_group)],
