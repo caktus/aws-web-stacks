@@ -183,7 +183,11 @@ These environment variables are:
   should work fine with AWS Elasticsearch (the instance provides a valid certificate), so this
   defaults to ``'on'`` as well.
 * ``DOMAIN_NAME``: The domain name you specified when creating the stack, which will
-  be associated with the automatically-generated SSL certificate.
+  be associated with the automatically-generated SSL certificate and as an allowed origin in the
+  CORS configuration for the S3 buckets.
+* ``ALTERNATE_DOMAIN_NAMES``: A comma-separated list of alternate domain names provided to the
+  stack. These domains, if any, will also be included in the automatically-generated SSL certificate
+  and S3 CORS configuration.
 * ``SECRET_KEY``: The secret key you specified when creating this stack
 * ``DATABASE_URL``: The URL to the RDS instance created as part of this stack.
 * ``REDIS_URL``: The URL to the Redis instance created as part of this stack (may be used as a cache
