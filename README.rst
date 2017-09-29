@@ -82,8 +82,11 @@ to maximize flexibility in terms of the application(s) and container(s) deployed
 
 If you prefer to configure application servers manually using Ansible, Salt, Chef, Puppet, or another such tool,
 choose the **EC2** option. Be aware that the instances created are managed by an autoscaling group, so you should
-suspend the autoscaling processes on this autoscaling group if you don't want it to bring up new (unprovisioned)
-instances.
+suspend the autoscaling processes on this autoscaling group (after the initial instances are created) if you
+don't want it to bring up new (unprovisioned) instances or potentially even terminate one of your instances should
+it appear unhealthy, e.g.::
+
+    aws autoscaling suspend-processes --auto-scaling-group-name <your-ag-name>
 
 For very simple, Heroku-like deploys, choose the **Dokku** option. This will give you a single EC2 instance
 based on Ubuntu 16.04 LTS with `Dokku <http://dokku.viewdocs.io/dokku/>`_ pre-installed and global environment
