@@ -1,13 +1,13 @@
 AWS Web Stacks
 ==============
 
-AWS Web Stacks is a library of CloudFormation templates that dramatically simplify hosting
-web applications on AWS. The library supports either Elastic Container Service (ECS),
-Elastic Beanstalk (EB), or EC2 instances (via an AMI you specify) and provides auxilary managed
-services such as a Postgres RDS instance, Redis instance, Elasticsearch instance (free) SSL certificate
-via AWS Certificate Manager, S3 bucket for static assets, ECS repository for hosting Docker images, etc.
-All resources (except Elasticsearch, which does not support VPCs) are created in a self-contained VPC,
-which may use a NAT gateway (if you want to pay for that) or not.
+AWS Web Stacks is a library of CloudFormation templates that dramatically simplify hosting web applications
+on AWS. The library supports using Elastic Container Service (ECS), Elastic Beanstalk (EB), EC2 instances
+(via an AMI you specify), or `Dokku <http://dokku.viewdocs.io/dokku/>`_ for the application server(s) and
+provides auxilary managed services such as a Postgres RDS instance, Redis instance, Elasticsearch instance
+(free) SSL certificate via AWS Certificate Manager, S3 bucket for static assets, ECS repository for hosting
+Docker images, etc. All resources (except Elasticsearch, which does not support VPCs) are created in a
+self-contained VPC, which may use a NAT gateway (if you want to pay for that) or not.
 
 The CloudFormation templates are written in `troposphere <https://github.com/cloudtools/troposphere>`_,
 which allows for some validation at build time and simplifies the management of several related
