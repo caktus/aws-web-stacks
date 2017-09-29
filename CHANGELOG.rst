@@ -15,7 +15,7 @@ Features:
   with the options selected via CloudFormation parameters, and provided the environment variables
   needed to access the related resources (such as the database, cache, or Elasticsearch instance)
   created with this stack. For more information, please see `the README
-  <https://github.com/tobiasmcnulty/aws-container-basics/blob/master/README.rst#dokku>`_.
+  <https://github.com/caktus/aws-web-stacks/blob/master/README.rst#dokku>`_.
 
 `1.1.2`_ (2017-09-26)
 ---------------------
@@ -26,7 +26,7 @@ Features:
   CloudFormation Parameter. Additional domains, if any, will be supplied as Allowed Origins
   in the CORS rules associated with the S3 buckets and will be added to the Subject
   Alternative Name extension of the auto-generated SSL certificate. Wildcard domains are
-  supported in both cases, e.g., "*.example.com".
+  supported in both cases, e.g., ``*.example.com``.
 
 Bug fixes:
 
@@ -115,9 +115,9 @@ Backwards-incompatible changes:
 * Initial public release
 
 
-.. _1.1.2: https://aws-container-basics.s3.amazonaws.com/index.html?prefix=1.1.2/
-.. _1.1.1: https://aws-container-basics.s3.amazonaws.com/index.html?prefix=1.1.1/
-.. _1.1.0: https://aws-container-basics.s3.amazonaws.com/index.html?prefix=1.1.0/
-.. _1.0.1: https://aws-container-basics.s3.amazonaws.com/index.html?prefix=1.0.1/
-.. _1.0.0: https://aws-container-basics.s3.amazonaws.com/index.html?prefix=1.0.0/
-.. _0.9.0: https://aws-container-basics.s3.amazonaws.com/index.html?prefix=0.9.0/
+.. _1.1.2: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.1.2/
+.. _1.1.1: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.1.1/
+.. _1.1.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.1.0/
+.. _1.0.1: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.0.1/
+.. _1.0.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.0.0/
+.. _0.9.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=0.9.0/

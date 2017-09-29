@@ -1,8 +1,8 @@
-AWS Container Basics
-====================
+AWS Web Stacks
+==============
 
-AWS Container Basics is a library of CloudFormation templates that dramatically simplify hosting
-containerized web applications on AWS. The library supports either Elastic Container Service (ECS),
+AWS Web Stacks is a library of CloudFormation templates that dramatically simplify hosting
+web applications on AWS. The library supports either Elastic Container Service (ECS),
 Elastic Beanstalk (EB), or EC2 instances (via an AMI you specify) and provides auxilary managed
 services such as a Postgres RDS instance, Redis instance, Elasticsearch instance (free) SSL certificate
 via AWS Certificate Manager, S3 bucket for static assets, ECS repository for hosting Docker images, etc.
@@ -37,32 +37,32 @@ wish to use the JSON template directly:
 +---------------------+-------------------+---------------------------+--------------------+----------------------+
 
 .. |EB-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _EB-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-no-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/eb-no-nat.json
-.. _eb-no-nat.json: https://s3.amazonaws.com/aws-container-basics/eb-no-nat.json
+.. _EB-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eb-no-nat.json
+.. _eb-no-nat.json: https://s3.amazonaws.com/aws-web-stacks/eb-no-nat.json
 
 .. |EB-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _EB-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-with-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/eb-nat.json
-.. _eb-nat.json: https://s3.amazonaws.com/aws-container-basics/eb-nat.json
+.. _EB-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eb-nat.json
+.. _eb-nat.json: https://s3.amazonaws.com/aws-web-stacks/eb-nat.json
 
 .. |ECS-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _ECS-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-no-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/ecs-no-nat.json
-.. _ecs-no-nat.json: https://s3.amazonaws.com/aws-container-basics/ecs-no-nat.json
+.. _ECS-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ecs-no-nat.json
+.. _ecs-no-nat.json: https://s3.amazonaws.com/aws-web-stacks/ecs-no-nat.json
 
 .. |ECS-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _ECS-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-with-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/ecs-nat.json
-.. _ecs-nat.json: https://s3.amazonaws.com/aws-container-basics/ecs-nat.json
+.. _ECS-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ecs-nat.json
+.. _ecs-nat.json: https://s3.amazonaws.com/aws-web-stacks/ecs-nat.json
 
 .. |EC2-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _EC2-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ec2-app-no-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/ec2-no-nat.json
-.. _ec2-no-nat.json: https://s3.amazonaws.com/aws-container-basics/ec2-no-nat.json
+.. _EC2-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ec2-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ec2-no-nat.json
+.. _ec2-no-nat.json: https://s3.amazonaws.com/aws-web-stacks/ec2-no-nat.json
 
 .. |EC2-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _EC2-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ec2-app-with-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/ec2-nat.json
-.. _ec2-nat.json: https://s3.amazonaws.com/aws-container-basics/ec2-nat.json
+.. _EC2-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ec2-app-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ec2-nat.json
+.. _ec2-nat.json: https://s3.amazonaws.com/aws-web-stacks/ec2-nat.json
 
 .. |Dokku-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _Dokku-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=dokku-no-nat&templateURL=https://s3.amazonaws.com/aws-container-basics/dokku-no-nat.json
-.. _dokku-no-nat.json: https://s3.amazonaws.com/aws-container-basics/dokku-no-nat.json
+.. _Dokku-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=dokku-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.json
+.. _dokku-no-nat.json: https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.json
 
 
 Elastic Beanstalk, Elastic Container Service, EC2, or Dokku?
@@ -159,8 +159,8 @@ via the AWS Management Console:
 | With NAT Gateway    | `gc-nat.json`_    |
 +---------------------+-------------------+
 
-.. _gc-no-nat.json: https://s3.amazonaws.com/aws-container-basics/gc-no-nat.json
-.. _gc-nat.json: https://s3.amazonaws.com/aws-container-basics/gc-nat.json
+.. _gc-no-nat.json: https://s3.amazonaws.com/aws-web-stacks/gc-no-nat.json
+.. _gc-nat.json: https://s3.amazonaws.com/aws-web-stacks/gc-nat.json
 
 This template will create:
 
@@ -376,7 +376,7 @@ The Python sample app should now be accessible over HTTPS at https://python-samp
 Contributing
 ------------
 
-Please read `contributing guidelines here <https://github.com/tobiasmcnulty/aws-container-basics/blob/develop/CONTRIBUTING.rst>`_.
+Please read `contributing guidelines here <https://github.com/caktus/aws-web-stacks/blob/develop/CONTRIBUTING.rst>`_.
 
 Good luck and have fun!
 

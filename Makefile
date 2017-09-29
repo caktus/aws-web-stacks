@@ -19,4 +19,4 @@ templates:
 	cd content/; mkdir -p `cat ../version.txt`; for file in `ls *nat.json`; do cp $$file `cat ../version.txt`/`echo $$file|cut -d'.' -f1`-`cat ../version.txt`.json; done
 
 upload:
-	aws s3 sync content/ s3://aws-container-basics/ --acl public-read
+	aws s3 sync content/ s3://aws-web-stacks/ --acl public-read

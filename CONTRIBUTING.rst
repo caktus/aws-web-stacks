@@ -12,7 +12,7 @@ Setup
 
 .. code-block:: bash
 
-    mkvirtualenv -p python3.5 aws-container-basics
+    mkvirtualenv -p python3.5 aws-web-stacks
     pip install -r requirements.txt
 
 Check Code Formatting
@@ -38,7 +38,7 @@ Submitting Pull Requests
 
 * Please rebase your branch against the current ``develop`` branch
 * Please ensure ``make check`` and ``make`` (see above) succeed before submitting a PR
-* Make reference to possible `issues <https://github.com/tobiasmcnulty/aws-container-basics/issues>`_ on PR comment
+* Make reference to possible `issues <https://github.com/caktus/aws-web-stacks/issues>`_ on PR comment
 
 Submitting bug reports
 ----------------------
