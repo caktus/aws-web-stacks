@@ -1,6 +1,9 @@
 AWS Web Stacks
 ==============
 
+.. image:: https://circleci.com/gh/caktus/aws-web-stacks.svg?style=svg
+    :target: https://circleci.com/gh/caktus/aws-web-stacks
+
 AWS Web Stacks is a library of CloudFormation templates that dramatically simplify hosting web applications
 on AWS. The library supports using Elastic Container Service (ECS), Elastic Beanstalk (EB), EC2 instances
 (via an AMI you specify), or `Dokku <http://dokku.viewdocs.io/dokku/>`_ for the application server(s) and
