@@ -115,6 +115,7 @@ Backwards-incompatible changes:
 * Initial public release
 
 
+.. _1.2.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.2.0/
 .. _1.1.2: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.1.2/
 .. _1.1.1: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.1.1/
 .. _1.1.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.1.0/
