@@ -36,57 +36,76 @@ from .security_groups import container_security_group
 from .template import template
 from .vpc import container_a_subnet, container_b_subnet
 
-web_worker_cpu = Ref(template.add_parameter(Parameter(
-    "WebWorkerCPU",
-    Description="Web worker CPU units",
-    Type="Number",
-    Default="512",
-)))
+web_worker_cpu = Ref(template.add_parameter(
+    Parameter(
+        "WebWorkerCPU",
+        Description="Web worker CPU units",
+        Type="Number",
+        Default="512",
+    ),
+    group="Application Server",
+    label="Web Worker CPU",
+))
 
 
-web_worker_memory = Ref(template.add_parameter(Parameter(
-    "WebWorkerMemory",
-    Description="Web worker memory",
-    Type="Number",
-    Default="700",
-)))
+web_worker_memory = Ref(template.add_parameter(
+    Parameter(
+        "WebWorkerMemory",
+        Description="Web worker memory",
+        Type="Number",
+        Default="700",
+    ),
+    group="Application Server",
+    label="Web Worker Memory",
+))
 
 
-web_worker_desired_count = Ref(template.add_parameter(Parameter(
-    "WebWorkerDesiredCount",
-    Description="Web worker task instance count",
-    Type="Number",
-    Default="2",
-)))
+web_worker_desired_count = Ref(template.add_parameter(
+    Parameter(
+        "WebWorkerDesiredCount",
+        Description="Web worker task instance count",
+        Type="Number",
+        Default="2",
+    ),
+    group="Application Server",
+    label="Web Worker Count",
+))
 
+desired_container_instances = Ref(template.add_parameter(
+    Parameter(
+        "DesiredScale",
+        Description="Desired container instances count",
+        Type="Number",
+        Default="3",
+    ),
+    group="Application Server",
+    label="Maximum Instance Count",
+))
 
-max_container_instances = Ref(template.add_parameter(Parameter(
-    "MaxScale",
-    Description="Maximum container instances count",
-    Type="Number",
-    Default="3",
-)))
+max_container_instances = Ref(template.add_parameter(
+    Parameter(
+        "MaxScale",
+        Description="Maximum container instances count",
+        Type="Number",
+        Default="3",
+    ),
+    group="Application Server",
+    label="Maximum Instance Count",
+))
 
-
-desired_container_instances = Ref(template.add_parameter(Parameter(
-    "DesiredScale",
-    Description="Desired container instances count",
-    Type="Number",
-    Default="3",
-)))
-
-
-app_revision = Ref(template.add_parameter(Parameter(
-    "WebAppRevision",
-    Description="An optional docker app revision to deploy",
-    Type="String",
-    Default="",
-)))
-
+app_revision = Ref(template.add_parameter(
+    Parameter(
+        "WebAppRevision",
+        Description="An optional docker app revision to deploy",
+        Type="String",
+        Default="",
+    ),
+    group="Application Server",
+    label="App Revision",
+))
 
 deploy_condition = "Deploy"
 template.add_condition(deploy_condition, Not(Equals(app_revision, "")))
-
 
 template.add_mapping("ECSRegionMap", {
     "us-east-1": {"AMI": "ami-eca289fb"},
@@ -100,13 +119,11 @@ template.add_mapping("ECSRegionMap", {
     "ap-southeast-2": {"AMI": "ami-5781be34"},
 })
 
-
 # ECS cluster
 cluster = Cluster(
     "Cluster",
     template=template,
 )
-
 
 # ECS container role
 container_instance_role = iam.Role(
@@ -152,7 +169,6 @@ container_instance_role = iam.Role(
     ]
 )
 
-
 # ECS container instance profile
 container_instance_profile = iam.InstanceProfile(
     "ContainerInstanceProfile",
@@ -161,12 +177,9 @@ container_instance_profile = iam.InstanceProfile(
     Roles=[Ref(container_instance_role)],
 )
 
-
 container_instance_configuration_name = "ContainerLaunchConfiguration"
 
-
 autoscaling_group_name = "AutoScalingGroup"
-
 
 container_instance_configuration = autoscaling.LaunchConfiguration(
     container_instance_configuration_name,
@@ -255,7 +268,6 @@ container_instance_configuration = autoscaling.LaunchConfiguration(
     ])),
 )
 
-
 autoscaling_group = autoscaling.AutoScalingGroup(
     autoscaling_group_name,
     template=template,
@@ -272,7 +284,6 @@ autoscaling_group = autoscaling.AutoScalingGroup(
     HealthCheckType="EC2",
     HealthCheckGracePeriod=300,
 )
-
 
 # ECS task
 web_task_definition = TaskDefinition(
@@ -317,7 +328,6 @@ web_task_definition = TaskDefinition(
     ],
 )
 
-
 app_service_role = iam.Role(
     "AppServiceRole",
     template=template,
@@ -348,7 +358,6 @@ app_service_role = iam.Role(
         ),
     ]
 )
-
 
 app_service = Service(
     "AppService",

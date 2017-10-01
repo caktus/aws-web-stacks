@@ -10,58 +10,62 @@ from .vpc import (
     vpc
 )
 
-cache_engine = template.add_parameter(Parameter(
-    "CacheEngine",
-    Default="redis",
-    Description="Cache engine (redis or memcached)",
-    Type="String",
-    AllowedValues=[
-        'redis',
-        'memcached',
-    ],
-    ConstraintDescription="must select a valid cache engine.",
-))
+cache_node_type = template.add_parameter(
+    Parameter(
+        "CacheNodeType",
+        Default="cache.t2.micro",
+        Description="Cache instance type",
+        Type="String",
+        AllowedValues=[
+            dont_create_value,
+            'cache.t2.micro',
+            'cache.t2.small',
+            'cache.t2.medium',
+            'cache.m3.medium',
+            'cache.m3.large',
+            'cache.m3.xlarge',
+            'cache.m3.2xlarge',
+            'cache.m4.large',
+            'cache.m4.xlarge',
+            'cache.m4.2xlarge',
+            'cache.m4.4xlarge',
+            'cache.m4.10xlarge',
+            'cache.r3.large',
+            'cache.r3.xlarge',
+            'cache.r3.2xlarge',
+            'cache.r3.4xlarge',
+            'cache.r3.8xlarge',
+        ],
+        ConstraintDescription="must select a valid cache node type.",
+    ),
+    group="Cache",
+    label="Instance Type",
+)
 
-
-cache_node_type = template.add_parameter(Parameter(
-    "CacheNodeType",
-    Default="cache.t2.micro",
-    Description="Cache instance class",
-    Type="String",
-    AllowedValues=[
-        dont_create_value,
-        'cache.t2.micro',
-        'cache.t2.small',
-        'cache.t2.medium',
-        'cache.m3.medium',
-        'cache.m3.large',
-        'cache.m3.xlarge',
-        'cache.m3.2xlarge',
-        'cache.m4.large',
-        'cache.m4.xlarge',
-        'cache.m4.2xlarge',
-        'cache.m4.4xlarge',
-        'cache.m4.10xlarge',
-        'cache.r3.large',
-        'cache.r3.xlarge',
-        'cache.r3.2xlarge',
-        'cache.r3.4xlarge',
-        'cache.r3.8xlarge',
-    ],
-    ConstraintDescription="must select a valid cache node type.",
-))
-
+cache_engine = template.add_parameter(
+    Parameter(
+        "CacheEngine",
+        Default="redis",
+        Description="Cache engine (redis or memcached)",
+        Type="String",
+        AllowedValues=[
+            'redis',
+            'memcached',
+        ],
+        ConstraintDescription="must select a valid cache engine.",
+    ),
+    group="Cache",
+    label="Engine",
+)
 
 cache_condition = "CacheCondition"
 template.add_condition(cache_condition, Not(Equals(Ref(cache_node_type), dont_create_value)))
-
 
 using_redis_condition = "UsingRedis"
 template.add_condition(
     using_redis_condition,
     Equals(Ref(cache_engine), "redis"),
 )
-
 
 cache_security_group = ec2.SecurityGroup(
     'CacheSecurityGroup',
@@ -86,7 +90,6 @@ cache_security_group = ec2.SecurityGroup(
     ],
 )
 
-
 cache_subnet_group = elasticache.SubnetGroup(
     "CacheSubnetGroup",
     template=template,
@@ -94,7 +97,6 @@ cache_subnet_group = elasticache.SubnetGroup(
     Condition=cache_condition,
     SubnetIds=[Ref(container_a_subnet), Ref(container_b_subnet)],
 )
-
 
 cache_cluster = elasticache.CacheCluster(
     "CacheCluser",
