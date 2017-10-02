@@ -209,7 +209,7 @@ ec2_instance = template.add_resource(ec2.Instance(
                     '01_set_env': {
                         # redirect output to /dev/null so we don't write environment variables to log file
                         'command': 'dokku config:set --global {} >/dev/null'.format(
-                            ' '.join(['=$'.join([k, k]) for k in dict(environment_variables).keys()]),
+                            ' '.join(['=$'.join([k, k]) for k, _ in environment_variables]),
                         ),
                         'env': dict(environment_variables),
                     },
