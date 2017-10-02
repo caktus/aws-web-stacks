@@ -52,9 +52,11 @@ Release Process
 * Merge any PRs targeted for the release into the ``develop`` branch
 * Write release notes in the `changelog <https://github.com/caktus/aws-web-stacks/blob/develop/CHANGELOG.rst>`_
   including:
+
   * links to PRs as appropriate
   * credit for outside contributors
   * a link (at the bottom of the file) to the listing page in the ``aws-web-stacks`` bucket
+
 * Edit the version number in `version.txt <https://github.com/caktus/aws-web-stacks/blob/develop/version.txt>`_
   and push that to the ``develop`` branch
 * Create, review, and merge a PR from the ``develop`` branch to the ``master`` branch, titled with
