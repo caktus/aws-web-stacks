@@ -83,6 +83,7 @@ secret_key = Ref(template.add_parameter(
         "SecretKey",
         Description="Application secret key for this stack (optional)",
         Type="String",
+        NoEcho=True,
     ),
     group="Application Server",
     label="Secret Key",
