@@ -1,21 +1,12 @@
-from troposphere import Parameter, Ref
+from troposphere import AWS_REGION, Equals, If, Parameter, Ref
 
 from .template import template
 
 dont_create_value = "(none)"
 
-arn_prefix = Ref(template.add_parameter(
-    Parameter(
-        "ArnPrefix",
-        Description="The prefix to use for Amazon Resource Names (ARNs).",
-        Type="String",
-        Default="arn:aws",
-        AllowedValues=["arn:aws", "arn:aws-us-gov"],
-    ),
-    group="Global",
-    label="Amazon ARN prefix",
-))
-
+in_govcloud_region = "InGovCloudRegion"
+template.add_condition(in_govcloud_region, Equals(Ref(AWS_REGION), "us-gov-west-1"))
+arn_prefix = If(in_govcloud_region, "arn:aws-us-gov", "arn:aws")
 
 container_instance_type = Ref(template.add_parameter(
     Parameter(
