@@ -1,16 +1,18 @@
+import troposphere.autoscaling as autoscaling
 import troposphere.cloudformation as cloudformation
 import troposphere.ec2 as ec2
 import troposphere.iam as iam
-from troposphere import Base64, FindInMap, Join, Output, Parameter, Ref, Tags
+from troposphere import AWS_STACK_NAME, Base64, FindInMap, Join, Parameter, Ref
 from troposphere.policies import CreationPolicy, ResourceSignal
 
 from .assets import assets_management_policy
 from .common import container_instance_type
 from .domain import domain_name
 from .environment import environment_variables
+from .load_balancer import load_balancer
 from .logs import logging_policy
 from .template import template
-from .vpc import container_a_subnet, vpc
+from .vpc import container_a_subnet, container_b_subnet, vpc
 
 key_name = template.add_parameter(
     Parameter(
@@ -150,20 +152,15 @@ security_group = template.add_resource(ec2.SecurityGroup(
     ]
 ))
 
-# Elastic IP for EC2 instance
-eip = template.add_resource(ec2.EIP("Eip"))
-
-
 # The Dokku EC2 instance
-ec2_instance_name = 'Ec2Instance'
-ec2_instance = template.add_resource(ec2.Instance(
-    ec2_instance_name,
+launch_configuration_name = 'LaunchConfiguration'
+launch_configuration = template.add_resource(autoscaling.LaunchConfiguration(
+    launch_configuration_name,
     ImageId=FindInMap("RegionMap", Ref("AWS::Region"), "AMI"),
     InstanceType=container_instance_type,
     KeyName=Ref(key_name),
-    SecurityGroupIds=[Ref(security_group)],
+    SecurityGroups=[Ref(security_group)],
     IamInstanceProfile=Ref(instance_profile),
-    SubnetId=Ref(container_a_subnet),
     BlockDeviceMappings=[
         ec2.BlockDeviceMapping(
             DeviceName="/dev/sda1",
@@ -190,10 +187,10 @@ ec2_instance = template.add_resource(ec2.Instance(
         'update-rc.d cfn-hup defaults\n',
         # call our "on_first_boot" configset (defined below):
         'cfn-init --stack="', Ref('AWS::StackName'), '" --region=', Ref('AWS::Region'),
-        ' -r %s -c on_first_boot\n' % ec2_instance_name,
+        ' -r %s -c on_first_boot\n' % launch_configuration_name,
         # send the exit code from cfn-init to our CreationPolicy:
         'cfn-signal -e $? --stack="', Ref('AWS::StackName'), '" --region=', Ref('AWS::Region'),
-        ' --resource %s\n' % ec2_instance_name,
+        ' --resource %s\n' % launch_configuration_name,
     ])),
     Metadata=cloudformation.Metadata(
         cloudformation.Init(
@@ -264,10 +261,10 @@ ec2_instance = template.add_resource(ec2.Instance(
                             # trigger the on_metadata_update configset on any changes to Ec2Instance metadata
                             '[cfn-auto-reloader-hook]\n',
                             'triggers=post.update\n',
-                            'path=Resources.%s.Metadata\n' % ec2_instance_name,
+                            'path=Resources.%s.Metadata\n' % launch_configuration_name,
                             'action=/usr/local/bin/cfn-init',
                             ' --stack=', Ref('AWS::StackName'),
-                            ' --resource=%s' % ec2_instance_name,
+                            ' --resource=%s' % launch_configuration_name,
                             ' --configsets=on_metadata_update',
                             ' --region=', Ref('AWS::Region'), '\n',
                             'runas=root\n',
@@ -280,22 +277,24 @@ ec2_instance = template.add_resource(ec2.Instance(
             ),
         ),
     ),
-    Tags=Tags(
-        Name=Ref("AWS::StackName"),
-    ),
 ))
 
-# Associate the Elastic IP separately, so it doesn't change when the instance changes.
-eip_assoc = template.add_resource(ec2.EIPAssociation(
-    "EipAssociation",
-    InstanceId=Ref(ec2_instance),
-    EIP=Ref(eip),
-))
-
-template.add_output([
-    Output(
-        "PublicIP",
-        Description="Public IP address of Elastic IP associated with the Dokku instance",
-        Value=Ref(eip),
-    ),
-])
+autoscaling_group = autoscaling.AutoScalingGroup(
+    "AutoScalingGroup",
+    template=template,
+    VPCZoneIdentifier=[Ref(container_a_subnet), Ref(container_b_subnet)],
+    MinSize=1,
+    MaxSize=1,
+    DesiredCapacity=1,
+    LaunchConfigurationName=Ref(launch_configuration),
+    LoadBalancerNames=[Ref(load_balancer)],
+    HealthCheckType="EC2",
+    HealthCheckGracePeriod=300,
+    Tags=[
+        {
+            "Key": "Name",
+            "Value": Join("-", [Ref(AWS_STACK_NAME), "dokku_instance"]),
+            "PropagateAtLaunch": True,
+        }
+    ],
+)

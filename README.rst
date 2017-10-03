@@ -325,11 +325,18 @@ The CloudFormation stack creation should not finish until Dokku is fully install
 <http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-signal.html>`_ is used in the
 template to signal CloudFormation once the installation is complete.
 
+Load Balancer
+~~~~~~~~~~~~~
+
+The Dokku stack includes a load balancer and a free SSL certificate via AWS Certificate Manager, so
+HTTPS needs to be configured on the Dokku instance only if you wish to encrypt traffic between the
+load balancer and the Dokku instance.
+
 DNS
 ~~~
 
-After the stack is created, you'll want to inspect the Outputs for the PublicIP of the instance and
-create a DNS ``A`` record (possibly including a wildcard record, if you're using vhost-based apps)
+After the stack is created, you'll want to inspect the Outputs for the `LoadBalancerDNSName` and
+create a DNS ``CNAME`` record (possibly including a wildcard record, if you're using vhost-based apps)
 for your chosen domain.
 
 For help creating a DNS record, please refer to the `Dokku DNS documentation
@@ -369,20 +376,6 @@ http://python-sample.your.domain/
 
 For additional help deploying to your new instance, please refer to the `Dokku documentation
 <http://dokku.viewdocs.io/dokku/deployment/application-deployment/>`_.
-
-Let's Encrypt
-~~~~~~~~~~~~~
-
-The Dokku stack does not create a load balancer and hence does not include a free SSL certificate
-via Amazon Certificate Manager, so let's create one with the Let's Encrypt plugin, and add a cron
-job to automatically renew the cert as needed::
-
-    ssh ubuntu@<your domain or IP> sudo dokku plugin:install https://github.com/dokku/dokku-letsencrypt.git
-    ssh dokku@<your domain or IP> config:set --no-restart python-sample DOKKU_LETSENCRYPT_EMAIL=your@email.tld
-    ssh dokku@<your domain or IP> letsencrypt python-sample
-    ssh dokku@<your domain or IP> letsencrypt:cron-job --add python-sample
-
-The Python sample app should now be accessible over HTTPS at https://python-sample.your.domain/
 
 Contributing
 ------------

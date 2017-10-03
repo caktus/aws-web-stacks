@@ -30,6 +30,9 @@ if os.environ.get('USE_ECS') == 'on':
         group="Load Balancer",
         label="Web Worker Port",
     ))
+elif os.environ.get('USE_DOKKU') == 'on':
+    # TODO: optionally support both port 80 and port 443
+    web_worker_port = 80
 else:
     # default to port 80 for EC2 and Elastic Beanstalk options
     web_worker_port = Ref(template.add_parameter(
@@ -43,17 +46,20 @@ else:
         label="Web Worker Port",
     ))
 
-web_worker_protocol = Ref(template.add_parameter(
-    Parameter(
-        "WebWorkerProtocol",
-        Description="Web worker instance protocol",
-        Type="String",
-        Default="HTTP",
-        AllowedValues=["HTTP", "HTTPS"],
-    ),
-    group="Load Balancer",
-    label="Web Worker Protocol",
-))
+if os.environ.get('USE_DOKKU') == 'on':
+    web_worker_protocol = 'HTTP'
+else:
+    web_worker_protocol = Ref(template.add_parameter(
+        Parameter(
+            "WebWorkerProtocol",
+            Description="Web worker instance protocol",
+            Type="String",
+            Default="HTTP",
+            AllowedValues=["HTTP", "HTTPS"],
+        ),
+        group="Load Balancer",
+        label="Web Worker Protocol",
+    ))
 
 tcp_health_check_condition = "TcpHealthCheck"
 template.add_condition(
