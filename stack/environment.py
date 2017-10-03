@@ -4,6 +4,8 @@ from troposphere import AWS_REGION, GetAtt, If, Join, Ref
 
 from .assets import (
     assets_bucket,
+    assets_cloudfront_domain,
+    assets_custom_domain_condition,
     assets_use_cloudfront_condition,
     distribution,
     private_assets_bucket
@@ -70,7 +72,16 @@ environment_variables = [
 if distribution:
     # not supported by GovCloud, so add it only if it was created
     environment_variables.append(
-        ("CDN_DOMAIN_NAME", If(assets_use_cloudfront_condition, GetAtt(distribution, "DomainName"), "none-created"))
+        ("CDN_DOMAIN_NAME", If(
+            assets_use_cloudfront_condition,
+            If(
+                # use the custom domain passed into the stack, otherwise fallback to the default domain
+                assets_custom_domain_condition,
+                Ref(assets_cloudfront_domain),
+                GetAtt(distribution, "DomainName"),
+            ),
+            "none-created",
+        )),
     )
 
 if es_domain:
