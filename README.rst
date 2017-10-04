@@ -7,10 +7,12 @@ AWS Web Stacks
 AWS Web Stacks is a library of CloudFormation templates that dramatically simplify hosting web applications
 on AWS. The library supports using Elastic Container Service (ECS), Elastic Beanstalk (EB), EC2 instances
 (via an AMI you specify), or `Dokku <http://dokku.viewdocs.io/dokku/>`_ for the application server(s) and
-provides auxilary managed services such as a Postgres RDS instance, Redis instance, Elasticsearch instance
+provides auxilary managed services such as an RDS instance, ElastiCache instance, Elasticsearch instance
 (free) SSL certificate via AWS Certificate Manager, S3 bucket for static assets, ECS repository for hosting
-Docker images, etc. All resources (except Elasticsearch, which does not support VPCs) are created in a
-self-contained VPC, which may use a NAT gateway (if you want to pay for that) or not.
+Docker images, etc. All resources (that support VPCs) are created in a self-contained VPC, which may use a
+NAT gateway (if you want to pay for that) or not, and resources that require API authentication (such as
+S3 or Elasticsearch) are granted permissions via the IAM instance role and profile assigned to the
+application servers created in the stack.
 
 The CloudFormation templates are written in `troposphere <https://github.com/cloudtools/troposphere>`_,
 which allows for some validation at build time and simplifies the management of several related
@@ -90,8 +92,8 @@ it appear unhealthy, e.g.::
 
 For very simple, Heroku-like deploys, choose the **Dokku** option. This will give you a single EC2 instance
 based on Ubuntu 16.04 LTS with `Dokku <http://dokku.viewdocs.io/dokku/>`_ pre-installed and global environment
-variables configured that will allow your app to find the Postgres, Redis or Memcached, and Elasticsearch nodes
-created with this stack.
+variables configured that will allow your app to find the RDS, ElastiCache, and Elasticsearch nodes created
+with this stack.
 
 NAT Gateways
 ------------
@@ -140,8 +142,10 @@ The following is a partial list of resources created by this stack, when Elastic
   which will be pre-configured with the environment variables specified below.
 * **Elasticsearch** (``AWS::Elasticsearch::Domain``): An Elasticsearch instance, which your
   application may use for full-text search, logging, etc.
-* **PostgreSQL** (``AWS::RDS::DBInstance``): The Postgres RDS instance for your application.
-  Includes a security group to allow access only from your EB or ECS instances in this stack.
+* **PostgreSQL** (``AWS::RDS::DBInstance``): The RDS instance for your application.
+  Includes a security group to allow access only from your EB or ECS instances in this stack. Note:
+  this CloudFormation resource is named "PostgreSQL" for backwards-compatibility reasons, but the
+  RDS instance can be configured with any database engine supported by RDS.
 * **Redis** (``AWS::ElastiCache::CacheCluster``): The Redis ElasticCache instance for your
   application. Includes a cache security group to allow access only from your EB or ECS instances in
   this stack.

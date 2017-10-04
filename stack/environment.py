@@ -10,7 +10,14 @@ from .cache import (
     using_redis_condition
 )
 from .common import secret_key
-from .database import db_condition, db_instance, db_name, db_password, db_user
+from .database import (
+    db_condition,
+    db_engine,
+    db_instance,
+    db_name,
+    db_password,
+    db_user
+)
 from .domain import domain_name, domain_name_alternates
 
 if os.environ.get('USE_GOVCLOUD') != 'on':
@@ -30,12 +37,15 @@ environment_variables = [
     ("DATABASE_URL", If(
         db_condition,
         Join("", [
-            "postgres://",
+            Ref(db_engine),
+            "://",
             Ref(db_user),
             ":",
             Ref(db_password),
             "@",
             GetAtt(db_instance, 'Endpoint.Address'),
+            ":",
+            GetAtt(db_instance, 'Endpoint.Port'),
             "/",
             Ref(db_name),
         ]),
