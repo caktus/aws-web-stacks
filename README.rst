@@ -200,7 +200,7 @@ These environment variables are:
   bucket; you should use this (or the S3 bucket URL directly) to refer to static assets in your HTML
 * ``ELASTICSEARCH_ENDPOINT``: The domain name of the Elasticsearch instance. If ``(none)`` is selected
   for the ``ElasticsearchInstanceType`` during stack creation, the value of this variable will be
-  ``'none-created'``.
+  an empty string (``''``).
 * ``ELASTICSEARCH_PORT``: The recommended port for connecting to Elasticsearch (defaults to 443).
 * ``ELASTICSEARCH_USE_SSL``: Whether or not to use SSL (defaults to ``'on'``).
 * ``ELASTICSEARCH_VERIFY_CERTS``: Whether or not to verify Elasticsearch SSL certificates. This
@@ -215,12 +215,13 @@ These environment variables are:
 * ``SECRET_KEY``: The secret key you specified when creating this stack
 * ``DATABASE_URL``: The URL to the RDS instance created as part of this stack. If ``(none)`` is
   selected for the ``DatabaseClass`` during stack creation, the value of this variable will be
-  ``'none-created'``.
+  an empty string (``''``).
 * ``CACHE_URL``: The URL to the Redis or Memcached instance created as part of this stack (may be
   used as a cache or session storage, e.g.). If using Redis, note that it supports multiple
   databases and no database ID is included as part of the URL, so you should append a forward slash
   and the integer index of the database, if needed, e.g., ``/0``. If ``(none)`` is selected for the
-  ``CacheNodeType`` during stack creation, the value of this variable will be ``'none-created'``.
+  ``CacheNodeType`` during stack creation, the value of this variable will be an empty string
+  (``''``).
 
 When running an EB stack, you can view and edit the keys and values for all environment variables
 on the fly via the Elastic Beanstalk console or command line tools.
