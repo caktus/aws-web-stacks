@@ -16,55 +16,58 @@ from .security_groups import container_security_group
 from .template import template
 from .vpc import container_a_subnet, container_b_subnet
 
-ami = Ref(template.add_parameter(Parameter(
-    "AMI",
-    Description="The Amazon Machine Image (AMI) to use for instances. Make "
-                "sure to use the correct AMI for your region and instance "
-                "type (t2 instances require HVM AMIs).",
-    Type="String",
-    Default="",
-)))
-
-
-key_name = template.add_parameter(Parameter(
-    "KeyName",
-    Description="Name of an existing EC2 KeyPair to enable SSH access to "
-                "the AWS EC2 instances",
-    Type="AWS::EC2::KeyPair::KeyName",
-    ConstraintDescription="must be the name of an existing EC2 KeyPair."
+ami = Ref(template.add_parameter(
+    Parameter(
+        "AMI",
+        Description="The Amazon Machine Image (AMI) to use for instances. Make "
+                    "sure to use the correct AMI for your region and instance "
+                    "type (t2 instances require HVM AMIs).",
+        Type="String",
+        Default="",
+    ),
+    group="Application Server",
+    label="Amazon Machine Image (AMI)",
 ))
 
+key_name = template.add_parameter(
+    Parameter(
+        "KeyName",
+        Description="Name of an existing EC2 KeyPair to enable SSH access to "
+                    "the AWS EC2 instances",
+        Type="AWS::EC2::KeyPair::KeyName",
+        ConstraintDescription="must be the name of an existing EC2 KeyPair."
+    ),
+    group="Application Server",
+    label="SSH Key Name",
+)
 
-web_worker_desired_count = Ref(template.add_parameter(Parameter(
-    "WebWorkerDesiredCount",
-    Description="Web worker task instance count",
-    Type="Number",
-    Default="2",
-)))
+desired_container_instances = Ref(template.add_parameter(
+    Parameter(
+        "DesiredScale",
+        Description="Desired container instances count",
+        Type="Number",
+        Default="2",
+    ),
+    group="Application Server",
+    label="Desired Instance Count",
+))
 
-
-max_container_instances = Ref(template.add_parameter(Parameter(
-    "MaxScale",
-    Description="Maximum container instances count",
-    Type="Number",
-    Default="4",
-)))
-
-
-desired_container_instances = Ref(template.add_parameter(Parameter(
-    "DesiredScale",
-    Description="Desired container instances count",
-    Type="Number",
-    Default="2",
-)))
-
+max_container_instances = Ref(template.add_parameter(
+    Parameter(
+        "MaxScale",
+        Description="Maximum container instances count",
+        Type="Number",
+        Default="4",
+    ),
+    group="Application Server",
+    label="Maximum Instance Count",
+))
 
 tcp_health_check_condition = "TcpHealthCheck"
 template.add_condition(
     tcp_health_check_condition,
     Equals(web_worker_health_check, ""),
 )
-
 
 # EC2 instance role
 container_instance_role = iam.Role(
@@ -82,7 +85,6 @@ container_instance_role = iam.Role(
     ]
 )
 
-
 # EC2 instance profile
 container_instance_profile = iam.InstanceProfile(
     "ContainerInstanceProfile",
@@ -91,12 +93,9 @@ container_instance_profile = iam.InstanceProfile(
     Roles=[Ref(container_instance_role)],
 )
 
-
 instance_configuration_name = "LaunchConfiguration"
 
-
 autoscaling_group_name = "AutoScalingGroup"
-
 
 container_instance_configuration = autoscaling.LaunchConfiguration(
     instance_configuration_name,
@@ -107,7 +106,6 @@ container_instance_configuration = autoscaling.LaunchConfiguration(
     IamInstanceProfile=Ref(container_instance_profile),
     KeyName=Ref(key_name),
 )
-
 
 autoscaling_group = autoscaling.AutoScalingGroup(
     autoscaling_group_name,

@@ -19,18 +19,26 @@ USE_NAT_GATEWAY = os.environ.get('USE_NAT_GATEWAY') == 'on'
 USE_DOKKU = os.environ.get('USE_DOKKU') == 'on'
 
 
-primary_az = template.add_parameter(Parameter(
-    "PrimaryAZ",
-    Description="The primary availability zone for creating resources.",
-    Type="AWS::EC2::AvailabilityZone::Name",
-))
+primary_az = template.add_parameter(
+    Parameter(
+        "PrimaryAZ",
+        Description="The primary availability zone for creating resources.",
+        Type="AWS::EC2::AvailabilityZone::Name",
+    ),
+    group="Global",
+    label="Primary Availability Zone",
+)
 
 
-secondary_az = template.add_parameter(Parameter(
-    "SecondaryAZ",
-    Description="The secondary availability zone for creating resources.",
-    Type="AWS::EC2::AvailabilityZone::Name",
-))
+secondary_az = template.add_parameter(
+    Parameter(
+        "SecondaryAZ",
+        Description="The secondary availability zone for creating resources. Must differ from primary zone.",
+        Type="AWS::EC2::AvailabilityZone::Name",
+    ),
+    group="Global",
+    label="Secondary Availability Zone",
+)
 
 
 vpc = VPC(
