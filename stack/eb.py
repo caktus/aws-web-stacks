@@ -28,23 +28,31 @@ from .vpc import (
     vpc
 )
 
-key_name = template.add_parameter(Parameter(
-    "KeyName",
-    Description="Name of an existing EC2 KeyPair to enable SSH access to "
-                "the AWS Elastic Beanstalk instance",
-    Type="AWS::EC2::KeyPair::KeyName",
-    ConstraintDescription="must be the name of an existing EC2 KeyPair."
-))
+solution_stack = template.add_parameter(
+    Parameter(
+        "SolutionStack",
+        Description="Elastic Beanstalk solution stack name (do NOT change after "
+                    "stack creation). You most likely want to copy the italicized "
+                    "text from: http://docs.aws.amazon.com/elasticbeanstalk/latest"
+                    "/dg/concepts.platforms.html#concepts.platforms.mcdocker",
+        Type="String",
+        Default="",
+    ),
+    group="Application Server",
+    label="Solution Stack",
+)
 
-solution_stack = template.add_parameter(Parameter(
-    "SolutionStack",
-    Description="Elastic Beanstalk solution stack name (do NOT change after "
-                "stack creation). You most likely want to copy the italicized "
-                "text from: http://docs.aws.amazon.com/elasticbeanstalk/latest"
-                "/dg/concepts.platforms.html#concepts.platforms.mcdocker",
-    Type="String",
-    Default="",
-))
+key_name = template.add_parameter(
+    Parameter(
+        "KeyName",
+        Description="Name of an existing EC2 KeyPair to enable SSH access to "
+                    "the AWS Elastic Beanstalk instance",
+        Type="AWS::EC2::KeyPair::KeyName",
+        ConstraintDescription="must be the name of an existing EC2 KeyPair."
+    ),
+    group="Application Server",
+    label="SSH Key Name",
+)
 
 template.add_mapping("Region2Principal", {
     'ap-northeast-1': {

@@ -7,39 +7,53 @@ from .security_groups import load_balancer_security_group
 from .template import template
 from .vpc import loadbalancer_a_subnet, loadbalancer_b_subnet
 
-web_worker_health_check = Ref(template.add_parameter(Parameter(
-    "WebWorkerHealthCheck",
-    Description="Web worker health check URL path, e.g., \"/health-check\"; "
-                "will default to TCP-only health check if left blank",
-    Type="String",
-    Default="",
-)))
-
+web_worker_health_check = Ref(template.add_parameter(
+    Parameter(
+        "WebWorkerHealthCheck",
+        Description="Web worker health check URL path, e.g., \"/health-check\"; "
+                    "will default to TCP-only health check if left blank",
+        Type="String",
+        Default="",
+    ),
+    group="Load Balancer",
+    label="Health Check URL",
+))
 
 if os.environ.get('USE_ECS') == 'on':
-    web_worker_port = Ref(template.add_parameter(Parameter(
-        "WebWorkerPort",
-        Description="Web worker container exposed port",
-        Type="Number",
-        Default="8000",
-    )))
+    web_worker_port = Ref(template.add_parameter(
+        Parameter(
+            "WebWorkerPort",
+            Description="Web worker container exposed port",
+            Type="Number",
+            Default="8000",
+        ),
+        group="Load Balancer",
+        label="Web Worker Port",
+    ))
 else:
     # default to port 80 for EC2 and Elastic Beanstalk options
-    web_worker_port = Ref(template.add_parameter(Parameter(
-        "WebWorkerPort",
-        Description="Default web worker exposed port (non-HTTPS)",
-        Type="Number",
-        Default="80",
-    )))
+    web_worker_port = Ref(template.add_parameter(
+        Parameter(
+            "WebWorkerPort",
+            Description="Default web worker exposed port (non-HTTPS)",
+            Type="Number",
+            Default="80",
+        ),
+        group="Load Balancer",
+        label="Web Worker Port",
+    ))
 
-
-web_worker_protocol = Ref(template.add_parameter(Parameter(
-    "WebWorkerProtocol",
-    Description="Web worker instance protocol",
-    Type="String",
-    Default="HTTP",
-    AllowedValues=["HTTP", "HTTPS"],
-)))
+web_worker_protocol = Ref(template.add_parameter(
+    Parameter(
+        "WebWorkerProtocol",
+        Description="Web worker instance protocol",
+        Type="String",
+        Default="HTTP",
+        AllowedValues=["HTTP", "HTTPS"],
+    ),
+    group="Load Balancer",
+    label="Web Worker Protocol",
+))
 
 tcp_health_check_condition = "TcpHealthCheck"
 template.add_condition(

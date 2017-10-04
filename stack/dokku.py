@@ -12,50 +12,74 @@ from .logs import logging_policy
 from .template import template
 from .vpc import container_a_subnet, vpc
 
-key_name = template.add_parameter(Parameter(
-    "KeyName",
-    Description="Name of an existing EC2 KeyPair to enable SSH access to "
-                "the AWS EC2 instances",
-    Type="AWS::EC2::KeyPair::KeyName",
-    ConstraintDescription="must be the name of an existing EC2 KeyPair."
-))
+key_name = template.add_parameter(
+    Parameter(
+        "KeyName",
+        Description="Name of an existing EC2 KeyPair to enable SSH access to "
+                    "the AWS EC2 instances",
+        Type="AWS::EC2::KeyPair::KeyName",
+        ConstraintDescription="must be the name of an existing EC2 KeyPair."
+    ),
+    group="Application Server",
+    label="SSH Key Name",
+)
 
-dokku_version = template.add_parameter(Parameter(
-    "DokkuVersion",
-    Description="Dokku version to install, e.g., \"v0.10.4\" (see https://github.com/dokku/dokku/releases).",
-    Type="String",
-    Default="v0.10.4",
-))
+dokku_version = template.add_parameter(
+    Parameter(
+        "DokkuVersion",
+        Description="Dokku version to install, e.g., \"v0.10.4\" (see https://github.com/dokku/dokku/releases).",
+        Type="String",
+        Default="v0.10.4",
+    ),
+    group="Application Server",
+    label="Dokku Version",
+)
 
-dokku_web_config = template.add_parameter(Parameter(
-    "DokkuWebConfig",
-    Description="Whether or not to enable the Dokku web config (defaults to false for security reasons).",
-    Type="String",
-    AllowedValues=["true", "false"],
-    Default="false",
-))
+dokku_web_config = template.add_parameter(
+    Parameter(
+        "DokkuWebConfig",
+        Description="Whether or not to enable the Dokku web config (defaults to false for security reasons).",
+        Type="String",
+        AllowedValues=["true", "false"],
+        Default="false",
+    ),
+    group="Application Server",
+    label="Dokku Web Config",
+)
 
-dokku_vhost_enable = template.add_parameter(Parameter(
-    "DokkuVhostEnable",
-    Description="Whether or not to use vhost-based deployments (e.g., foo.domain.name).",
-    Type="String",
-    AllowedValues=["true", "false"],
-    Default="true",
-))
+dokku_vhost_enable = template.add_parameter(
+    Parameter(
+        "DokkuVhostEnable",
+        Description="Whether or not to use vhost-based deployments (e.g., foo.domain.name).",
+        Type="String",
+        AllowedValues=["true", "false"],
+        Default="true",
+    ),
+    group="Application Server",
+    label="Dokku Vhost Deployments",
+)
 
-root_size = template.add_parameter(Parameter(
-    "RootVolumeSize",
-    Description="The size of the root volume (in GB).",
-    Type="Number",
-    Default="30",
-))
+root_size = template.add_parameter(
+    Parameter(
+        "RootVolumeSize",
+        Description="The size of the root volume (in GB).",
+        Type="Number",
+        Default="30",
+    ),
+    group="Application Server",
+    label="Root Volume Size",
+)
 
-ssh_cidr = template.add_parameter(Parameter(
-    "SshCidr",
-    Description="CIDR block from which to allow SSH access. Restrict this to your IP, if possible.",
-    Type="String",
-    Default="0.0.0.0/0",
-))
+ssh_cidr = template.add_parameter(
+    Parameter(
+        "SshCidr",
+        Description="CIDR block from which to allow SSH access. Restrict this to your IP, if possible.",
+        Type="String",
+        Default="0.0.0.0/0",
+    ),
+    group="Application Server",
+    label="SSH CIDR",
+)
 
 # "16.04 hvm ssd" AMIs from https://cloud-images.ubuntu.com/locator/ec2/
 template.add_mapping('RegionMap', {
