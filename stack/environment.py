@@ -39,7 +39,7 @@ environment_variables = [
             "/",
             Ref(db_name),
         ]),
-        "none-created",
+        "",  # defaults to empty string if no DB was created
     )),
     ("CACHE_URL", If(
         cache_condition,
@@ -58,7 +58,7 @@ environment_variables = [
                 GetAtt(cache_cluster, 'ConfigurationEndpoint.Port')
             ),
         ]),
-        "none-created",
+        "",  # defaults to empty string if no cache was created
     )),
 ]
 
@@ -71,7 +71,7 @@ if distribution:
 if es_domain:
     # not supported by GovCloud, so add it only if it was created
     environment_variables += [
-        ("ELASTICSEARCH_ENDPOINT", If(es_condition, GetAtt(es_domain, "DomainEndpoint"), "none-created")),
+        ("ELASTICSEARCH_ENDPOINT", If(es_condition, GetAtt(es_domain, "DomainEndpoint"), "")),
         ("ELASTICSEARCH_PORT", If(es_condition, "443", "")),
         ("ELASTICSEARCH_USE_SSL", If(es_condition, "on", "")),
         ("ELASTICSEARCH_VERIFY_CERTS", If(es_condition, "on", "")),
