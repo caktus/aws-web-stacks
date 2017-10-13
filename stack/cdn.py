@@ -139,7 +139,7 @@ if origin_domain_name:
                     ),
                 ],
             ),
-            Roles=[instance_role],
+            Roles=[Ref(instance_role)],
         )
     )
 
