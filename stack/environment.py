@@ -90,7 +90,7 @@ if distribution:
                 Ref(assets_cloudfront_domain),
                 GetAtt(distribution, "DomainName"),
             ),
-            "none-created",
+            "",
         )),
     )
 
