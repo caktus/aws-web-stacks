@@ -1,4 +1,4 @@
-from troposphere import Equals, Join, Parameter, Ref
+from troposphere import Equals, If, Join, Parameter, Ref, Split
 
 from .template import template
 
@@ -29,3 +29,17 @@ template.add_condition(
     # Equals() only supports strings, so convert domain_name_alternates to one first
     Equals(Join("", domain_name_alternates), ""),
 )
+
+all_domains_list = Split(";", Join("", [
+    domain_name,
+    If(
+        no_alt_domains,
+        # if we don't have any alternate domains, return an empty string
+        "",
+        # otherwise, return the ';' that will be needed by the first domain
+        ";",
+    ),
+    # then, add all the alternate domains, joined together with ';
+    Join(";", domain_name_alternates),
+    # now that we have a string of origins separated by ';', Split() is used to make it into a list again
+]))

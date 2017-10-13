@@ -34,7 +34,7 @@ from troposphere.s3 import (
 )
 
 from .common import arn_prefix
-from .domain import domain_name, domain_name_alternates, no_alt_domains
+from .domain import all_domains_list
 from .template import template
 
 common_bucket_conf = dict(
@@ -44,18 +44,9 @@ common_bucket_conf = dict(
     DeletionPolicy="Retain",
     CorsConfiguration=CorsConfiguration(
         CorsRules=[CorsRules(
-            AllowedOrigins=Split(";", Join("", [
-                "https://", domain_name,
-                If(
-                    no_alt_domains,
-                    # if we don't have any alternate domains, return an empty string
-                    "",
-                    # otherwise, return the ';https://' that will be needed by the first domain
-                    ";https://",
-                ),
-                # then, add all the alternate domains, joined together with ';https://'
-                Join(";https://", domain_name_alternates),
-                # now that we have a string of origins separated by ';', Split() is used to make it into a list again
+            AllowedOrigins=Split(';', Join('', [
+                'https://',
+                Join(';https://', all_domains_list)
             ])),
             AllowedMethods=[
                 "POST",
@@ -155,7 +146,7 @@ if os.environ.get('USE_GOVCLOUD') != 'on':
         Parameter(
             "AssetsCloudFrontDomain",
             Description="A custom domain name (CNAME) for your CloudFront distribution, e.g., "
-                        "\"static.example.com\".",
+                        "\"static.example.com\" (optional).",
             Type="String",
             Default="",
         ),
@@ -255,7 +246,7 @@ if os.environ.get('USE_GOVCLOUD') != 'on':
     # Output CloudFront url
     template.add_output(Output(
         "AssetsDistributionDomainName",
-        Description="The assest CDN domain name",
+        Description="The assets CDN domain name",
         Value=GetAtt(distribution, "DomainName"),
         Condition=assets_use_cloudfront_condition,
     ))
