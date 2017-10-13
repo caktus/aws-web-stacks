@@ -107,8 +107,9 @@ db_password = template.add_parameter(
         Type="String",
         MinLength="10",
         MaxLength="41",
-        AllowedPattern="[a-zA-Z0-9]*",
-        ConstraintDescription="must consist of 10-41 alphanumeric characters."
+        AllowedPattern="[ !#-.0-?A-~]*",  # see http://www.catonmat.net/blog/my-favorite-regex/
+        ConstraintDescription="must consist of 10-41 printable ASCII "
+                              "characters except \"/\", \"\"\", or \"@\"."
     ),
     group="Database",
     label="Password",
