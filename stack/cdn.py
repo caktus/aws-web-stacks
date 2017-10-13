@@ -116,7 +116,7 @@ if origin_domain_name:
                             Forward='all',
                         ),
                         Headers=[
-                            '*',
+                            'Host',  # required for SSL on an Elastic Load Balancer
                         ],
                     ),
                     ViewerProtocolPolicy="allow-all",

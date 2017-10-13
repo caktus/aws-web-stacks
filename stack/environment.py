@@ -35,10 +35,7 @@ else:
     es_domain = None
 
 if os.getenv('USE_GOVCLOUD') != 'on':
-    # GovCloud doesn't support CloudFront, and with Elastic Beanstalk
-    # attempting to add an environment variable pointing to to the distrubtion
-    # creates a circular dependency (because it's not possible to create the
-    # EB load balancer separately from the EB application itself)
+    # GovCloud doesn't support CloudFront
     from .cdn import app_distribution, app_uses_cloudfront_condition
 else:
     app_distribution = None
@@ -103,8 +100,11 @@ if distribution:
         )),
     )
 
-if app_distribution:
-    # not supported by GovCloud, so add it only if it was created
+if app_distribution and os.getenv('USE_EB') != 'on':
+    # Not supported by GovCloud, so add it only if it was created. Also, EB
+    # attempting to add an environment variable pointing to the distrubtion
+    # creates a circular dependency (because it's not possible to create the
+    # EB load balancer separately from the EB application itself).
     environment_variables += [
         ("APP_CLOUDFRONT_ID", If(
             app_uses_cloudfront_condition,
