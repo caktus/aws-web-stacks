@@ -23,8 +23,8 @@ elif os.environ.get('USE_DOKKU') == 'on':
 else:  # USE_GOVCLOUD and USE_EC2 both provide EC2 instances
     from . import instances  # noqa: F401
 
-# only non-GovCloud stacks with a load balancer can have a CDN for the app server
-if os.environ.get('USE_GOVCLOUD') != 'on' and os.environ.get('USE_DOKKU') != 'on':
+# only non-GovCloud can have a CDN for the app server
+if os.environ.get('USE_GOVCLOUD') != 'on':
     from . import cdn  # noqa: F401
 
 print(template.template.to_json())

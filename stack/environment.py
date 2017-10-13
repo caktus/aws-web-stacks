@@ -34,7 +34,7 @@ if os.environ.get('USE_GOVCLOUD') != 'on':
 else:
     es_domain = None
 
-if os.getenv('USE_GOVCLOUD') != 'on' and os.getenv('USE_EB') != 'on':
+if os.getenv('USE_GOVCLOUD') != 'on':
     # GovCloud doesn't support CloudFront, and with Elastic Beanstalk
     # attempting to add an environment variable pointing to to the distrubtion
     # creates a circular dependency (because it's not possible to create the
