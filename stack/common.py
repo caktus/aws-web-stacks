@@ -1,8 +1,16 @@
+import os
+
 from troposphere import AWS_REGION, Equals, If, Parameter, Ref
 
 from .template import template
 
 dont_create_value = "(none)"
+
+# TODO: clean up naming for this role so it's the same for all configurations
+if os.environ.get('USE_EB') == 'on':
+    instance_role = "WebServerRole"
+else:
+    instance_role = "ContainerInstanceRole"
 
 in_govcloud_region = "InGovCloudRegion"
 template.add_condition(in_govcloud_region, Equals(Ref(AWS_REGION), "us-gov-west-1"))

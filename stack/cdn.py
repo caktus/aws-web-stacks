@@ -5,10 +5,12 @@ from troposphere import (
     Equals,
     GetAtt,
     If,
+    Join,
     Not,
     Output,
     Parameter,
-    Ref
+    Ref,
+    iam
 )
 from troposphere.cloudfront import (
     Cookies,
@@ -22,6 +24,7 @@ from troposphere.cloudfront import (
 )
 
 from .certificates import application as app_certificate
+from .common import arn_prefix, instance_role
 from .domain import all_domains_list
 from .template import template
 
@@ -120,6 +123,23 @@ if origin_domain_name:
                 ),
                 Enabled=True,
             ),
+        )
+    )
+
+    invalidation_policy = template.add_resource(
+        iam.PolicyType(
+            "AppDistributionInvalidationPolicy",
+            PolicyName="AppDistributionInvalidationPolicy",
+            PolicyDocument=dict(
+                Statement=[
+                    dict(
+                        Effect="Allow",
+                        Action=["cloudfront:*"],
+                        Resource=Join("", [arn_prefix, ":s3:::", Ref(app_distribution)]),
+                    ),
+                ],
+            ),
+            Roles=[instance_role],
         )
     )
 

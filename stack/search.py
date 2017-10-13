@@ -1,5 +1,3 @@
-import os
-
 from awacs.aws import Action, Allow, Policy, Principal, Statement
 from troposphere import Equals, GetAtt, Not, Output, Parameter, Ref
 from troposphere.elasticsearch import (
@@ -8,14 +6,8 @@ from troposphere.elasticsearch import (
     ElasticsearchClusterConfig
 )
 
-from .common import dont_create_value
+from .common import dont_create_value, instance_role
 from .template import template
-
-# TODO: clean up naming for this role so it's the same for all configurations
-if os.environ.get('USE_EB') == 'on':
-    instance_role = "WebServerRole"
-else:
-    instance_role = "ContainerInstanceRole"
 
 es_instance_type = template.add_parameter(
     Parameter(
