@@ -28,16 +28,13 @@ from .common import arn_prefix, instance_role
 from .domain import all_domains_list
 from .template import template
 
+# use string representations for "EBEnvironment" and "LoadBalancer" to avoid
+# importing those resources and potentially causing a circular import (at least
+# in the case of EB)
 if os.getenv('USE_EB') == 'on':
     origin_domain_name = GetAtt("EBEnvironment", "EndpointURL")
-elif os.getenv('USE_DOKKU') != 'on':
-    # only import load_balancer if it's needed (not supported by Dokku stack yet)
-    from .load_balancer import load_balancer
-    origin_domain_name = GetAtt(load_balancer, "DNSName")
 else:
-    origin_domain_name = None
-    app_distribution = None
-    app_uses_cloudfront_condition = None
+    origin_domain_name = GetAtt("LoadBalancer", "DNSName")
 
 if origin_domain_name:
     app_uses_cloudfront = template.add_parameter(
