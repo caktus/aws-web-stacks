@@ -29,15 +29,15 @@ from .domain import all_domains_list
 from .template import template
 
 if os.getenv('USE_EB') == 'on':
-    # if we're using EB, use the EB endpoint URL
     origin_domain_name = GetAtt("EBEnvironment", "EndpointURL")
-elif os.getenv('USE_DOKKU') == 'on':
-    # if we're using Dokku, point the CloudFront distribution to the Elastic IP
-    origin_domain_name = Ref("Eip")
-else:
-    # otherwise, use the load balancer DNS name
+elif os.getenv('USE_DOKKU') != 'on':
+    # only import load_balancer if it's needed (not supported by Dokku stack yet)
     from .load_balancer import load_balancer
     origin_domain_name = GetAtt(load_balancer, "DNSName")
+else:
+    origin_domain_name = None
+    app_distribution = None
+    app_uses_cloudfront_condition = None
 
 if origin_domain_name:
     app_uses_cloudfront = template.add_parameter(
