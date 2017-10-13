@@ -143,7 +143,7 @@ if os.environ.get('USE_GOVCLOUD') != 'on':
             Description="Whether or not to create a CloudFront distribution tied to the S3 assets bucket.",
             Type="String",
             AllowedValues=["true", "false"],
-            Default="false",
+            Default="true",
         ),
         group="Static Media",
         label="Enable CloudFront",
