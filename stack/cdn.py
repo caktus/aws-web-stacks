@@ -5,7 +5,6 @@ from troposphere import (
     Equals,
     GetAtt,
     If,
-    Join,
     Not,
     Output,
     Parameter,
@@ -24,7 +23,7 @@ from troposphere.cloudfront import (
 )
 
 from .certificates import application as app_certificate
-from .common import arn_prefix, instance_role
+from .common import instance_role
 from .domain import all_domains_list
 from .template import template
 
