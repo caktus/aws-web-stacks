@@ -142,7 +142,10 @@ if origin_domain_name:
                             "cloudfront:GetInvalidation",
                             "cloudfront:ListInvalidations",
                         ],
-                        Resource=Join("", [arn_prefix, ":cloudfront:::distribution/", Ref(app_distribution)]),
+                        Resource="*",
+                        # TODO: if/when CloudFront supports resource-level IAM permissions, enable them, e.g.:
+                        # Resource=Join("", [arn_prefix, ":cloudfront:::distribution/", Ref(app_distribution)]),
+                        # See: https://stackoverflow.com/a/29563986/166053
                     ),
                 ],
             ),
