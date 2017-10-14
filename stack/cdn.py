@@ -131,8 +131,16 @@ if origin_domain_name:
                 Statement=[
                     dict(
                         Effect="Allow",
-                        Action=["cloudfront:*"],
-                        Resource=Join("", [arn_prefix, ":s3:::", Ref(app_distribution)]),
+                        Action=[
+                            "cloudfront:GetDistribution",
+                            "cloudfront:GetDistributionConfig",
+                            "cloudfront:ListDistributions",
+                            "cloudfront:ListCloudFrontOriginAccessIdentities",
+                            "cloudfront:CreateInvalidation",
+                            "cloudfront:GetInvalidation",
+                            "cloudfront:ListInvalidations",
+                        ],
+                        Resource=Join("", [arn_prefix, ":cloudfront:::distribution/", Ref(app_distribution)]),
                     ),
                 ],
             ),
