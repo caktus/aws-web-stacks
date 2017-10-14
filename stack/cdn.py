@@ -50,6 +50,19 @@ if origin_domain_name:
     app_uses_cloudfront_condition = "AppUsesCloudFrontCondition"
     template.add_condition(app_uses_cloudfront_condition, Equals(Ref(app_uses_cloudfront), "true"))
 
+    app_protocol_policy = template.add_parameter(
+        Parameter(
+            "AppCloudFrontProtocolPolicy",
+            Description="The protocols allowed by the application server's CloudFront distribution. See: "
+                        "http://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DefaultCacheBehavior.html",
+            Type="String",
+            AllowedValues=["redirect-to-https", "https-only", "allow-all"],
+            Default="redirect-to-https",
+        ),
+        group="Application Server",
+        label="CloudFront Protocol Policy",
+    )
+
     # Currently, you can specify only certificates that are in the US East (N. Virginia) region.
     # http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distributionconfig-viewercertificate.html
     us_east_1_condition = "UsEast1Condition"
@@ -117,7 +130,7 @@ if origin_domain_name:
                             'Host',  # required for SSL on an Elastic Load Balancer
                         ],
                     ),
-                    ViewerProtocolPolicy="allow-all",
+                    ViewerProtocolPolicy=Ref(app_protocol_policy),
                 ),
                 Enabled=True,
             ),
