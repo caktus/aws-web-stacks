@@ -105,6 +105,8 @@ if origin_domain_name:
                 )],
                 DefaultCacheBehavior=DefaultCacheBehavior(
                     TargetOriginId="ApplicationServer",
+                    AllowedMethods=["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"],
+                    CachedMethods=["HEAD", "GET"],
                     ForwardedValues=ForwardedValues(
                         # This is a custom origin, so make sure everything (querystring, headers, cookies) are
                         # passed through to the origin server
