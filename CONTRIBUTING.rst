@@ -31,6 +31,16 @@ Compile JSON Templates
 
 The templates will be saved to the ``content/`` directory.
 
+Building the documentation
+--------------------------
+
+.. code-block:: bash
+
+    cd docs
+    make html
+
+The docs will be available in the ``docs/_build/html/`` directory.
+
 Submitting Pull Requests
 ------------------------
 
