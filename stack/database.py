@@ -119,11 +119,11 @@ db_user = template.add_parameter(
         Description="The database admin account username",
         Type="String",
         MinLength="1",
-        MaxLength="16",
-        AllowedPattern="[a-zA-Z][a-zA-Z0-9]*",
+        MaxLength="32",
+        AllowedPattern="[a-zA-Z][a-zA-Z0-9_]*",
         ConstraintDescription=(
             "must begin with a letter and contain only"
-            " alphanumeric characters."
+            " alphanumeric characters and underscores."
         )
     ),
     group="Database",
