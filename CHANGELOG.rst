@@ -9,8 +9,12 @@ Features:
 * The database type of the RDS instance can now be configured (previously, only Postgres could
   be used). Note that, for backwards-compatibility reasons, the resources in the CloudFormation
   stack is still named ``PostgreSQL`` (this avoids unnecessarily recreating the RDS instance
-  on pre-existing stacks).
-* The RDS instance now supports all allowable special characters in the password field.
+  on pre-existing stacks). See: PR #32
+* The RDS instance now supports all allowable special characters in the password field. See: PR #31
+* The CloudFront distribution linked to the S3 assets bucket can now be disabled / enabled at the
+  time a stack is created or updated; the CloudFront distribution now supports a custom domain name
+  and SSL certificate. See: PR #30
+
 
 `1.2.0`_ (2017-09-27)
 ---------------------
