@@ -99,7 +99,7 @@ cache_subnet_group = elasticache.SubnetGroup(
 )
 
 cache_cluster = elasticache.CacheCluster(
-    "CacheCluser",
+    "CacheCluster",
     template=template,
     Engine=Ref(cache_engine),
     CacheNodeType=Ref(cache_node_type),

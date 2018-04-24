@@ -56,7 +56,7 @@ db_engine_version = template.add_parameter(
     Parameter(
         "DatabaseEngineVersion",
         Default="",
-        Description="Database engine version to use",
+        Description="Postgres version to use",
         Type="String",
     ),
     group="Database",
