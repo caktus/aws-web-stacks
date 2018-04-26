@@ -69,6 +69,12 @@ wish to use the JSON template directly:
 .. _Dokku-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=dokku-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.json
 .. _dokku-no-nat.json: https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.json
 
+Documentation
+-------------
+
+In addition to this README, there is additional documentation at
+http://aws-web-stacks.readthedocs.io/
+
 
 Elastic Beanstalk, Elastic Container Service, EC2, or Dokku?
 ------------------------------------------------------------
