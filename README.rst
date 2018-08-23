@@ -108,6 +108,10 @@ NAT Gateways
 have the added benefit of preventing network connections to EC2 instances within the VPC, but
 come at an added cost (and no free tier).
 
+If a NAT Gateway stack is selected, you'll have the option of creating a bastion host or VPN server
+in the stack, using an AMI and instance type of your choice. No ports are open by default for
+this host (you'll need to open them manually via the AWS console or API).
+
 Stack Creation Process
 ----------------------
 
