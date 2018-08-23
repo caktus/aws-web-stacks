@@ -14,6 +14,8 @@ Features:
 * The CloudFront distribution linked to the S3 assets bucket can now be disabled / enabled at the
   time a stack is created or updated; the CloudFront distribution now supports a custom domain name
   and SSL certificate. See: PR #30
+* You now have the option of creating a bastion host or VPN server as part of the stack, when a
+  stack with a NAT Gateway is used, to facilitate secure remote access to hosts within the VPC.
 
 
 `1.2.0`_ (2017-09-27)

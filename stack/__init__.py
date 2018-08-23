@@ -12,6 +12,9 @@ if os.environ.get('USE_GOVCLOUD') != 'on':
     # supported in this region
     from . import search  # noqa: F401
 
+if os.environ.get('USE_NAT_GATEWAY') == 'on':
+    from . import bastion  # noqa: F401
+
 if os.environ.get('USE_ECS') == 'on':
     from . import repository  # noqa: F401
     from . import cluster  # noqa: F401
