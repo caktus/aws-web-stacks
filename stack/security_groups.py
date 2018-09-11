@@ -39,18 +39,26 @@ else:
 
 cidrs = [loadbalancer_a_subnet_cidr, loadbalancer_b_subnet_cidr]
 
+# HTTP from web public subnets
+ingress_rules = [SecurityGroupRule(
+    IpProtocol="tcp",
+    FromPort=port,
+    ToPort=port,
+    CidrIp=cidr,
+) for port, cidr in product(*[web_worker_ports, cidrs])]
+
+# Health check
+ingress_rules.append(SecurityGroupRule(
+    IpProtocol=Ref("WebWorkerHealthCheckProtocol"),
+    FromPort=Ref("WebWorkerHealthCheckPort"),
+    ToPort=Ref("WebWorkerHealthCheckPort"),
+    SourceSecurityGroupId=Ref(load_balancer_security_group),
+))
+
 container_security_group = SecurityGroup(
     'ContainerSecurityGroup',
     template=template,
     GroupDescription="Container security group.",
     VpcId=Ref(vpc),
-    SecurityGroupIngress=[
-        # HTTP from web public subnets
-        SecurityGroupRule(
-            IpProtocol="tcp",
-            FromPort=port,
-            ToPort=port,
-            CidrIp=cidr,
-        ) for port, cidr in product(*[web_worker_ports, cidrs])
-    ],
+    SecurityGroupIngress=ingress_rules,
 )
