@@ -49,7 +49,7 @@ ingress_rules = [SecurityGroupRule(
 
 # Health check
 ingress_rules.append(SecurityGroupRule(
-    IpProtocol=Ref("WebWorkerHealthCheckProtocol"),
+    IpProtocol="tcp",
     FromPort=Ref("WebWorkerHealthCheckPort"),
     ToPort=Ref("WebWorkerHealthCheckPort"),
     SourceSecurityGroupId=Ref(load_balancer_security_group),
