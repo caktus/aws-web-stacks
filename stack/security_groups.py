@@ -52,6 +52,7 @@ ingress_rules.append(SecurityGroupRule(
     IpProtocol="tcp",
     FromPort=Ref("WebWorkerHealthCheckPort"),
     ToPort=Ref("WebWorkerHealthCheckPort"),
+    Description="ELB Health Check",
     SourceSecurityGroupId=Ref(load_balancer_security_group),
 ))
 
