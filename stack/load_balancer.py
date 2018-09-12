@@ -67,14 +67,14 @@ web_worker_health_check_port = Ref(template.add_parameter(
         Default="80",
     ),
     group="Load Balancer",
-    label="Helath Check: Port",
+    label="Health Check: Port",
 ))
 
 web_worker_health_check = Ref(template.add_parameter(
     Parameter(
         "WebWorkerHealthCheck",
         Description="Web worker health check URL path, e.g., \"/health-check\"; "
-                    "will default to TCP-only health check if left blank",
+                    "required unless WebWorkerHealthCheckProtocol is TCP",
         Type="String",
         Default="",
     ),

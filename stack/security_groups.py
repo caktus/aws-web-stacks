@@ -52,7 +52,7 @@ ingress_rules.append(SecurityGroupRule(
     IpProtocol="tcp",
     FromPort=Ref("WebWorkerHealthCheckPort"),
     ToPort=Ref("WebWorkerHealthCheckPort"),
-    Description="ELB Health Check",
+    # Description="ELB Health Check",  # SecurityGroupRule doesn't support a Description attribute
     SourceSecurityGroupId=Ref(load_balancer_security_group),
 ))
 
