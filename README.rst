@@ -193,8 +193,8 @@ application on the specified port, with all of the necessary secrets and environ
 Note that the Elastic Load Balancer will not direct traffic to your instances until the health
 check you specify during stack creation returns a successful response.
 
-Environment Variables
----------------------
+Environment Variables within your server instances
+--------------------------------------------------
 
 Once your environment is created you'll have an Elastic Beanstalk (EB) or Elastic Compute Service
 (ECS) environment with the environment variables you need to run a containerized web application.
@@ -390,6 +390,52 @@ job to automatically renew the cert as needed::
 
 The Python sample app should now be accessible over HTTPS at https://python-sample.your.domain/
 
+Creating or updating templates
+------------------------------
+
+Templates built from the latest release of aws-web-stacks will be available in
+S3 (see links near the top of this file). They're built with generic defaults.
+
+Templates are built by setting some environment variables with your preferences
+and then running ``python -c 'import stack'`` (see the Makefile).
+The template file is output to standard output. It's easy to do this on one line::
+
+    USE_EC2=on python -c 'import stack' >my_ec2_stack_template.json
+
+Here are the environment variables that control the template creation.
+
+USE_EC2=on
+    Create EC2 instances directly.
+USE_GOVCLOUD=on
+    Create EC2 instances directly, but disables AWS services that aren't available
+    in GovCloud like the AWS Certificate Manager and Elastic Search.
+USE_EB=on
+    Create an Elastic Beanstalk application
+USE_ECS=on
+    Create an Elastic Container Service.
+USE_DOKKU=on
+    Create an EC2 instance containing a Dokku server
+
+I believe those environment variables are mutually exclusive.  The remaining
+ones can be used in combination with each other or one of the above.
+
+USE_NAT_GATEWAY=on
+    Don't put the services inside your VPC onto the public internet, and
+    add a NAT gateway to the stack to the services can make connections out.
+DEFAULTS_FILE=<path to JSON file>
+    Changes the default values for parameters. The JSON file should just be
+    a dictionary mapping parameter names to default values, e.g.::
+
+        {
+            "AMI": "ami-078c57a94e9bdc6e0",
+            "AssetsUseCloudFront": "false"
+        }
+
+One more example, creating EC2 instances without a NAT gateway and overriding
+the parameter defaults::
+
+    USE_EC2=on DEFAULTS_FILE=stack_defaults.json python -c 'import stack' >stack.json
+
 Contributing
 ------------
 
@@ -397,4 +443,4 @@ Please read `contributing guidelines here <https://github.com/caktus/aws-web-sta
 
 Good luck and have fun!
 
-Copyright 2017 Jean-Phillipe Serafin, Tobias McNulty.
+Copyright 2017, 2018 Jean-Phillipe Serafin, Tobias McNulty.

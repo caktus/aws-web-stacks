@@ -1,7 +1,8 @@
-from troposphere import Equals, If, Not, Parameter, Ref, ec2, elasticache
+from troposphere import Equals, If, Not, Ref, ec2, elasticache
 
 from .common import dont_create_value
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
     container_a_subnet,
     container_a_subnet_cidr,

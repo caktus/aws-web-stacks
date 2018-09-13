@@ -9,7 +9,6 @@ from troposphere import (
     Join,
     Not,
     Output,
-    Parameter,
     Ref,
     Split,
     iam
@@ -36,6 +35,7 @@ from troposphere.s3 import (
 from .common import arn_prefix
 from .domain import domain_name, domain_name_alternates, no_alt_domains
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 
 common_bucket_conf = dict(
     VersioningConfiguration=VersioningConfiguration(

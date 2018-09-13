@@ -1,10 +1,11 @@
 import os
 
 from troposphere import elasticloadbalancing as elb
-from troposphere import GetAtt, Join, Output, Parameter, Ref
+from troposphere import GetAtt, Join, Output, Ref
 
 from .security_groups import load_balancer_security_group
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 from .vpc import loadbalancer_a_subnet, loadbalancer_b_subnet
 
 # Web worker

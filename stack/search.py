@@ -1,7 +1,7 @@
 import os
 
 from awacs.aws import Action, Allow, Policy, Principal, Statement
-from troposphere import Equals, GetAtt, Not, Output, Parameter, Ref
+from troposphere import Equals, GetAtt, Not, Output, Ref
 from troposphere.elasticsearch import (
     Domain,
     EBSOptions,
@@ -10,6 +10,7 @@ from troposphere.elasticsearch import (
 
 from .common import dont_create_value
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 
 # TODO: clean up naming for this role so it's the same for all configurations
 if os.environ.get('USE_EB') == 'on':

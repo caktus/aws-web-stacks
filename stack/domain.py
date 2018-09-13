@@ -1,6 +1,7 @@
-from troposphere import Equals, Join, Parameter, Ref
+from troposphere import Equals, Join, Ref
 
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 
 domain_name = Ref(template.add_parameter(
     Parameter(
