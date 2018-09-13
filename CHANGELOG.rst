@@ -1,11 +1,16 @@
 Change Log
 ==========
 
-`1.3.0`_ (TBD)
---------------
+`1.3.0`_ (2018-09-13)
+---------------------
 
 Features:
 
+* Allow overriding parameter defaults at template creation time without having to change the
+  Python code.  See `the README
+  <https://github.com/caktus/aws-web-stacks/blob/master/README.rst#dokku>`_.
+* Add a parameter to control whether certificates are validated by DNS or email, and default
+  to DNS since GDPR has made email validation less likely to work.
 * The database type of the RDS instance can now be configured (previously, only Postgres could
   be used). Note that, for backwards-compatibility reasons, the resources in the CloudFormation
   stack is still named ``PostgreSQL`` (this avoids unnecessarily recreating the RDS instance
@@ -129,6 +134,7 @@ Backwards-incompatible changes:
 * Initial public release
 
 
+.. _1.3.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.3.0/
 .. _1.2.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.2.0/
 .. _1.1.2: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.1.2/
 .. _1.1.1: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.1.1/
