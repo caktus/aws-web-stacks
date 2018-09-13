@@ -1,6 +1,6 @@
 import os
 
-from troposphere import GetAtt, Parameter, Ref
+from troposphere import GetAtt, Ref
 from troposphere.ec2 import (
     EIP,
     VPC,
@@ -14,6 +14,7 @@ from troposphere.ec2 import (
 )
 
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 
 USE_NAT_GATEWAY = os.environ.get('USE_NAT_GATEWAY') == 'on'
 USE_DOKKU = os.environ.get('USE_DOKKU') == 'on'

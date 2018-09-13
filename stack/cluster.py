@@ -9,7 +9,6 @@ from troposphere import (
     FindInMap,
     Join,
     Not,
-    Parameter,
     Ref,
     autoscaling,
     cloudformation,
@@ -34,6 +33,7 @@ from .logs import container_log_group, logging_policy
 from .repository import repository
 from .security_groups import container_security_group
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 from .vpc import container_a_subnet, container_b_subnet
 
 web_worker_cpu = Ref(template.add_parameter(

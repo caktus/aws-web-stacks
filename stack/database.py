@@ -1,9 +1,10 @@
 from collections import OrderedDict
 
-from troposphere import Equals, FindInMap, Not, Parameter, Ref, ec2, rds
+from troposphere import Equals, FindInMap, Not, Ref, ec2, rds
 
 from .common import dont_create_value
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
     container_a_subnet,
     container_a_subnet_cidr,
@@ -140,7 +141,9 @@ db_password = template.add_parameter(
     Parameter(
         "DatabasePassword",
         NoEcho=True,
-        Description="The database admin account password",
+        Description=''
+        '''The database admin account password must consist of 10-41 printable'''
+        '''ASCII characters *except* "/", """, or "@".''',
         Type="String",
         MinLength="10",
         MaxLength="41",

@@ -1,6 +1,7 @@
-from troposphere import AWS_REGION, Equals, If, Parameter, Ref
+from troposphere import AWS_REGION, Equals, If, Ref
 
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 
 dont_create_value = "(none)"
 

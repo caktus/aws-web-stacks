@@ -397,4 +397,4 @@ Please read `contributing guidelines here <https://github.com/caktus/aws-web-sta
 
 Good luck and have fun!
 
-Copyright 2017 Jean-Phillipe Serafin, Tobias McNulty.
+Copyright 2017, 2018 Jean-Phillipe Serafin, Tobias McNulty.
