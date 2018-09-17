@@ -1,7 +1,7 @@
 from awacs import ecr
 from awacs.aws import Allow, Policy, Principal, Statement
 from awacs.sts import AssumeRole
-from troposphere import FindInMap, GetAtt, Join, Output, Parameter, Ref, iam
+from troposphere import FindInMap, GetAtt, Join, Output, Ref, iam
 from troposphere.elasticbeanstalk import (
     Application,
     Environment,
@@ -19,6 +19,7 @@ from .security_groups import (
     load_balancer_security_group
 )
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
     USE_NAT_GATEWAY,
     container_a_subnet,

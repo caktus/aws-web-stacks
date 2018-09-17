@@ -1,12 +1,4 @@
-from troposphere import (
-    AWS_STACK_NAME,
-    Equals,
-    Join,
-    Parameter,
-    Ref,
-    autoscaling,
-    iam
-)
+from troposphere import AWS_STACK_NAME, Equals, Join, Ref, autoscaling, iam
 
 from .assets import assets_management_policy
 from .common import container_instance_type
@@ -14,6 +6,7 @@ from .load_balancer import load_balancer, web_worker_health_check
 from .logs import logging_policy
 from .security_groups import container_security_group
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 from .vpc import container_a_subnet, container_b_subnet
 
 ami = Ref(template.add_parameter(

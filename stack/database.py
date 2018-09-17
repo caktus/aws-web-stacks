@@ -1,7 +1,10 @@
-from troposphere import Equals, Not, Parameter, Ref, ec2, rds
+from collections import OrderedDict
+
+from troposphere import Equals, FindInMap, Not, Ref, ec2, rds
 
 from .common import dont_create_value
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
     container_a_subnet,
     container_a_subnet_cidr,
@@ -9,6 +12,22 @@ from .vpc import (
     container_b_subnet_cidr,
     vpc
 )
+
+rds_engine_map = OrderedDict([
+    ("aurora", {"Port": "3306"}),
+    ("mariadb", {"Port": "3306"}),
+    ("mysql", {"Port": "3306"}),
+    ("oracle-ee", {"Port": "1521"}),
+    ("oracle-se2", {"Port": "1521"}),
+    ("oracle-se1", {"Port": "1521"}),
+    ("oracle-se", {"Port": "1521"}),
+    ("postgres", {"Port": "5432"}),
+    ("sqlserver-ee", {"Port": "1433"}),
+    ("sqlserver-se", {"Port": "1433"}),
+    ("sqlserver-ex", {"Port": "1433"}),
+    ("sqlserver-web", {"Port": "1433"}),
+])
+template.add_mapping('RdsEngineMap', rds_engine_map)
 
 db_class = template.add_parameter(
     Parameter(
@@ -25,6 +44,12 @@ db_class = template.add_parameter(
             'db.m4.2xlarge',
             'db.m4.4xlarge',
             'db.m4.10xlarge',
+            'db.r4.large',
+            'db.r4.xlarge',
+            'db.r4.2xlarge',
+            'db.r4.4xlarge',
+            'db.r4.8xlarge',
+            'db.r4.16xlarge',
             'db.r3.large',
             'db.r3.xlarge',
             'db.r3.2xlarge',
@@ -50,6 +75,19 @@ db_class = template.add_parameter(
     ),
     group="Database",
     label="Instance Type",
+)
+
+db_engine = template.add_parameter(
+    Parameter(
+        "DatabaseEngine",
+        Default="postgres",
+        Description="Database engine to use",
+        Type="String",
+        AllowedValues=list(rds_engine_map.keys()),
+        ConstraintDescription="must select a valid database engine.",
+    ),
+    group="Database",
+    label="Engine",
 )
 
 db_engine_version = template.add_parameter(
@@ -88,11 +126,11 @@ db_user = template.add_parameter(
         Description="The database admin account username",
         Type="String",
         MinLength="1",
-        MaxLength="16",
-        AllowedPattern="[a-zA-Z][a-zA-Z0-9]*",
+        MaxLength="63",
+        AllowedPattern="[a-zA-Z][a-zA-Z0-9_]*",
         ConstraintDescription=(
             "must begin with a letter and contain only"
-            " alphanumeric characters."
+            " alphanumeric characters and underscores."
         )
     ),
     group="Database",
@@ -103,12 +141,15 @@ db_password = template.add_parameter(
     Parameter(
         "DatabasePassword",
         NoEcho=True,
-        Description="The database admin account password",
+        Description=''
+        '''The database admin account password must consist of 10-41 printable'''
+        '''ASCII characters *except* "/", """, or "@".''',
         Type="String",
         MinLength="10",
         MaxLength="41",
-        AllowedPattern="[a-zA-Z0-9]*",
-        ConstraintDescription="must consist of 10-41 alphanumeric characters."
+        AllowedPattern="[ !#-.0-?A-~]*",  # see http://www.catonmat.net/blog/my-favorite-regex/
+        ConstraintDescription="must consist of 10-41 printable ASCII "
+                              "characters except \"/\", \"\"\", or \"@\"."
     ),
     group="Database",
     label="Password",
@@ -182,17 +223,17 @@ db_security_group = ec2.SecurityGroup(
     Condition=db_condition,
     VpcId=Ref(vpc),
     SecurityGroupIngress=[
-        # Postgres in from web clusters
+        # Rds Port in from web clusters
         ec2.SecurityGroupRule(
             IpProtocol="tcp",
-            FromPort="5432",
-            ToPort="5432",
+            FromPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
+            ToPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
             CidrIp=container_a_subnet_cidr,
         ),
         ec2.SecurityGroupRule(
             IpProtocol="tcp",
-            FromPort="5432",
-            ToPort="5432",
+            FromPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
+            ToPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
             CidrIp=container_b_subnet_cidr,
         ),
     ],
@@ -207,13 +248,14 @@ db_subnet_group = rds.DBSubnetGroup(
 )
 
 db_instance = rds.DBInstance(
+    # TODO: rename this resource to something generic along with the next major release
     "PostgreSQL",
     template=template,
     DBName=Ref(db_name),
     Condition=db_condition,
     AllocatedStorage=Ref(db_allocated_storage),
     DBInstanceClass=Ref(db_class),
-    Engine="postgres",
+    Engine=Ref(db_engine),
     EngineVersion=Ref(db_engine_version),
     MultiAZ=Ref(db_multi_az),
     StorageEncrypted=Ref(db_storage_encrypted),

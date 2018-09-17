@@ -1,6 +1,7 @@
-from troposphere import AWS_REGION, Equals, If, Parameter, Ref
+from troposphere import AWS_REGION, Equals, If, Ref
 
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 
 dont_create_value = "(none)"
 
@@ -15,6 +16,13 @@ container_instance_type = Ref(template.add_parameter(
         Type="String",
         Default="t2.micro",
         AllowedValues=[
+            't3.nano',
+            't3.micro',
+            't3.small',
+            't3.medium',
+            't3.large',
+            't3.xlarge',
+            't3.2xlarge',
             't2.nano',
             't2.micro',
             't2.small',
@@ -22,6 +30,18 @@ container_instance_type = Ref(template.add_parameter(
             't2.large',
             't2.xlarge',
             't2.2xlarge',
+            'm5.large',
+            'm5.xlarge',
+            'm5.2xlarge',
+            'm5.4xlarge',
+            'm5.12xlarge',
+            'm5.24xlarge',
+            'm5d.large',
+            'm5d.xlarge',
+            'm5d.2xlarge',
+            'm5d.4xlarge',
+            'm5d.12xlarge',
+            'm5d.24xlarge',
             'm4.large',
             'm4.xlarge',
             'm4.2xlarge',
@@ -32,6 +52,18 @@ container_instance_type = Ref(template.add_parameter(
             'm3.large',
             'm3.xlarge',
             'm3.2xlarge',
+            'c5.large',
+            'c5.xlarge',
+            'c5.2xlarge',
+            'c5.4xlarge',
+            'c5.9xlarge',
+            'c5.18xlarge',
+            'c5d.large',
+            'c5d.xlarge',
+            'c5d.2xlarge',
+            'c5d.4xlarge',
+            'c5d.9xlarge',
+            'c5d.18xlarge',
             'c4.large',
             'c4.xlarge',
             'c4.2xlarge',
@@ -49,6 +81,12 @@ container_instance_type = Ref(template.add_parameter(
             'g2.8xlarge',
             'x1.16large',
             'x1.32xlarge',
+            'r5.large',
+            'r5.xlarge',
+            'r5.2xlarge',
+            'r5.4xlarge',
+            'r5.12xlarge',
+            'r5.24xlarge',
             'r4.large',
             'r4.xlarge',
             'r4.2xlarge',

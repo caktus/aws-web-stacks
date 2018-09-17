@@ -1,13 +1,27 @@
 import os
 
-from troposphere import GetAtt, If, Join, Output, Ref, Split, iam
+from troposphere import (
+    AWS_REGION,
+    And,
+    Equals,
+    GetAtt,
+    If,
+    Join,
+    Not,
+    Output,
+    Ref,
+    Split,
+    iam
+)
+from troposphere.certificatemanager import Certificate, DomainValidationOption
 from troposphere.cloudfront import (
     DefaultCacheBehavior,
     Distribution,
     DistributionConfig,
     ForwardedValues,
     Origin,
-    S3Origin
+    S3Origin,
+    ViewerCertificate
 )
 from troposphere.s3 import (
     Bucket,
@@ -21,6 +35,7 @@ from troposphere.s3 import (
 from .common import arn_prefix
 from .domain import domain_name, domain_name_alternates, no_alt_domains
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 
 common_bucket_conf = dict(
     VersioningConfiguration=VersioningConfiguration(
@@ -122,11 +137,94 @@ assets_management_policy = iam.Policy(
 
 
 if os.environ.get('USE_GOVCLOUD') != 'on':
+    assets_use_cloudfront = template.add_parameter(
+        Parameter(
+            "AssetsUseCloudFront",
+            Description="Whether or not to create a CloudFront distribution tied to the S3 assets bucket.",
+            Type="String",
+            AllowedValues=["true", "false"],
+            Default="true",
+        ),
+        group="Static Media",
+        label="Enable CloudFront",
+    )
+    assets_use_cloudfront_condition = "AssetsUseCloudFrontCondition"
+    template.add_condition(assets_use_cloudfront_condition, Equals(Ref(assets_use_cloudfront), "true"))
+
+    assets_cloudfront_domain = template.add_parameter(
+        Parameter(
+            "AssetsCloudFrontDomain",
+            Description="A custom domain name (CNAME) for your CloudFront distribution, e.g., "
+                        "\"static.example.com\".",
+            Type="String",
+            Default="",
+        ),
+        group="Static Media",
+        label="CloudFront Custom Domain",
+    )
+    assets_custom_domain_condition = "AssetsCloudFrontDomainCondition"
+    template.add_condition(assets_custom_domain_condition, Not(Equals(Ref(assets_cloudfront_domain), "")))
+
+    # Currently, you can specify only certificates that are in the US East (N. Virginia) region.
+    # http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distributionconfig-viewercertificate.html
+    assets_custom_domain_and_us_east_1_condition = "AssetsCloudFrontDomainAndUsEast1Condition"
+    template.add_condition(
+        assets_custom_domain_and_us_east_1_condition,
+        And(Not(Equals(Ref(assets_cloudfront_domain), "")), Equals(Ref(AWS_REGION), "us-east-1"))
+    )
+
+    assets_certificate = template.add_resource(
+        Certificate(
+            'AssetsCertificate',
+            Condition=assets_custom_domain_and_us_east_1_condition,
+            DomainName=Ref(assets_cloudfront_domain),
+            DomainValidationOptions=[
+                DomainValidationOption(
+                    DomainName=Ref(assets_cloudfront_domain),
+                    ValidationDomain=Ref(assets_cloudfront_domain),
+                ),
+            ],
+        )
+    )
+
+    assets_certificate_arn = template.add_parameter(
+        Parameter(
+            "AssetsCloudFrontCertArn",
+            Description="If (1) you specified a custom static media domain, (2) your stack is NOT in the us-east-1 "
+                        "region, and (3) you wish to serve static media over HTTPS, you must manually create an "
+                        "ACM certificate in the us-east-1 region and provide its ARN here.",
+            Type="String",
+        ),
+        group="Static Media",
+        label="CloudFront SSL Certificate ARN",
+    )
+    assets_certificate_arn_condition = "AssetsCloudFrontCertArnCondition"
+    template.add_condition(assets_certificate_arn_condition, Not(Equals(Ref(assets_certificate_arn), "")))
+
     # Create a CloudFront CDN distribution
     distribution = template.add_resource(
         Distribution(
             'AssetsDistribution',
+            Condition=assets_use_cloudfront_condition,
             DistributionConfig=DistributionConfig(
+                Aliases=If(assets_custom_domain_condition, [Ref(assets_cloudfront_domain)], Ref("AWS::NoValue")),
+                # use the ACM certificate we created (if any), otherwise fall back to the manually-supplied
+                # ARN (if any)
+                ViewerCertificate=If(
+                    assets_custom_domain_and_us_east_1_condition,
+                    ViewerCertificate(
+                        AcmCertificateArn=Ref(assets_certificate),
+                        SslSupportMethod='sni-only',
+                    ),
+                    If(
+                        assets_certificate_arn_condition,
+                        ViewerCertificate(
+                            AcmCertificateArn=Ref(assets_certificate_arn),
+                            SslSupportMethod='sni-only',
+                        ),
+                        Ref("AWS::NoValue"),
+                    ),
+                ),
                 Origins=[Origin(
                     Id="Assets",
                     DomainName=GetAtt(assets_bucket, "DomainName"),
@@ -158,7 +256,8 @@ if os.environ.get('USE_GOVCLOUD') != 'on':
     template.add_output(Output(
         "AssetsDistributionDomainName",
         Description="The assest CDN domain name",
-        Value=GetAtt(distribution, "DomainName")
+        Value=GetAtt(distribution, "DomainName"),
+        Condition=assets_use_cloudfront_condition,
     ))
 else:
     distribution = None

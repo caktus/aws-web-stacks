@@ -7,10 +7,12 @@ AWS Web Stacks
 AWS Web Stacks is a library of CloudFormation templates that dramatically simplify hosting web applications
 on AWS. The library supports using Elastic Container Service (ECS), Elastic Beanstalk (EB), EC2 instances
 (via an AMI you specify), or `Dokku <http://dokku.viewdocs.io/dokku/>`_ for the application server(s) and
-provides auxilary managed services such as a Postgres RDS instance, Redis instance, Elasticsearch instance
+provides auxilary managed services such as an RDS instance, ElastiCache instance, Elasticsearch instance
 (free) SSL certificate via AWS Certificate Manager, S3 bucket for static assets, ECS repository for hosting
-Docker images, etc. All resources (except Elasticsearch, which does not support VPCs) are created in a
-self-contained VPC, which may use a NAT gateway (if you want to pay for that) or not.
+Docker images, etc. All resources (that support VPCs) are created in a self-contained VPC, which may use a
+NAT gateway (if you want to pay for that) or not, and resources that require API authentication (such as
+S3 or Elasticsearch) are granted permissions via the IAM instance role and profile assigned to the
+application servers created in the stack.
 
 The CloudFormation templates are written in `troposphere <https://github.com/cloudtools/troposphere>`_,
 which allows for some validation at build time and simplifies the management of several related
@@ -67,6 +69,12 @@ wish to use the JSON template directly:
 .. _Dokku-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=dokku-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.json
 .. _dokku-no-nat.json: https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.json
 
+Documentation
+-------------
+
+In addition to this README, there is additional documentation at
+http://aws-web-stacks.readthedocs.io/
+
 
 Elastic Beanstalk, Elastic Container Service, EC2, or Dokku?
 ------------------------------------------------------------
@@ -90,8 +98,8 @@ it appear unhealthy, e.g.::
 
 For very simple, Heroku-like deploys, choose the **Dokku** option. This will give you a single EC2 instance
 based on Ubuntu 16.04 LTS with `Dokku <http://dokku.viewdocs.io/dokku/>`_ pre-installed and global environment
-variables configured that will allow your app to find the Postgres, Redis or Memcached, and Elasticsearch nodes
-created with this stack.
+variables configured that will allow your app to find the RDS, ElastiCache, and Elasticsearch nodes created
+with this stack.
 
 NAT Gateways
 ------------
@@ -140,8 +148,10 @@ The following is a partial list of resources created by this stack, when Elastic
   which will be pre-configured with the environment variables specified below.
 * **Elasticsearch** (``AWS::Elasticsearch::Domain``): An Elasticsearch instance, which your
   application may use for full-text search, logging, etc.
-* **PostgreSQL** (``AWS::RDS::DBInstance``): The Postgres RDS instance for your application.
-  Includes a security group to allow access only from your EB or ECS instances in this stack.
+* **PostgreSQL** (``AWS::RDS::DBInstance``): The RDS instance for your application.
+  Includes a security group to allow access only from your EB or ECS instances in this stack. Note:
+  this CloudFormation resource is named "PostgreSQL" for backwards-compatibility reasons, but the
+  RDS instance can be configured with any database engine supported by RDS.
 * **Redis** (``AWS::ElastiCache::CacheCluster``): The Redis ElasticCache instance for your
   application. Includes a cache security group to allow access only from your EB or ECS instances in
   this stack.
@@ -183,8 +193,8 @@ application on the specified port, with all of the necessary secrets and environ
 Note that the Elastic Load Balancer will not direct traffic to your instances until the health
 check you specify during stack creation returns a successful response.
 
-Environment Variables
----------------------
+Environment Variables within your server instances
+--------------------------------------------------
 
 Once your environment is created you'll have an Elastic Beanstalk (EB) or Elastic Compute Service
 (ECS) environment with the environment variables you need to run a containerized web application.
@@ -380,6 +390,52 @@ job to automatically renew the cert as needed::
 
 The Python sample app should now be accessible over HTTPS at https://python-sample.your.domain/
 
+Creating or updating templates
+------------------------------
+
+Templates built from the latest release of aws-web-stacks will be available in
+S3 (see links near the top of this file). They're built with generic defaults.
+
+Templates are built by setting some environment variables with your preferences
+and then running ``python -c 'import stack'`` (see the Makefile).
+The template file is output to standard output. It's easy to do this on one line::
+
+    USE_EC2=on python -c 'import stack' >my_ec2_stack_template.json
+
+Here are the environment variables that control the template creation.
+
+USE_EC2=on
+    Create EC2 instances directly.
+USE_GOVCLOUD=on
+    Create EC2 instances directly, but disables AWS services that aren't available
+    in GovCloud like the AWS Certificate Manager and Elastic Search.
+USE_EB=on
+    Create an Elastic Beanstalk application
+USE_ECS=on
+    Create an Elastic Container Service.
+USE_DOKKU=on
+    Create an EC2 instance containing a Dokku server
+
+I believe those environment variables are mutually exclusive.  The remaining
+ones can be used in combination with each other or one of the above.
+
+USE_NAT_GATEWAY=on
+    Don't put the services inside your VPC onto the public internet, and
+    add a NAT gateway to the stack to the services can make connections out.
+DEFAULTS_FILE=<path to JSON file>
+    Changes the default values for parameters. The JSON file should just be
+    a dictionary mapping parameter names to default values, e.g.::
+
+        {
+            "AMI": "ami-078c57a94e9bdc6e0",
+            "AssetsUseCloudFront": "false"
+        }
+
+One more example, creating EC2 instances without a NAT gateway and overriding
+the parameter defaults::
+
+    USE_EC2=on DEFAULTS_FILE=stack_defaults.json python -c 'import stack' >stack.json
+
 Contributing
 ------------
 
@@ -387,4 +443,4 @@ Please read `contributing guidelines here <https://github.com/caktus/aws-web-sta
 
 Good luck and have fun!
 
-Copyright 2017 Jean-Phillipe Serafin, Tobias McNulty.
+Copyright 2017, 2018 Jean-Phillipe Serafin, Tobias McNulty.

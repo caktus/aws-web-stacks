@@ -1,7 +1,8 @@
-from troposphere import Equals, If, Not, Parameter, Ref, ec2, elasticache
+from troposphere import Equals, If, Not, Ref, ec2, elasticache
 
 from .common import dont_create_value
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
     container_a_subnet,
     container_a_subnet_cidr,
@@ -30,6 +31,12 @@ cache_node_type = template.add_parameter(
             'cache.m4.2xlarge',
             'cache.m4.4xlarge',
             'cache.m4.10xlarge',
+            'cache.r4.large',
+            'cache.r4.xlarge',
+            'cache.r4.2xlarge',
+            'cache.r4.4xlarge',
+            'cache.r4.8xlarge',
+            'cache.r4.16xlarge',
             'cache.r3.large',
             'cache.r3.xlarge',
             'cache.r3.2xlarge',
