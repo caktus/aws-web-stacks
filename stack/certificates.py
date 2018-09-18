@@ -17,8 +17,10 @@ certificate_validation_method = template.add_parameter(
         Type='String',
         Description=""
         "How to validate domain ownership for issuing an SSL certificate - "
-        "highly recommend DNS. Either way, stack creation will pause until "
-        "you do something to complete the validation."
+        "highly recommend DNS. DNS and Email will pause stack creation until "
+        "you do something to complete the validation. If omitted, an HTTPS "
+        "listener can be manually attached to the load balancer after stack "
+        "creation."
     ),
     group="Global",
     label="Certificate Validation Method"
