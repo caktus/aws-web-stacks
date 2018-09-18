@@ -1,7 +1,7 @@
 # Note: GovCloud doesn't support the certificate manager, so this file is
 # only imported from load_balancer.py when we're not using GovCloud.
 
-from troposphere import If, Ref, Equals, Not
+from troposphere import Equals, If, Not, Ref
 from troposphere.certificatemanager import Certificate, DomainValidationOption
 
 from .common import dont_create_value
