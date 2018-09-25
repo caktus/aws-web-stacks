@@ -1,6 +1,16 @@
 Change Log
 ==========
 
+
+`X.Y.Z`_ (TBD-DD-DD)
+---------------------
+
+Features:
+
+* Allow ACM certificate to be optional and/or be specified at a later date via a manual process. See
+  Manual ACM Certificates in README for more information.
+
+
 `1.3.0`_ (2018-09-13)
 ---------------------
 
