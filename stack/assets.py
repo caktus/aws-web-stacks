@@ -29,8 +29,8 @@ from troposphere.s3 import (
     CorsConfiguration,
     CorsRules,
     Private,
-    PublicRead,
     PublicAccessBlockConfiguration,
+    PublicRead,
     ServerSideEncryptionByDefault,
     ServerSideEncryptionRule,
     VersioningConfiguration
