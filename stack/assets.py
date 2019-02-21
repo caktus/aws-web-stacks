@@ -20,7 +20,7 @@ from troposphere.cloudfront import (
     DistributionConfig,
     ForwardedValues,
     Origin,
-    S3Origin,
+    S3OriginConfig,
     ViewerCertificate
 )
 from troposphere.s3 import (
@@ -228,7 +228,7 @@ if os.environ.get('USE_GOVCLOUD') != 'on':
                 Origins=[Origin(
                     Id="Assets",
                     DomainName=GetAtt(assets_bucket, "DomainName"),
-                    S3OriginConfig=S3Origin(
+                    S3OriginConfig=S3OriginConfig(
                         OriginAccessIdentity="",
                     ),
                 )],
