@@ -25,10 +25,14 @@ from troposphere.cloudfront import (
 )
 from troposphere.s3 import (
     Bucket,
+    BucketEncryption,
     CorsConfiguration,
     CorsRules,
     Private,
     PublicRead,
+    PublicAccessBlockConfiguration,
+    ServerSideEncryptionByDefault,
+    ServerSideEncryptionRule,
     VersioningConfiguration
 )
 
@@ -37,7 +41,36 @@ from .domain import domain_name, domain_name_alternates, no_alt_domains
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 
+use_s3_encryption = template.add_parameter(
+    Parameter(
+        "AssetsUseS3Encryption",
+        Description="Whether or not to use server side encryption for S3 buckets",
+        Type="String",
+        AllowedValues=["true", "false"],
+        Default="false",
+    ),
+    group="Static Media",
+    label="Enable S3 Encryption",
+)
+use_s3_encryption_cond = "AssetsUseS3EncryptionCondition"
+template.add_condition(use_s3_encryption_cond, Equals(Ref(use_s3_encryption), "true"))
+
 common_bucket_conf = dict(
+    BucketEncryption=BucketEncryption(
+        ServerSideEncryptionConfiguration=If(
+            use_s3_encryption_cond,
+            [
+                ServerSideEncryptionRule(
+                    ServerSideEncryptionByDefault=ServerSideEncryptionByDefault(
+                        SSEAlgorithm='AES256'
+                    )
+                )
+            ],
+            [
+                ServerSideEncryptionRule()
+            ]
+        )
+    ),
     VersioningConfiguration=VersioningConfiguration(
         Status="Enabled"
     ),
