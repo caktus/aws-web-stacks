@@ -9,6 +9,19 @@ in_govcloud_region = "InGovCloudRegion"
 template.add_condition(in_govcloud_region, Equals(Ref(AWS_REGION), "us-gov-west-1"))
 arn_prefix = If(in_govcloud_region, "arn:aws-us-gov", "arn:aws")
 
+administrator_ip_address = Ref(template.add_parameter(
+    Parameter(
+        "AdministratorIPAddress",
+        Description="The IP address allowed to access containers. "
+                    "Defaults to TEST-NET-1 (ie, no valid IP)",
+        Type="String",
+        # RFC5737 - TEST-NET-1 reserved for documentation
+        Default="192.0.2.0./24",
+    ),
+    group="Application Server",
+    label="Admin IP Address",
+))
+
 container_instance_type = Ref(template.add_parameter(
     Parameter(
         "ContainerInstanceType",
