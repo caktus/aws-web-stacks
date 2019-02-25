@@ -5,6 +5,12 @@ Change Log
 `X.Y.Z`_ (TBD-DD-DD)
 ---------------------
 
+* TBD
+
+
+`1.4.0`_ (2019-02-25)
+---------------------
+
 Features:
 
 * Allow ACM certificate to be optional and/or be specified at a later date via a manual process. See
@@ -12,6 +18,7 @@ Features:
 * Adds AdministratorIPAddress parameter so SSH access can be configured.
 * Adds AssetsUseAES256Encryption parameter to enable AES256 encryption on asset buckets.
 * Adds IgnorePublicAcls setting to private access buckets.
+* Upgrade Circle CI to 2.0
 
 
 `1.3.0`_ (2018-09-13)
