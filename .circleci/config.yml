@@ -1,0 +1,41 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3.5
+    steps:
+      - restore_cache:
+          keys:
+            - source-v1-{{ .Branch }}-{{ .Revision }}
+            - source-v1-{{ .Branch }}-
+            - source-v1-
+      - checkout
+      - save_cache:
+          key: source-v2-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - ".git"
+      - restore_cache:
+          key: pip-v1-{{ checksum "requirements.txt" }}-{{ checksum "requirements.txt" }}
+      - run:
+          name: Set up python environment
+          command: |
+            python3 -m venv env
+            . env/bin/activate
+            pip install -U -r requirements.txt
+            pip install -U awscli
+      - save_cache:
+          key: pip-v1-{{ checksum "requirements.txt" }}-{{ checksum "requirements.txt" }}
+          paths:
+            - "env"
+      - run:
+          name: Build, check, and upload templates to S3
+          command: |
+            . env/bin/activate
+            make templates
+            make check
+      - deploy:
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              . env/bin/activate
+              make upload
+            fi
