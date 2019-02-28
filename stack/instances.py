@@ -1,7 +1,7 @@
 from troposphere import AWS_STACK_NAME, Equals, Join, Ref, autoscaling, iam
 
 from .assets import assets_management_policy
-from .common import container_instance_type, use_aes256_encryption_cond
+from .common import container_instance_type, use_aes256_encryption
 from .load_balancer import load_balancer, web_worker_health_check
 from .logs import logging_policy
 from .security_groups import container_security_group
@@ -113,7 +113,7 @@ container_instance_configuration = autoscaling.LaunchConfiguration(
             DeviceName="/dev/sda1",
             Ebs=autoscaling.EBSBlockDevice(
                 VolumeSize=container_volume_size,
-                Encrypted=Ref(use_aes256_encryption_cond),
+                Encrypted=use_aes256_encryption,
             )
         ),
     ],
