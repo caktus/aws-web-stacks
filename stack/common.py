@@ -142,7 +142,7 @@ secret_key = Ref(template.add_parameter(
 
 use_aes256_encryption = Ref(template.add_parameter(
     Parameter(
-        "AssetsUseAES256Encryption",
+        "UseAES256Encryption",
         Description="Whether or not to use server side encryption for S3, EBS, and RDS. "
                     "When true, encryption is enabled for all resources.",
         Type="String",
