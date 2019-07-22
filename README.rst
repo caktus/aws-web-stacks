@@ -419,6 +419,8 @@ USE_DOKKU=on
 I believe those environment variables are mutually exclusive.  The remaining
 ones can be used in combination with each other or one of the above.
 
+USE_YAML=on
+    Generate template output in YAML instead of JSON.
 USE_NAT_GATEWAY=on
     Don't put the services inside your VPC onto the public internet, and
     add a NAT gateway to the stack to the services can make connections out.

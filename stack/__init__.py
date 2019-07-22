@@ -23,4 +23,7 @@ elif os.environ.get('USE_DOKKU') == 'on':
 else:  # USE_GOVCLOUD and USE_EC2 both provide EC2 instances
     from . import instances  # noqa: F401
 
-print(template.template.to_json())
+if os.environ.get('USE_YAML') == 'on':
+    print(template.template.to_yaml())
+else:
+    print(template.template.to_json())
