@@ -15,7 +15,7 @@ ami = Ref(template.add_parameter(
         Description="The Amazon Machine Image (AMI) to use for instances. Make "
                     "sure to use the correct AMI for your region and instance "
                     "type (t2 instances require HVM AMIs).",
-        Type="String",
+        Type="AWS::EC2::Image::Id",
         Default="",
     ),
     group="Application Server",

@@ -1,6 +1,6 @@
 import os
 
-from troposphere import GetAtt, Ref
+from troposphere import GetAtt, Join, Ref, Tags
 from troposphere.ec2 import (
     EIP,
     VPC,
@@ -48,6 +48,9 @@ vpc = VPC(
     CidrBlock="10.0.0.0/16",
     EnableDnsSupport=True,
     EnableDnsHostnames=True,
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "vpc"]),
+    ),
 )
 
 
@@ -55,6 +58,9 @@ vpc = VPC(
 internet_gateway = InternetGateway(
     "InternetGateway",
     template=template,
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "igw"]),
+    ),
 )
 
 
@@ -72,6 +78,9 @@ public_route_table = RouteTable(
     "PublicRouteTable",
     template=template,
     VpcId=Ref(vpc),
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "public"]),
+    ),
 )
 
 
@@ -92,6 +101,9 @@ public_subnet = Subnet(
     template=template,
     VpcId=Ref(vpc),
     CidrBlock=public_subnet_cidr,
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "public"]),
+    ),
 )
 
 
@@ -115,6 +127,9 @@ if USE_NAT_GATEWAY:
         template=template,
         AllocationId=GetAtt(nat_ip, "AllocationId"),
         SubnetId=Ref(public_subnet),
+        Tags=Tags(
+            Name=Join("-", [Ref("AWS::StackName"), "nat"]),
+        ),
     )
 
 
@@ -127,6 +142,9 @@ if not USE_DOKKU:
         VpcId=Ref(vpc),
         CidrBlock=loadbalancer_a_subnet_cidr,
         AvailabilityZone=Ref(primary_az),
+        Tags=Tags(
+            Name=Join("-", [Ref("AWS::StackName"), "elb-a"]),
+        ),
     )
 
     SubnetRouteTableAssociation(
@@ -143,6 +161,9 @@ if not USE_DOKKU:
         VpcId=Ref(vpc),
         CidrBlock=loadbalancer_b_subnet_cidr,
         AvailabilityZone=Ref(secondary_az),
+        Tags=Tags(
+            Name=Join("-", [Ref("AWS::StackName"), "elb-b"]),
+        ),
     )
 
     SubnetRouteTableAssociation(
@@ -159,6 +180,9 @@ if USE_NAT_GATEWAY:
         "PrivateRouteTable",
         template=template,
         VpcId=Ref(vpc),
+        Tags=Tags(
+            Name=Join("-", [Ref("AWS::StackName"), "private"]),
+        ),
     )
 
     private_nat_route = Route(
@@ -179,6 +203,9 @@ container_a_subnet = Subnet(
     CidrBlock=container_a_subnet_cidr,
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Ref(primary_az),
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "container-a"]),
+    ),
 )
 
 
@@ -202,6 +229,9 @@ container_b_subnet = Subnet(
     CidrBlock=container_b_subnet_cidr,
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Ref(secondary_az),
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "container-b"]),
+    ),
 )
 
 

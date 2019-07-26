@@ -1,4 +1,4 @@
-from troposphere import Equals, If, Not, Ref, ec2, elasticache
+from troposphere import Equals, GetAtt, If, Join, Not, Output, Ref, Tags, ec2, elasticache
 
 from .common import dont_create_value
 from .template import template
@@ -95,6 +95,9 @@ cache_security_group = ec2.SecurityGroup(
             CidrIp=container_b_subnet_cidr,
         ),
     ],
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "cache"]),
+    ),
 )
 
 cache_subnet_group = elasticache.SubnetGroup(
