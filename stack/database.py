@@ -213,6 +213,62 @@ db_backup_retention_days = template.add_parameter(
     label="Backup Retention Days",
 )
 
+db_parameter_group_family = template.add_parameter(
+    Parameter(
+        "DatabaseParameterGroupFamily",
+        Type="String",
+        AllowedValues=[
+            "aurora-mysql5.7",
+            "docdb3.6",
+            "neptune1",
+            "aurora-postgresql9.6",
+            "aurora-postgresql10",
+            "mariadb10.0",
+            "mariadb10.1",
+            "mariadb10.2",
+            "mariadb10.3",
+            "mysql5.5",
+            "mysql5.6",
+            "mysql5.7",
+            "mysql8.0",
+            "oracle-ee-11.2",
+            "oracle-ee-12.1",
+            "oracle-ee-12.2",
+            "oracle-se-11.2",
+            "oracle-se1-11.2",
+            "oracle-se2-12.1",
+            "oracle-se2-12.2",
+            "aurora5.6",
+            "postgres9.3",
+            "postgres9.4",
+            "postgres9.5",
+            "postgres9.6",
+            "postgres10",
+            "postgres11",
+            "sqlserver-ee-11.0",
+            "sqlserver-ee-12.0",
+            "sqlserver-ee-13.0",
+            "sqlserver-ee-14.0",
+            "sqlserver-ex-11.0",
+            "sqlserver-ex-12.0",
+            "sqlserver-ex-13.0",
+            "sqlserver-ex-14.0",
+            "sqlserver-se-11.0",
+            "sqlserver-se-12.0",
+            "sqlserver-se-13.0",
+            "sqlserver-se-14.0",
+            "sqlserver-web-11.0",
+            "sqlserver-web-12.0",
+            "sqlserver-web-13.0",
+            "sqlserver-web-14.0",
+        ],
+        Description="Database parameter group family name; must match the engine and version of "
+                    "the RDS instance.",
+    ),
+    group="Database",
+    label="Parameter Group Family",
+)
+
 db_condition = "DatabaseCondition"
 template.add_condition(db_condition, Not(Equals(Ref(db_class), dont_create_value)))
 
@@ -247,6 +303,15 @@ db_subnet_group = rds.DBSubnetGroup(
     SubnetIds=[Ref(container_a_subnet), Ref(container_b_subnet)],
 )
 
+db_parameter_group = rds.DBParameterGroup(
+    "DatabaseParameterGroup",
+    template=template,
+    Condition=db_condition,
+    Description="Database parameter group.",
+    Family=Ref(db_parameter_group_family),
+    Parameters={},
+)
+
 db_instance = rds.DBInstance(
     # TODO: rename this resource to something generic along with the next major release
     "PostgreSQL",
@@ -264,6 +329,7 @@ db_instance = rds.DBInstance(
     MasterUserPassword=Ref(db_password),
     DBSubnetGroupName=Ref(db_subnet_group),
     VPCSecurityGroups=[Ref(db_security_group)],
+    DBParameterGroupName=Ref(db_parameter_group),
     BackupRetentionPeriod=Ref(db_backup_retention_days),
     DeletionPolicy="Snapshot",
 )
