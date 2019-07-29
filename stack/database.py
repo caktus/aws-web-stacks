@@ -313,8 +313,7 @@ db_subnet_group = rds.DBSubnetGroup(
 )
 
 db_instance = rds.DBInstance(
-    # TODO: rename this resource to something generic along with the next major release
-    "PostgreSQL",
+    "DatabaseInstance",
     template=template,
     DBName=Ref(db_name),
     Condition=db_condition,
