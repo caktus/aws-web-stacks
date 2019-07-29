@@ -16,7 +16,7 @@ administrator_ip_address = Ref(template.add_parameter(
                     "Defaults to TEST-NET-1 (ie, no valid IP)",
         Type="String",
         # RFC5737 - TEST-NET-1 reserved for documentation
-        Default="192.0.2.0./24",
+        Default="192.0.2.0/24",
     ),
     group="Application Server",
     label="Admin IP Address",
