@@ -128,6 +128,32 @@ query) and follow the link to approve the certificate. If you're using a ``.io``
 may be necessary to receive email for ``.io`` domains, because domain owner emails cannot
 be discovered via ``whois``.
 
+Manual ACM Certificates
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You also have the option to *not* create a certificate as part of the stack provisioning process. If
+you do this, an HTTPS listener (and corresponding certificate) can be manually attached to the load
+balancer after stack creation via the AWS Console or using ``awscli`` using the steps below.
+
+To request a new certificate using DNS validation, run the following command with ``--domain-name``
+matching your desired domain::
+
+  aws acm request-certificate --domain-name [DOMAIN NAME] --validation-method DNS
+
+You can query the CNAME ``name`` and ``value`` variables using ``describe-certificate``::
+
+  aws acm list-certificates
+  aws acm describe-certificate --certificate-arn=YOUR-CertificateArn
+
+Add the listed CNAME to your DNS provider to complete the verification process.
+
+Once verified, add an HTTPS listener to the environment's ELB::
+
+  aws elb describe-load-balancers --query "LoadBalancerDescriptions[*].LoadBalancerName"
+  aws elb create-load-balancer-listeners --load-balancer-name [LB NAME]
+                                         --listeners "SSLCertificateId=[CERTIFICATE-ARN],Protocol=HTTPS,LoadBalancerPort=443,InstanceProtocol=HTTP,InstancePort=80"
+
+
 Resources Created
 -----------------
 

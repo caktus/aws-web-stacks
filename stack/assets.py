@@ -20,15 +20,19 @@ from troposphere.cloudfront import (
     DistributionConfig,
     ForwardedValues,
     Origin,
-    S3Origin,
+    S3OriginConfig,
     ViewerCertificate
 )
 from troposphere.s3 import (
     Bucket,
+    BucketEncryption,
     CorsConfiguration,
     CorsRules,
     Private,
+    PublicAccessBlockConfiguration,
     PublicRead,
+    ServerSideEncryptionByDefault,
+    ServerSideEncryptionRule,
     VersioningConfiguration
 )
 
@@ -37,7 +41,37 @@ from .domain import domain_name, domain_name_alternates, no_alt_domains
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 
+use_aes256_encryption = template.add_parameter(
+    Parameter(
+        "AssetsUseAES256Encryption",
+        Description="Whether or not to use server side encryption for S3 buckets. "
+                    "When true, AES256 encryption is enabled for all asset buckets.",
+        Type="String",
+        AllowedValues=["true", "false"],
+        Default="false",
+    ),
+    group="Static Media",
+    label="Enable AES256 Encryption",
+)
+use_aes256_encryption_cond = "AssetsUseS3EncryptionCondition"
+template.add_condition(use_aes256_encryption_cond, Equals(Ref(use_aes256_encryption), "true"))
+
 common_bucket_conf = dict(
+    BucketEncryption=BucketEncryption(
+        ServerSideEncryptionConfiguration=If(
+            use_aes256_encryption_cond,
+            [
+                ServerSideEncryptionRule(
+                    ServerSideEncryptionByDefault=ServerSideEncryptionByDefault(
+                        SSEAlgorithm='AES256'
+                    )
+                )
+            ],
+            [
+                ServerSideEncryptionRule()
+            ]
+        )
+    ),
     VersioningConfiguration=VersioningConfiguration(
         Status="Enabled"
     ),
@@ -93,6 +127,9 @@ private_assets_bucket = template.add_resource(
     Bucket(
         "PrivateAssetsBucket",
         AccessControl=Private,
+        PublicAccessBlockConfiguration=PublicAccessBlockConfiguration(
+            IgnorePublicAcls=True
+        ),
         **common_bucket_conf,
     )
 )
@@ -228,7 +265,7 @@ if os.environ.get('USE_GOVCLOUD') != 'on':
                 Origins=[Origin(
                     Id="Assets",
                     DomainName=GetAtt(assets_bucket, "DomainName"),
-                    S3OriginConfig=S3Origin(
+                    S3OriginConfig=S3OriginConfig(
                         OriginAccessIdentity="",
                     ),
                 )],

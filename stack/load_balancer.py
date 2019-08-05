@@ -1,7 +1,7 @@
 import os
 
 from troposphere import elasticloadbalancing as elb
-from troposphere import GetAtt, Join, Output, Ref
+from troposphere import GetAtt, If, Join, Output, Ref
 
 from .security_groups import load_balancer_security_group
 from .template import template
@@ -107,13 +107,14 @@ if os.environ.get('USE_GOVCLOUD') == 'on':
     ))
 else:
     from .certificates import application as application_certificate
-    listeners.append(elb.Listener(
+    from .certificates import cert_condition
+    listeners.append(If(cert_condition, elb.Listener(
         LoadBalancerPort=443,
         InstanceProtocol=web_worker_protocol,
         InstancePort=web_worker_port,
         Protocol='HTTPS',
         SSLCertificateId=application_certificate,
-    ))
+    ), Ref("AWS::NoValue")))
 
 load_balancer = elb.LoadBalancer(
     'LoadBalancer',

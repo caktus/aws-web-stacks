@@ -4,6 +4,7 @@ from itertools import product
 from troposphere import Ref
 from troposphere.ec2 import SecurityGroup, SecurityGroupRule
 
+from .common import administrator_ip_address
 from .template import template
 from .vpc import loadbalancer_a_subnet_cidr, loadbalancer_b_subnet_cidr, vpc
 
@@ -48,12 +49,22 @@ ingress_rules = [SecurityGroupRule(
 ) for port, cidr in product(*[web_worker_ports, cidrs])]
 
 # Health check
+if os.environ.get('USE_EB') != 'on':
+    ingress_rules.append(SecurityGroupRule(
+        IpProtocol="tcp",
+        FromPort=Ref("WebWorkerHealthCheckPort"),
+        ToPort=Ref("WebWorkerHealthCheckPort"),
+        Description="ELB Health Check",  # SecurityGroupRule doesn't support a Description attribute
+        SourceSecurityGroupId=Ref(load_balancer_security_group),
+    ))
+
+# AdministratorAccess
 ingress_rules.append(SecurityGroupRule(
     IpProtocol="tcp",
-    FromPort=Ref("WebWorkerHealthCheckPort"),
-    ToPort=Ref("WebWorkerHealthCheckPort"),
-    # Description="ELB Health Check",  # SecurityGroupRule doesn't support a Description attribute
-    SourceSecurityGroupId=Ref(load_balancer_security_group),
+    FromPort="22",
+    ToPort="22",
+    Description="Administrator SSH Access",
+    CidrIp=administrator_ip_address,
 ))
 
 container_security_group = SecurityGroup(

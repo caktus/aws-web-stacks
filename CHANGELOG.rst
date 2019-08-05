@@ -1,6 +1,27 @@
 Change Log
 ==========
 
+
+`X.Y.Z`_ (TBD-DD-DD)
+---------------------
+
+* TBD
+
+
+`1.4.0`_ (2019-08-05)
+---------------------
+
+Features:
+
+* Allow ACM certificate to be optional and/or be specified at a later date via a manual process. See
+  Manual ACM Certificates in README for more information.
+* Adds AdministratorIPAddress parameter so SSH access can be configured (thanks @dsummersl).
+* Adds AssetsUseAES256Encryption parameter to enable AES256 encryption on asset buckets (thanks @dsummersl).
+* Adds IgnorePublicAcls setting to private access buckets.
+* Upgrade Circle CI to 2.0
+* Miscellaneous fixes for release (thanks @cchurch)
+
+
 `1.3.0`_ (2018-09-13)
 ---------------------
 
@@ -134,6 +155,7 @@ Backwards-incompatible changes:
 * Initial public release
 
 
+.. _1.4.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.4.0/
 .. _1.3.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.3.0/
 .. _1.2.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.2.0/
 .. _1.1.2: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.1.2/
