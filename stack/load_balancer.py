@@ -109,7 +109,6 @@ else:
     from .certificates import application as application_certificate
     from .certificates import cert_condition
     listeners.append(If(cert_condition, elb.Listener(
-        Condition=cert_condition,
         LoadBalancerPort=443,
         InstanceProtocol=web_worker_protocol,
         InstancePort=web_worker_port,
