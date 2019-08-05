@@ -8,7 +8,7 @@ Change Log
 * TBD
 
 
-`1.4.0`_ (2019-02-25)
+`1.4.0`_ (2019-08-05)
 ---------------------
 
 Features:
@@ -154,6 +154,7 @@ Backwards-incompatible changes:
 * Initial public release
 
 
+.. _1.4.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.4.0/
 .. _1.3.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.3.0/
 .. _1.2.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.2.0/
 .. _1.1.2: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.1.2/
