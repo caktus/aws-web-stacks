@@ -96,7 +96,7 @@ cache_security_group = ec2.SecurityGroup(
         ),
     ],
     Tags=Tags(
-        Name=Join("-", [Ref("AWS::StackName"), "cache-sg"]),
+        Name=Join("-", [Ref("AWS::StackName"), "cache"]),
     ),
 )
 
