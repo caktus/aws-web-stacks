@@ -36,25 +36,10 @@ from troposphere.s3 import (
     VersioningConfiguration
 )
 
-from .common import arn_prefix
+from .common import arn_prefix, use_aes256_encryption_cond
 from .domain import domain_name, domain_name_alternates, no_alt_domains
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
-
-use_aes256_encryption = template.add_parameter(
-    Parameter(
-        "AssetsUseAES256Encryption",
-        Description="Whether or not to use server side encryption for S3 buckets. "
-                    "When true, AES256 encryption is enabled for all asset buckets.",
-        Type="String",
-        AllowedValues=["true", "false"],
-        Default="false",
-    ),
-    group="Static Media",
-    label="Enable AES256 Encryption",
-)
-use_aes256_encryption_cond = "AssetsUseS3EncryptionCondition"
-template.add_condition(use_aes256_encryption_cond, Equals(Ref(use_aes256_encryption), "true"))
 
 common_bucket_conf = dict(
     BucketEncryption=BucketEncryption(

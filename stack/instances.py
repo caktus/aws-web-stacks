@@ -1,7 +1,7 @@
 from troposphere import AWS_STACK_NAME, Equals, Join, Ref, autoscaling, iam
 
 from .assets import assets_management_policy
-from .common import container_instance_type
+from .common import container_instance_type, use_aes256_encryption
 from .load_balancer import load_balancer, web_worker_health_check
 from .logs import logging_policy
 from .security_groups import container_security_group
@@ -56,6 +56,17 @@ max_container_instances = Ref(template.add_parameter(
     label="Maximum Instance Count",
 ))
 
+container_volume_size = Ref(template.add_parameter(
+    Parameter(
+        "ContainerVolumeSize",
+        Description="Size of instance EBS root volume (in GB)",
+        Type="Number",
+        Default="8",
+    ),
+    group="Application Server",
+    label="Root Volume Size",
+))
+
 tcp_health_check_condition = "TcpHealthCheck"
 template.add_condition(
     tcp_health_check_condition,
@@ -97,6 +108,16 @@ container_instance_configuration = autoscaling.LaunchConfiguration(
     InstanceType=container_instance_type,
     ImageId=ami,
     IamInstanceProfile=Ref(container_instance_profile),
+    BlockDeviceMappings=[
+        autoscaling.BlockDeviceMapping(
+            DeviceName="/dev/sda1",
+            Ebs=autoscaling.EBSBlockDevice(
+                VolumeType="gp2",
+                VolumeSize=container_volume_size,
+                Encrypted=use_aes256_encryption,
+            )
+        ),
+    ],
     KeyName=Ref(key_name),
 )
 
