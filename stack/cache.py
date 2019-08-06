@@ -96,7 +96,7 @@ cache_security_group = ec2.SecurityGroup(
         ),
     ],
     Tags=Tags(
-        Name=Join("-", [Ref("AWS::StackName"), "cache"]),
+        Name=Join("-", [Ref("AWS::StackName"), "cache-sg"]),
     ),
 )
 
@@ -118,4 +118,7 @@ cache_cluster = elasticache.CacheCluster(
     Port=If(using_redis_condition, 6379, 11211),
     VpcSecurityGroupIds=[Ref(cache_security_group)],
     CacheSubnetGroupName=Ref(cache_subnet_group),
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "cache"]),
+    ),
 )
