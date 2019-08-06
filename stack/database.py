@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from troposphere import Equals, FindInMap, GetAtt, If, Join, Not, Output, Ref, Tags, ec2, rds
+from troposphere import Equals, FindInMap, Join, Not, Ref, Tags, ec2, rds
 
 from .common import dont_create_value, use_aes256_encryption
 from .template import template

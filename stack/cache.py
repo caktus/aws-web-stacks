@@ -1,4 +1,4 @@
-from troposphere import Equals, GetAtt, If, Join, Not, Output, Ref, Tags, ec2, elasticache
+from troposphere import Equals, If, Join, Not, Ref, Tags, ec2, elasticache
 
 from .common import dont_create_value
 from .template import template
