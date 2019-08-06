@@ -112,6 +112,7 @@ container_instance_configuration = autoscaling.LaunchConfiguration(
         autoscaling.BlockDeviceMapping(
             DeviceName="/dev/sda1",
             Ebs=autoscaling.EBSBlockDevice(
+                VolumeType="gp2",
                 VolumeSize=container_volume_size,
                 Encrypted=use_aes256_encryption,
             )
