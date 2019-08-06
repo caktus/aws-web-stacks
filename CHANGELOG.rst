@@ -8,6 +8,13 @@ Change Log
 * TBD
 
 
+`1.5.0`_ (2019-08-06)
+---------------------
+
+* Re-purpose use_aes256_encryption flag to support encryption across S3, RDS, and RDS (thanks @dsummersl)
+* Add configurable ContainerVolumeSize to change root volume size of EC2 instances (thanks @dsummersl)
+
+
 `1.4.0`_ (2019-08-05)
 ---------------------
 
@@ -155,6 +162,7 @@ Backwards-incompatible changes:
 * Initial public release
 
 
+.. _1.5.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.5.0/
 .. _1.4.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.4.0/
 .. _1.3.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.3.0/
 .. _1.2.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.2.0/

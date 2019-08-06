@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 from troposphere import Equals, FindInMap, Not, Ref, ec2, rds
 
-from .common import dont_create_value
+from .common import dont_create_value, use_aes256_encryption
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
@@ -237,21 +237,6 @@ db_allocated_storage = template.add_parameter(
     label="Storage (GB)",
 )
 
-db_storage_encrypted = template.add_parameter(
-    Parameter(
-        "DatabaseStorageEncrypted",
-        Default="false",
-        Description="Whether or not to encrypt the underlying database storage",
-        Type="String",
-        AllowedValues=[
-            'true',
-            'false',
-        ],
-    ),
-    group="Database",
-    label="Enable Encrypted Storage",
-)
-
 db_multi_az = template.add_parameter(
     Parameter(
         "DatabaseMultiAZ",
@@ -322,7 +307,7 @@ db_instance = rds.DBInstance(
     Engine=Ref(db_engine),
     EngineVersion=Ref(db_engine_version),
     MultiAZ=Ref(db_multi_az),
-    StorageEncrypted=Ref(db_storage_encrypted),
+    StorageEncrypted=use_aes256_encryption,
     StorageType="gp2",
     MasterUsername=Ref(db_user),
     MasterUserPassword=Ref(db_password),
