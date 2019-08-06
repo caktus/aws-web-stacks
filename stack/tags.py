@@ -1,4 +1,5 @@
 from troposphere import AWS_STACK_NAME, Ref, Tags
+
 from .template import template
 
 common_tags = Tags({'aws-web-stacks:stack-name': Ref(AWS_STACK_NAME)})
