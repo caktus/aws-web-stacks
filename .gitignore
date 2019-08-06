@@ -1,3 +1,4 @@
 *.pyc
 content/
 _build/
+.DS_Store
