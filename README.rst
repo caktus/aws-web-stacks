@@ -31,43 +31,43 @@ one of the following:
 +---------------------+-------------------+---------------------------+---------------+-----------------+
 
 If you'd like to review the CloudFormation template first, or update an existing stack, you may also
-wish to use the JSON template directly:
+wish to use the YAML template directly:
 
 +---------------------+-------------------+---------------------------+--------------------+----------------------+
 |                     | Elastic Beanstalk | Elastic Container Service | EC2 Instances      | Dokku                |
 +=====================+===================+===========================+====================+======================+
-| Without NAT Gateway | `eb-no-nat.json`_ | `ecs-no-nat.json`_        | `ec2-no-nat.json`_ | `dokku-no-nat.json`_ |
+| Without NAT Gateway | `eb-no-nat.yaml`_ | `ecs-no-nat.yaml`_        | `ec2-no-nat.yaml`_ | `dokku-no-nat.yaml`_ |
 +---------------------+-------------------+---------------------------+--------------------+----------------------+
-| With NAT Gateway    | `eb-nat.json`_    | `ecs-nat.json`_           | `ec2-nat.json`_    | n/a                  |
+| With NAT Gateway    | `eb-nat.yaml`_    | `ecs-nat.yaml`_           | `ec2-nat.yaml`_    | n/a                  |
 +---------------------+-------------------+---------------------------+--------------------+----------------------+
 
 .. |EB-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _EB-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eb-no-nat.json
-.. _eb-no-nat.json: https://s3.amazonaws.com/aws-web-stacks/eb-no-nat.json
+.. _EB-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eb-no-nat.yaml
+.. _eb-no-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/eb-no-nat.yaml
 
 .. |EB-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _EB-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eb-nat.json
-.. _eb-nat.json: https://s3.amazonaws.com/aws-web-stacks/eb-nat.json
+.. _EB-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eb-nat.yaml
+.. _eb-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/eb-nat.yaml
 
 .. |ECS-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _ECS-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ecs-no-nat.json
-.. _ecs-no-nat.json: https://s3.amazonaws.com/aws-web-stacks/ecs-no-nat.json
+.. _ECS-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ecs-no-nat.yaml
+.. _ecs-no-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/ecs-no-nat.yaml
 
 .. |ECS-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _ECS-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ecs-nat.json
-.. _ecs-nat.json: https://s3.amazonaws.com/aws-web-stacks/ecs-nat.json
+.. _ECS-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ecs-nat.yaml
+.. _ecs-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/ecs-nat.yaml
 
 .. |EC2-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _EC2-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ec2-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ec2-no-nat.json
-.. _ec2-no-nat.json: https://s3.amazonaws.com/aws-web-stacks/ec2-no-nat.json
+.. _EC2-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ec2-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ec2-no-nat.yaml
+.. _ec2-no-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/ec2-no-nat.yaml
 
 .. |EC2-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _EC2-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ec2-app-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ec2-nat.json
-.. _ec2-nat.json: https://s3.amazonaws.com/aws-web-stacks/ec2-nat.json
+.. _EC2-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ec2-app-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ec2-nat.yaml
+.. _ec2-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/ec2-nat.yaml
 
 .. |Dokku-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _Dokku-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=dokku-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.json
-.. _dokku-no-nat.json: https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.json
+.. _Dokku-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=dokku-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.yaml
+.. _dokku-no-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.yaml
 
 Documentation
 -------------
@@ -196,13 +196,13 @@ stack in GovCloud by downloading one of the following templates and uploading it
 via the AWS Management Console:
 
 +---------------------+-------------------+
-| Without NAT Gateway | `gc-no-nat.json`_ |
+| Without NAT Gateway | `gc-no-nat.yaml`_ |
 +---------------------+-------------------+
-| With NAT Gateway    | `gc-nat.json`_    |
+| With NAT Gateway    | `gc-nat.yaml`_    |
 +---------------------+-------------------+
 
-.. _gc-no-nat.json: https://s3.amazonaws.com/aws-web-stacks/gc-no-nat.json
-.. _gc-nat.json: https://s3.amazonaws.com/aws-web-stacks/gc-nat.json
+.. _gc-no-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/gc-no-nat.yaml
+.. _gc-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/gc-nat.yaml
 
 This template will create:
 
@@ -426,7 +426,7 @@ Templates are built by setting some environment variables with your preferences
 and then running ``python -c 'import stack'`` (see the Makefile).
 The template file is output to standard output. It's easy to do this on one line::
 
-    USE_EC2=on python -c 'import stack' >my_ec2_stack_template.json
+    USE_EC2=on python -c 'import stack' >my_ec2_stack_template.yaml
 
 Here are the environment variables that control the template creation.
 
@@ -460,7 +460,7 @@ DEFAULTS_FILE=<path to JSON file>
 One more example, creating EC2 instances without a NAT gateway and overriding
 the parameter defaults::
 
-    USE_EC2=on DEFAULTS_FILE=stack_defaults.json python -c 'import stack' >stack.json
+    USE_EC2=on DEFAULTS_FILE=stack_defaults.json python -c 'import stack' >stack.yaml
 
 Contributing
 ------------

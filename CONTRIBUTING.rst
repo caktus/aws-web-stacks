@@ -22,7 +22,7 @@ Check Code Formatting
 
     make check
 
-Compile JSON Templates
+Compile YAML Templates
 ----------------------
 
 .. code-block:: bash
@@ -74,7 +74,7 @@ Release Process
 * After merging, Circle CI will build the templates and upload them to S3. The current, stable (unversioned)
   releases will be overwritten, and a copy of the release will be archived to a folder named for the version
   in the S3 bucket. **For this reason, it is very important that no commits with new code be made to master
-  before incrementing the version number, or the JSON for the previous release may be overwritten.**
+  before incrementing the version number, or the YAML for the previous release may be overwritten.**
 * Tag the release in Git and push it to GitHub, e.g.::
 
     git checkout master
