@@ -13,6 +13,7 @@ Change Log
 
 * Re-purpose use_aes256_encryption flag to support encryption across S3, RDS, and RDS (thanks @dsummersl)
 * Add configurable ContainerVolumeSize to change root volume size of EC2 instances (thanks @dsummersl)
+* Change generated template output from JSON to YAML (thanks @cchurch)
 
 
 `1.4.0`_ (2019-08-05)
