@@ -1,10 +1,20 @@
 import troposphere.ec2 as ec2
-from troposphere import And, Condition, Equals, FindInMap, If, Join, Not, Output, Parameter, Ref, Tags
+from troposphere import (
+    And,
+    Condition,
+    Equals,
+    FindInMap,
+    Join,
+    Not,
+    Output,
+    Parameter,
+    Ref,
+    Tags
+)
 
 from .common import dont_create_value, use_aes256_encryption
 from .template import template
 from .vpc import public_subnet, vpc
-
 
 bastion_type = template.add_parameter(
     Parameter(
