@@ -21,6 +21,7 @@ What's new in 1.5.0:
 * Add configurable ContainerVolumeSize to change root volume size of EC2 instances (thanks @dsummersl)
 * Change generated template output from JSON to YAML (thanks @cchurch)
 * Add required DBParameterGroup by default, which allows configuring database specific parameters. This avoids having to reboot a production database instance to add a DBParameterGroup in the future. (thanks @cchurch)
+* Add tags to all resources, including a common ``aws-web-stacks:stack-name`` tag with the stack's name
 
 
 `1.4.0`_ (2019-08-05)

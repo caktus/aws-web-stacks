@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from troposphere import Equals, FindInMap, Not, Ref, ec2, rds
+from troposphere import Equals, FindInMap, Join, Not, Ref, Tags, ec2, rds
 
 from .common import dont_create_value, use_aes256_encryption
 from .template import template
@@ -287,6 +287,9 @@ db_security_group = ec2.SecurityGroup(
             CidrIp=container_b_subnet_cidr,
         ),
     ],
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "rds"]),
+    ),
 )
 
 db_subnet_group = rds.DBSubnetGroup(
