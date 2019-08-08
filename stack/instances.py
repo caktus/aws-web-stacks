@@ -137,6 +137,11 @@ autoscaling_group = autoscaling.AutoScalingGroup(
             "Key": "Name",
             "Value": Join("-", [Ref(AWS_STACK_NAME), "web_worker"]),
             "PropagateAtLaunch": True,
-        }
+        },
+        {
+            "Key": "aws-web-stacks:role",
+            "Value": "worker",
+            "PropagateAtLaunch": True,
+        },
     ],
 )

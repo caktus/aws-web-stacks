@@ -276,9 +276,16 @@ bastion_instance = ec2.Instance(
         ),
     ],
     Condition=bastion_type_and_ami_set,
-    Tags=Tags(
-        Name=Join("-", [Ref("AWS::StackName"), "bastion"]),
-    ),
+    Tags=[
+        {
+            "Key": "Name",
+            "Value": Join("-", [Ref("AWS::StackName"), "bastion"]),
+        },
+        {
+            "Key": "aws-web-stacks:role",
+            "Value": "bastion",
+        },
+    ],
 )
 
 # Associate the Elastic IP separately, so it doesn't change when the instance changes.
