@@ -108,6 +108,13 @@ NAT Gateways
 have the added benefit of preventing network connections to EC2 instances within the VPC, but
 come at an added cost (and no free tier).
 
+If a NAT Gateway stack is selected, you'll have the option of creating a bastion host or VPN server
+in the stack, using an AMI and instance type of your choice. The bastion type selected will determine which
+ports are opened by default for this host. If ``SSH``, only SSH traffic will be allowed from the IP address
+or subnet configured by the ``AdministratorIPAddress`` parameter. If ``OpenVPN``, HTTPS and SSH traffic will
+be allowed from the ``AdministratorIPAddress``, and OpenVPN UDP traffic from any address. Additional ports
+will need to be opened manually via the AWS console or API.
+
 Stack Creation Process
 ----------------------
 

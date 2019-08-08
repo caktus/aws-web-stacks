@@ -61,14 +61,15 @@ if os.environ.get('USE_EB') != 'on':
         SourceSecurityGroupId=Ref(load_balancer_security_group),
     ))
 
-# AdministratorAccess
-ingress_rules.append(SecurityGroupRule(
-    IpProtocol="tcp",
-    FromPort="22",
-    ToPort="22",
-    Description="Administrator SSH Access",
-    CidrIp=administrator_ip_address,
-))
+if os.environ.get('USE_NAT_GATEWAY') != 'on':
+    # Allow direct administrator access via SSH.
+    ingress_rules.append(SecurityGroupRule(
+        IpProtocol="tcp",
+        FromPort="22",
+        ToPort="22",
+        Description="Administrator SSH Access",
+        CidrIp=administrator_ip_address,
+    ))
 
 container_security_group = SecurityGroup(
     'ContainerSecurityGroup',
