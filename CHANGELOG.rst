@@ -24,6 +24,8 @@ What's new in 1.5.0:
 * Add tags to all resources, including a common ``aws-web-stacks:stack-name`` tag with the stack's name
 * You now have the option of creating a bastion host or VPN server as part of the stack, when a
   stack with a NAT Gateway is used, to facilitate secure remote access to hosts within the VPC.
+* Add parameters to customize VPC and subnet IPv4 CIDR blocks.
+
 
 `1.4.0`_ (2019-08-05)
 ---------------------

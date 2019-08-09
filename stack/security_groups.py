@@ -41,7 +41,7 @@ else:
     # web worker port (80)
     web_worker_ports = ["80"]
 
-cidrs = [loadbalancer_a_subnet_cidr, loadbalancer_b_subnet_cidr]
+cidrs = [Ref(loadbalancer_a_subnet_cidr), Ref(loadbalancer_b_subnet_cidr)]
 
 # HTTP from web public subnets
 ingress_rules = [SecurityGroupRule(
