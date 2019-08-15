@@ -30,7 +30,6 @@ from troposphere.s3 import (
     CorsRules,
     Private,
     PublicAccessBlockConfiguration,
-    PublicRead,
     ServerSideEncryptionByDefault,
     ServerSideEncryptionRule,
     VersioningConfiguration
@@ -89,11 +88,12 @@ common_bucket_conf = dict(
     ),
 )
 
-# Create an S3 bucket that holds statics and media
+# Create an S3 bucket that holds statics and media. Default to private to prevent
+# public list permissions, but still allow objects to be made publicly readable.
 assets_bucket = template.add_resource(
     Bucket(
         "AssetsBucket",
-        AccessControl=PublicRead,
+        AccessControl=Private,
         **common_bucket_conf,
     )
 )
