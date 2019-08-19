@@ -25,6 +25,7 @@ What's new in 1.5.0:
 * Add a ``aws-web-stacks:role`` tag to EC2 instances to identify as bastion vs. worker.
 * You now have the option of creating a bastion host or VPN server as part of the stack, when a
   stack with a NAT Gateway is used, to facilitate secure remote access to hosts within the VPC.
+* Add a parameter to specify the default canned ACL for the public assets bucket.
 
 `1.4.0`_ (2019-08-05)
 ---------------------

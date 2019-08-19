@@ -40,6 +40,24 @@ from .domain import domain_name, domain_name_alternates, no_alt_domains
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 
+assets_bucket_access_control = template.add_parameter(
+    Parameter(
+        "AssetsBucketAccessControl",
+        Default="PublicRead",
+        Description="Canned ACL for the public S3 bucket. Private is recommended; it "
+                    "allows for objects to be make publicly readable, but prevents "
+                    "listing of the bucket contents.",
+        Type="String",
+        AllowedValues=[
+            "PublicRead",
+            "Private",
+        ],
+        ConstraintDescription="Must be PublicRead or Private.",
+    ),
+    group="Static Media",
+    label="Assets Bucket ACL",
+)
+
 common_bucket_conf = dict(
     BucketEncryption=BucketEncryption(
         ServerSideEncryptionConfiguration=If(
@@ -93,7 +111,7 @@ common_bucket_conf = dict(
 assets_bucket = template.add_resource(
     Bucket(
         "AssetsBucket",
-        AccessControl=Private,
+        AccessControl=Ref(assets_bucket_access_control),
         **common_bucket_conf,
     )
 )
