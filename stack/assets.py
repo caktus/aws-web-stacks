@@ -30,7 +30,6 @@ from troposphere.s3 import (
     CorsRules,
     Private,
     PublicAccessBlockConfiguration,
-    PublicRead,
     ServerSideEncryptionByDefault,
     ServerSideEncryptionRule,
     VersioningConfiguration
@@ -40,6 +39,24 @@ from .common import arn_prefix, use_aes256_encryption_cond
 from .domain import domain_name, domain_name_alternates, no_alt_domains
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
+
+assets_bucket_access_control = template.add_parameter(
+    Parameter(
+        "AssetsBucketAccessControl",
+        Default="PublicRead",
+        Description="Canned ACL for the public S3 bucket. Private is recommended; it "
+                    "allows for objects to be make publicly readable, but prevents "
+                    "listing of the bucket contents.",
+        Type="String",
+        AllowedValues=[
+            "PublicRead",
+            "Private",
+        ],
+        ConstraintDescription="Must be PublicRead or Private.",
+    ),
+    group="Static Media",
+    label="Assets Bucket ACL",
+)
 
 common_bucket_conf = dict(
     BucketEncryption=BucketEncryption(
@@ -89,11 +106,12 @@ common_bucket_conf = dict(
     ),
 )
 
-# Create an S3 bucket that holds statics and media
+# Create an S3 bucket that holds statics and media. Default to private to prevent
+# public list permissions, but still allow objects to be made publicly readable.
 assets_bucket = template.add_resource(
     Bucket(
         "AssetsBucket",
-        AccessControl=PublicRead,
+        AccessControl=Ref(assets_bucket_access_control),
         **common_bucket_conf,
     )
 )
