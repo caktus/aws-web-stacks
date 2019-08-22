@@ -48,7 +48,8 @@ secondary_az = template.add_parameter(
 vpc_cidr = template.add_parameter(
     Parameter(
         "VpcCidr",
-        Description="The primary IPv4 CIDR block for the VPC.",
+        Description="The primary IPv4 CIDR block for the VPC. "
+                    "[Possibly not modifiable after stack creation]",
         Type="String",
         Default="10.0.0.0/16",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -61,7 +62,8 @@ vpc_cidr = template.add_parameter(
 public_subnet_cidr = template.add_parameter(
     Parameter(
         "PublicSubnetCidr",
-        Description="IPv4 CIDR block for the public subnet.",
+        Description="IPv4 CIDR block for the public subnet. "
+                    "[Possibly not modifiable after stack creation]",
         Type="String",
         Default="10.0.1.0/24",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -74,7 +76,8 @@ public_subnet_cidr = template.add_parameter(
 loadbalancer_a_subnet_cidr = template.add_parameter(
     Parameter(
         "LoadBalancerSubnetACidr",
-        Description="IPv4 CIDR block for the load balancer subnet in the primary AZ.",
+        Description="IPv4 CIDR block for the load balancer subnet in the primary AZ. "
+                    "[Possibly not modifiable after stack creation]",
         Type="String",
         Default="10.0.2.0/24",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -87,7 +90,8 @@ loadbalancer_a_subnet_cidr = template.add_parameter(
 loadbalancer_b_subnet_cidr = template.add_parameter(
     Parameter(
         "LoadBalancerSubnetBCidr",
-        Description="IPv4 CIDR block for the load balancer subnet in the secondary AZ.",
+        Description="IPv4 CIDR block for the load balancer subnet in the secondary AZ. "
+                    "[Possibly not modifiable after stack creation]",
         Type="String",
         Default="10.0.3.0/24",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -100,7 +104,8 @@ loadbalancer_b_subnet_cidr = template.add_parameter(
 container_a_subnet_cidr = template.add_parameter(
     Parameter(
         "ContainerSubnetACidr",
-        Description="IPv4 CIDR block for the container subnet in the primary AZ.",
+        Description="IPv4 CIDR block for the container subnet in the primary AZ. "
+                    "[Possibly not modifiable after stack creation]",
         Type="String",
         Default="10.0.10.0/24",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -113,7 +118,8 @@ container_a_subnet_cidr = template.add_parameter(
 container_b_subnet_cidr = template.add_parameter(
     Parameter(
         "ContainerSubnetBCidr",
-        Description="IPv4 CIDR block for the container subnet in the secondary AZ.",
+        Description="IPv4 CIDR block for the container subnet in the secondary AZ. "
+                    "[Possibly not modifiable after stack creation]",
         Type="String",
         Default="10.0.11.0/24",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
