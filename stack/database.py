@@ -278,13 +278,13 @@ db_security_group = ec2.SecurityGroup(
             IpProtocol="tcp",
             FromPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
             ToPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
-            CidrIp=container_a_subnet_cidr,
+            CidrIp=Ref(container_a_subnet_cidr),
         ),
         ec2.SecurityGroupRule(
             IpProtocol="tcp",
             FromPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
             ToPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
-            CidrIp=container_b_subnet_cidr,
+            CidrIp=Ref(container_b_subnet_cidr),
         ),
     ],
     Tags=Tags(

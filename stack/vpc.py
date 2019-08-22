@@ -19,6 +19,10 @@ from .utils import ParameterWithDefaults as Parameter
 USE_NAT_GATEWAY = os.environ.get('USE_NAT_GATEWAY') == 'on'
 USE_DOKKU = os.environ.get('USE_DOKKU') == 'on'
 
+# Allows for private IPv4 ranges in the 10.0.0.0/8, 172.16.0.0/12 and 192.168.0.0/16
+# address spaces, with block size between /16 and /28 as allowed by VPCs and subnets.
+PRIVATE_IPV4_CIDR_REGEX = r"^((10\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.)|(172\.(1[6-9]|2[0-9]|3[0-1])\.)|192\.168\.)(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.)([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$"  # noqa: E501
+PRIVATE_IPV4_CONSTRAINT = "Must be a private IPv4 range with size /16 and /28."
 
 primary_az = template.add_parameter(
     Parameter(
@@ -41,11 +45,95 @@ secondary_az = template.add_parameter(
     label="Secondary Availability Zone",
 )
 
+vpc_cidr = template.add_parameter(
+    Parameter(
+        "VpcCidr",
+        Description="The primary IPv4 CIDR block for the VPC. "
+                    "[Possibly not modifiable after stack creation]",
+        Type="String",
+        Default="10.0.0.0/16",
+        AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
+        ConstraintDescription=PRIVATE_IPV4_CONSTRAINT,
+    ),
+    group="Global",
+    label="VPC IPv4 CIDR Block",
+)
+
+public_subnet_cidr = template.add_parameter(
+    Parameter(
+        "PublicSubnetCidr",
+        Description="IPv4 CIDR block for the public subnet. "
+                    "[Possibly not modifiable after stack creation]",
+        Type="String",
+        Default="10.0.1.0/24",
+        AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
+        ConstraintDescription=PRIVATE_IPV4_CONSTRAINT,
+    ),
+    group="Global",
+    label="Public Subnet CIDR Block",
+)
+
+loadbalancer_a_subnet_cidr = template.add_parameter(
+    Parameter(
+        "LoadBalancerSubnetACidr",
+        Description="IPv4 CIDR block for the load balancer subnet in the primary AZ. "
+                    "[Possibly not modifiable after stack creation]",
+        Type="String",
+        Default="10.0.2.0/24",
+        AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
+        ConstraintDescription=PRIVATE_IPV4_CONSTRAINT,
+    ),
+    group="Global",
+    label="Load Balancer A CIDR Block",
+)
+
+loadbalancer_b_subnet_cidr = template.add_parameter(
+    Parameter(
+        "LoadBalancerSubnetBCidr",
+        Description="IPv4 CIDR block for the load balancer subnet in the secondary AZ. "
+                    "[Possibly not modifiable after stack creation]",
+        Type="String",
+        Default="10.0.3.0/24",
+        AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
+        ConstraintDescription=PRIVATE_IPV4_CONSTRAINT,
+    ),
+    group="Global",
+    label="Load Balancer B CIDR Block",
+)
+
+container_a_subnet_cidr = template.add_parameter(
+    Parameter(
+        "ContainerSubnetACidr",
+        Description="IPv4 CIDR block for the container subnet in the primary AZ. "
+                    "[Possibly not modifiable after stack creation]",
+        Type="String",
+        Default="10.0.10.0/24",
+        AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
+        ConstraintDescription=PRIVATE_IPV4_CONSTRAINT,
+    ),
+    group="Global",
+    label="Container A CIDR Block",
+)
+
+container_b_subnet_cidr = template.add_parameter(
+    Parameter(
+        "ContainerSubnetBCidr",
+        Description="IPv4 CIDR block for the container subnet in the secondary AZ. "
+                    "[Possibly not modifiable after stack creation]",
+        Type="String",
+        Default="10.0.11.0/24",
+        AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
+        ConstraintDescription=PRIVATE_IPV4_CONSTRAINT,
+    ),
+    group="Global",
+    label="Container B CIDR Block",
+)
+
 
 vpc = VPC(
     "Vpc",
     template=template,
-    CidrBlock="10.0.0.0/16",
+    CidrBlock=Ref(vpc_cidr),
     EnableDnsSupport=True,
     EnableDnsHostnames=True,
     Tags=Tags(
@@ -94,13 +182,11 @@ public_route = Route(
 
 
 # Holds public instances
-public_subnet_cidr = "10.0.1.0/24"
-
 public_subnet = Subnet(
     "PublicSubnet",
     template=template,
     VpcId=Ref(vpc),
-    CidrBlock=public_subnet_cidr,
+    CidrBlock=Ref(public_subnet_cidr),
     Tags=Tags(
         Name=Join("-", [Ref("AWS::StackName"), "public"]),
     ),
@@ -135,12 +221,11 @@ if USE_NAT_GATEWAY:
 
 if not USE_DOKKU:
     # Holds load balancer
-    loadbalancer_a_subnet_cidr = "10.0.2.0/24"
     loadbalancer_a_subnet = Subnet(
         "LoadbalancerASubnet",
         template=template,
         VpcId=Ref(vpc),
-        CidrBlock=loadbalancer_a_subnet_cidr,
+        CidrBlock=Ref(loadbalancer_a_subnet_cidr),
         AvailabilityZone=Ref(primary_az),
         Tags=Tags(
             Name=Join("-", [Ref("AWS::StackName"), "elb-a"]),
@@ -154,12 +239,11 @@ if not USE_DOKKU:
         SubnetId=Ref(loadbalancer_a_subnet),
     )
 
-    loadbalancer_b_subnet_cidr = "10.0.3.0/24"
     loadbalancer_b_subnet = Subnet(
         "LoadbalancerBSubnet",
         template=template,
         VpcId=Ref(vpc),
-        CidrBlock=loadbalancer_b_subnet_cidr,
+        CidrBlock=Ref(loadbalancer_b_subnet_cidr),
         AvailabilityZone=Ref(secondary_az),
         Tags=Tags(
             Name=Join("-", [Ref("AWS::StackName"), "elb-b"]),
@@ -195,12 +279,11 @@ if USE_NAT_GATEWAY:
 
 
 # Holds containers instances
-container_a_subnet_cidr = "10.0.10.0/24"
 container_a_subnet = Subnet(
     "ContainerASubnet",
     template=template,
     VpcId=Ref(vpc),
-    CidrBlock=container_a_subnet_cidr,
+    CidrBlock=Ref(container_a_subnet_cidr),
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Ref(primary_az),
     Tags=Tags(
@@ -221,12 +304,11 @@ SubnetRouteTableAssociation(
 )
 
 
-container_b_subnet_cidr = "10.0.11.0/24"
 container_b_subnet = Subnet(
     "ContainerBSubnet",
     template=template,
     VpcId=Ref(vpc),
-    CidrBlock=container_b_subnet_cidr,
+    CidrBlock=Ref(container_b_subnet_cidr),
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Ref(secondary_az),
     Tags=Tags(

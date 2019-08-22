@@ -86,13 +86,13 @@ cache_security_group = ec2.SecurityGroup(
             IpProtocol="tcp",
             FromPort=If(using_redis_condition, "6379", "11211"),
             ToPort=If(using_redis_condition, "6379", "11211"),
-            CidrIp=container_a_subnet_cidr,
+            CidrIp=Ref(container_a_subnet_cidr),
         ),
         ec2.SecurityGroupRule(
             IpProtocol="tcp",
             FromPort=If(using_redis_condition, "6379", "11211"),
             ToPort=If(using_redis_condition, "6379", "11211"),
-            CidrIp=container_b_subnet_cidr,
+            CidrIp=Ref(container_b_subnet_cidr),
         ),
     ],
     Tags=Tags(
