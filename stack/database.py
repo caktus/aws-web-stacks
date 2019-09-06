@@ -6,10 +6,10 @@ from .common import dont_create_value, use_aes256_encryption
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
-    container_a_subnet,
-    container_a_subnet_cidr,
-    container_b_subnet,
-    container_b_subnet_cidr,
+    private_subnet_a,
+    private_subnet_a_cidr,
+    private_subnet_b,
+    private_subnet_b_cidr,
     vpc
 )
 
@@ -278,13 +278,13 @@ db_security_group = ec2.SecurityGroup(
             IpProtocol="tcp",
             FromPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
             ToPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
-            CidrIp=Ref(container_a_subnet_cidr),
+            CidrIp=Ref(private_subnet_a_cidr),
         ),
         ec2.SecurityGroupRule(
             IpProtocol="tcp",
             FromPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
             ToPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
-            CidrIp=Ref(container_b_subnet_cidr),
+            CidrIp=Ref(private_subnet_b_cidr),
         ),
     ],
     Tags=Tags(
@@ -297,7 +297,7 @@ db_subnet_group = rds.DBSubnetGroup(
     template=template,
     Condition=db_condition,
     DBSubnetGroupDescription="Subnets available for the RDS DB Instance",
-    SubnetIds=[Ref(container_a_subnet), Ref(container_b_subnet)],
+    SubnetIds=[Ref(private_subnet_a), Ref(private_subnet_b)],
 )
 
 db_instance = rds.DBInstance(

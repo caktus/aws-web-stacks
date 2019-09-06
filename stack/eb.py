@@ -22,10 +22,10 @@ from .template import template
 from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
     USE_NAT_GATEWAY,
-    container_a_subnet,
-    container_b_subnet,
-    loadbalancer_a_subnet,
-    loadbalancer_b_subnet,
+    private_subnet_a,
+    private_subnet_b,
+    public_subnet_a,
+    public_subnet_b,
     vpc
 )
 
@@ -231,16 +231,16 @@ template.add_resource(Environment(
             Namespace="aws:ec2:vpc",
             OptionName="Subnets",
             Value=Join(",", [
-                Ref(container_a_subnet),
-                Ref(container_b_subnet),
+                Ref(private_subnet_a),
+                Ref(private_subnet_b),
             ]),
         ),
         OptionSettings(
             Namespace="aws:ec2:vpc",
             OptionName="ELBSubnets",
             Value=Join(",", [
-                Ref(loadbalancer_a_subnet),
-                Ref(loadbalancer_b_subnet),
+                Ref(public_subnet_a),
+                Ref(public_subnet_b),
             ]),
         ),
         # Launch config settings

@@ -51,7 +51,7 @@ vpc_cidr = template.add_parameter(
         Description="The primary IPv4 CIDR block for the VPC. "
                     "[Possibly not modifiable after stack creation]",
         Type="String",
-        Default="10.0.0.0/16",
+        Default="10.0.0.0/20",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
         ConstraintDescription=PRIVATE_IPV4_CONSTRAINT,
     ),
@@ -59,74 +59,60 @@ vpc_cidr = template.add_parameter(
     label="VPC IPv4 CIDR Block",
 )
 
-public_subnet_cidr = template.add_parameter(
+public_subnet_a_cidr = template.add_parameter(
     Parameter(
-        "PublicSubnetCidr",
-        Description="IPv4 CIDR block for the public subnet. "
+        "PublicSubnetACidr",
+        Description="IPv4 CIDR block for the public subnet in the primary AZ. "
                     "[Possibly not modifiable after stack creation]",
         Type="String",
-        Default="10.0.1.0/24",
+        Default="10.0.0.0/22",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
         ConstraintDescription=PRIVATE_IPV4_CONSTRAINT,
     ),
     group="Global",
-    label="Public Subnet CIDR Block",
+    label="Public Subnet A CIDR Block",
 )
 
-loadbalancer_a_subnet_cidr = template.add_parameter(
+public_subnet_b_cidr = template.add_parameter(
     Parameter(
-        "LoadBalancerSubnetACidr",
-        Description="IPv4 CIDR block for the load balancer subnet in the primary AZ. "
+        "PublicSubnetBCidr",
+        Description="IPv4 CIDR block for the public subnet in the secondary AZ. "
                     "[Possibly not modifiable after stack creation]",
         Type="String",
-        Default="10.0.2.0/24",
+        Default="10.0.4.0/22",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
         ConstraintDescription=PRIVATE_IPV4_CONSTRAINT,
     ),
     group="Global",
-    label="Load Balancer A CIDR Block",
+    label="Public Subnet B CIDR Block",
 )
 
-loadbalancer_b_subnet_cidr = template.add_parameter(
+private_subnet_a_cidr = template.add_parameter(
     Parameter(
-        "LoadBalancerSubnetBCidr",
-        Description="IPv4 CIDR block for the load balancer subnet in the secondary AZ. "
+        "PrivateSubnetACidr",
+        Description="IPv4 CIDR block for the private subnet in the primary AZ. "
                     "[Possibly not modifiable after stack creation]",
         Type="String",
-        Default="10.0.3.0/24",
+        Default="10.0.8.0/22",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
         ConstraintDescription=PRIVATE_IPV4_CONSTRAINT,
     ),
     group="Global",
-    label="Load Balancer B CIDR Block",
+    label="Private Subnet A CIDR Block",
 )
 
-container_a_subnet_cidr = template.add_parameter(
+private_subnet_b_cidr = template.add_parameter(
     Parameter(
-        "ContainerSubnetACidr",
-        Description="IPv4 CIDR block for the container subnet in the primary AZ. "
+        "PrivateSubnetBCidr",
+        Description="IPv4 CIDR block for the private subnet in the secondary AZ. "
                     "[Possibly not modifiable after stack creation]",
         Type="String",
-        Default="10.0.10.0/24",
+        Default="10.0.12.0/22",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
         ConstraintDescription=PRIVATE_IPV4_CONSTRAINT,
     ),
     group="Global",
-    label="Container A CIDR Block",
-)
-
-container_b_subnet_cidr = template.add_parameter(
-    Parameter(
-        "ContainerSubnetBCidr",
-        Description="IPv4 CIDR block for the container subnet in the secondary AZ. "
-                    "[Possibly not modifiable after stack creation]",
-        Type="String",
-        Default="10.0.11.0/24",
-        AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
-        ConstraintDescription=PRIVATE_IPV4_CONSTRAINT,
-    ),
-    group="Global",
-    label="Container B CIDR Block",
+    label="Private Subnet B CIDR Block",
 )
 
 
@@ -181,24 +167,43 @@ public_route = Route(
 )
 
 
-# Holds public instances
-public_subnet = Subnet(
-    "PublicSubnet",
+# Holds load balancer
+public_subnet_a = Subnet(
+    "PublicSubnetA",
     template=template,
     VpcId=Ref(vpc),
-    CidrBlock=Ref(public_subnet_cidr),
+    CidrBlock=Ref(public_subnet_a_cidr),
+    AvailabilityZone=Ref(primary_az),
     Tags=Tags(
-        Name=Join("-", [Ref("AWS::StackName"), "public"]),
+        Name=Join("-", [Ref("AWS::StackName"), "elb-a"]),
     ),
 )
 
-
 SubnetRouteTableAssociation(
-    "PublicSubnetRouteTableAssociation",
+    "PublicSubnetARouteTableAssociation",
     template=template,
     RouteTableId=Ref(public_route_table),
-    SubnetId=Ref(public_subnet),
+    SubnetId=Ref(public_subnet_a),
 )
+
+public_subnet_b = Subnet(
+    "PublicSubnetB",
+    template=template,
+    VpcId=Ref(vpc),
+    CidrBlock=Ref(public_subnet_b_cidr),
+    AvailabilityZone=Ref(secondary_az),
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "elb-b"]),
+    ),
+)
+
+SubnetRouteTableAssociation(
+    "PublicSubnetBRouteTableAssociation",
+    template=template,
+    RouteTableId=Ref(public_route_table),
+    SubnetId=Ref(public_subnet_b),
+)
+
 
 if USE_NAT_GATEWAY:
     # NAT
@@ -212,56 +217,15 @@ if USE_NAT_GATEWAY:
         "NatGateway",
         template=template,
         AllocationId=GetAtt(nat_ip, "AllocationId"),
-        SubnetId=Ref(public_subnet),
+        SubnetId=Ref(public_subnet_a),
         Tags=Tags(
             Name=Join("-", [Ref("AWS::StackName"), "nat"]),
         ),
     )
 
-
-if not USE_DOKKU:
-    # Holds load balancer
-    loadbalancer_a_subnet = Subnet(
-        "LoadbalancerASubnet",
-        template=template,
-        VpcId=Ref(vpc),
-        CidrBlock=Ref(loadbalancer_a_subnet_cidr),
-        AvailabilityZone=Ref(primary_az),
-        Tags=Tags(
-            Name=Join("-", [Ref("AWS::StackName"), "elb-a"]),
-        ),
-    )
-
-    SubnetRouteTableAssociation(
-        "LoadbalancerASubnetRouteTableAssociation",
-        template=template,
-        RouteTableId=Ref(public_route_table),
-        SubnetId=Ref(loadbalancer_a_subnet),
-    )
-
-    loadbalancer_b_subnet = Subnet(
-        "LoadbalancerBSubnet",
-        template=template,
-        VpcId=Ref(vpc),
-        CidrBlock=Ref(loadbalancer_b_subnet_cidr),
-        AvailabilityZone=Ref(secondary_az),
-        Tags=Tags(
-            Name=Join("-", [Ref("AWS::StackName"), "elb-b"]),
-        ),
-    )
-
-    SubnetRouteTableAssociation(
-        "LoadbalancerBSubnetRouteTableAssociation",
-        template=template,
-        RouteTableId=Ref(public_route_table),
-        SubnetId=Ref(loadbalancer_b_subnet),
-    )
-
-
-if USE_NAT_GATEWAY:
     # Private route table
-    private_route_table = RouteTable(
-        "PrivateRouteTable",
+    nat_gateway_route_table = RouteTable(
+        "NatGatewayRouteTable",
         template=template,
         VpcId=Ref(vpc),
         Tags=Tags(
@@ -270,20 +234,24 @@ if USE_NAT_GATEWAY:
     )
 
     private_nat_route = Route(
-        "PrivateNatRoute",
+        "NatGatewayRoute",
         template=template,
-        RouteTableId=Ref(private_route_table),
+        RouteTableId=Ref(nat_gateway_route_table),
         DestinationCidrBlock="0.0.0.0/0",
         NatGatewayId=Ref(nat_gateway),
     )
 
+    private_route_table = Ref(nat_gateway_route_table)
+else:
+    private_route_table = Ref(public_route_table)
 
-# Holds containers instances
-container_a_subnet = Subnet(
-    "ContainerASubnet",
+
+# Holds backend instances
+private_subnet_a = Subnet(
+    "PrivateSubnetA",
     template=template,
     VpcId=Ref(vpc),
-    CidrBlock=Ref(container_a_subnet_cidr),
+    CidrBlock=Ref(private_subnet_a_cidr),
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Ref(primary_az),
     Tags=Tags(
@@ -292,23 +260,19 @@ container_a_subnet = Subnet(
 )
 
 
-container_route_table = Ref(private_route_table) if USE_NAT_GATEWAY\
-    else Ref(public_route_table)
-
-
 SubnetRouteTableAssociation(
-    "ContainerARouteTableAssociation",
+    "PrivateSubnetARouteTableAssociation",
     template=template,
-    SubnetId=Ref(container_a_subnet),
-    RouteTableId=container_route_table,
+    SubnetId=Ref(private_subnet_a),
+    RouteTableId=private_route_table,
 )
 
 
-container_b_subnet = Subnet(
-    "ContainerBSubnet",
+private_subnet_b = Subnet(
+    "PrivateSubnetB",
     template=template,
     VpcId=Ref(vpc),
-    CidrBlock=Ref(container_b_subnet_cidr),
+    CidrBlock=Ref(private_subnet_b_cidr),
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Ref(secondary_az),
     Tags=Tags(
@@ -318,8 +282,8 @@ container_b_subnet = Subnet(
 
 
 SubnetRouteTableAssociation(
-    "ContainerBRouteTableAssociation",
+    "PrivateSubnetBRouteTableAssociation",
     template=template,
-    SubnetId=Ref(container_b_subnet),
-    RouteTableId=container_route_table,
+    SubnetId=Ref(private_subnet_b),
+    RouteTableId=private_route_table,
 )

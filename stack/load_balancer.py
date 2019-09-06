@@ -6,7 +6,7 @@ from troposphere import GetAtt, If, Join, Output, Ref
 from .security_groups import load_balancer_security_group
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
-from .vpc import loadbalancer_a_subnet, loadbalancer_b_subnet
+from .vpc import public_subnet_a, public_subnet_b
 
 # Web worker
 
@@ -120,8 +120,8 @@ load_balancer = elb.LoadBalancer(
     'LoadBalancer',
     template=template,
     Subnets=[
-        Ref(loadbalancer_a_subnet),
-        Ref(loadbalancer_b_subnet),
+        Ref(public_subnet_a),
+        Ref(public_subnet_b),
     ],
     SecurityGroups=[Ref(load_balancer_security_group)],
     Listeners=listeners,

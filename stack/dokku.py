@@ -11,7 +11,7 @@ from .environment import environment_variables
 from .logs import logging_policy
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
-from .vpc import container_a_subnet, vpc
+from .vpc import private_subnet_a, vpc
 
 key_name = template.add_parameter(
     Parameter(
@@ -164,7 +164,7 @@ ec2_instance = template.add_resource(ec2.Instance(
     KeyName=Ref(key_name),
     SecurityGroupIds=[Ref(security_group)],
     IamInstanceProfile=Ref(instance_profile),
-    SubnetId=Ref(container_a_subnet),
+    SubnetId=Ref(private_subnet_a),
     BlockDeviceMappings=[
         ec2.BlockDeviceMapping(
             DeviceName="/dev/sda1",

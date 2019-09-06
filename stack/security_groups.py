@@ -6,7 +6,7 @@ from troposphere.ec2 import SecurityGroup, SecurityGroupRule
 
 from .common import administrator_ip_address
 from .template import template
-from .vpc import loadbalancer_a_subnet_cidr, loadbalancer_b_subnet_cidr, vpc
+from .vpc import public_subnet_a_cidr, public_subnet_b_cidr, vpc
 
 load_balancer_security_group = SecurityGroup(
     "LoadBalancerSecurityGroup",
@@ -41,7 +41,7 @@ else:
     # web worker port (80)
     web_worker_ports = ["80"]
 
-cidrs = [Ref(loadbalancer_a_subnet_cidr), Ref(loadbalancer_b_subnet_cidr)]
+cidrs = [Ref(public_subnet_a_cidr), Ref(public_subnet_b_cidr)]
 
 # HTTP from web public subnets
 ingress_rules = [SecurityGroupRule(
