@@ -8,14 +8,15 @@ Change Log
 * TBD
 
 
-`1.5.0`_ (TBD)
+`2.0.0`_ (TBD)
 ---------------------
 
-**Backwards incompatible changes:**
+**Backwards-incompatible changes:**
 
 * Update RDS resource name of database to be ``DatabaseInstance`` rather than ``PostgreSQL``. While other engines were previously supported, the title within the stack still referenced PostgreSQL. **This change will force a recreation of your RDS instance.**
+* Simplify the VPC layout to have 2 public and 2 private subnets. Due to this change, **updating an existing stack is not supported.**  You'll need to create a new stack and re-deploy all services within it.
 
-What's new in 1.5.0:
+What's new in 2.0.0:
 
 * Re-purpose use_aes256_encryption flag to support encryption across S3, RDS, and RDS (thanks @dsummersl)
 * Add configurable ContainerVolumeSize to change root volume size of EC2 instances (thanks @dsummersl)
@@ -175,7 +176,7 @@ Backwards-incompatible changes:
 * Initial public release
 
 
-.. _1.5.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.5.0/
+.. _2.0.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.0.0/
 .. _1.4.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.4.0/
 .. _1.3.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.3.0/
 .. _1.2.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.2.0/
