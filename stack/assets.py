@@ -131,7 +131,10 @@ private_assets_bucket = template.add_resource(
         "PrivateAssetsBucket",
         AccessControl=Private,
         PublicAccessBlockConfiguration=PublicAccessBlockConfiguration(
-            IgnorePublicAcls=True
+            BlockPublicAcls=True,
+            BlockPublicPolicy=True,
+            IgnorePublicAcls=True,
+            RestrictPublicBuckets=True,
         ),
         **common_bucket_conf,
     )
