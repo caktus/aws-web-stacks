@@ -4,10 +4,10 @@ from .common import dont_create_value
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
-    container_a_subnet,
-    container_a_subnet_cidr,
-    container_b_subnet,
-    container_b_subnet_cidr,
+    private_subnet_a,
+    private_subnet_a_cidr,
+    private_subnet_b,
+    private_subnet_b_cidr,
     vpc
 )
 
@@ -86,13 +86,13 @@ cache_security_group = ec2.SecurityGroup(
             IpProtocol="tcp",
             FromPort=If(using_redis_condition, "6379", "11211"),
             ToPort=If(using_redis_condition, "6379", "11211"),
-            CidrIp=Ref(container_a_subnet_cidr),
+            CidrIp=Ref(private_subnet_a_cidr),
         ),
         ec2.SecurityGroupRule(
             IpProtocol="tcp",
             FromPort=If(using_redis_condition, "6379", "11211"),
             ToPort=If(using_redis_condition, "6379", "11211"),
-            CidrIp=Ref(container_b_subnet_cidr),
+            CidrIp=Ref(private_subnet_b_cidr),
         ),
     ],
     Tags=Tags(
@@ -105,7 +105,7 @@ cache_subnet_group = elasticache.SubnetGroup(
     template=template,
     Description="Subnets available for the cache instance",
     Condition=cache_condition,
-    SubnetIds=[Ref(container_a_subnet), Ref(container_b_subnet)],
+    SubnetIds=[Ref(private_subnet_a), Ref(private_subnet_b)],
 )
 
 cache_cluster = elasticache.CacheCluster(

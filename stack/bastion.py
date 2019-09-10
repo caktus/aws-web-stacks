@@ -14,7 +14,7 @@ from troposphere import (
 
 from .common import dont_create_value, use_aes256_encryption
 from .template import template
-from .vpc import public_subnet, vpc
+from .vpc import public_subnet_a, vpc
 
 bastion_type = template.add_parameter(
     Parameter(
@@ -264,7 +264,7 @@ bastion_instance = ec2.Instance(
     InstanceType=Ref(bastion_instance_type),
     KeyName=Ref(bastion_key_name),
     SecurityGroupIds=[Ref(bastion_security_group)],
-    SubnetId=Ref(public_subnet),
+    SubnetId=Ref(public_subnet_a),
     BlockDeviceMappings=[
         ec2.BlockDeviceMapping(
             DeviceName="/dev/sda1",

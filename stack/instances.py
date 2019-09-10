@@ -7,7 +7,7 @@ from .logs import logging_policy
 from .security_groups import container_security_group
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
-from .vpc import container_a_subnet, container_b_subnet
+from .vpc import private_subnet_a, private_subnet_b
 
 ami = Ref(template.add_parameter(
     Parameter(
@@ -124,7 +124,7 @@ container_instance_configuration = autoscaling.LaunchConfiguration(
 autoscaling_group = autoscaling.AutoScalingGroup(
     autoscaling_group_name,
     template=template,
-    VPCZoneIdentifier=[Ref(container_a_subnet), Ref(container_b_subnet)],
+    VPCZoneIdentifier=[Ref(private_subnet_a), Ref(private_subnet_b)],
     MinSize=desired_container_instances,
     MaxSize=max_container_instances,
     DesiredCapacity=desired_container_instances,
