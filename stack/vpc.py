@@ -167,7 +167,7 @@ public_route = Route(
 )
 
 
-# Holds load balancer
+# Holds load balancer, NAT gateway, and bastion (if specified)
 public_subnet_a = Subnet(
     "PublicSubnetA",
     template=template,
@@ -175,7 +175,7 @@ public_subnet_a = Subnet(
     CidrBlock=Ref(public_subnet_a_cidr),
     AvailabilityZone=Ref(primary_az),
     Tags=Tags(
-        Name=Join("-", [Ref("AWS::StackName"), "elb-a"]),
+        Name=Join("-", [Ref("AWS::StackName"), "public-a"]),
     ),
 )
 
@@ -193,7 +193,7 @@ public_subnet_b = Subnet(
     CidrBlock=Ref(public_subnet_b_cidr),
     AvailabilityZone=Ref(secondary_az),
     Tags=Tags(
-        Name=Join("-", [Ref("AWS::StackName"), "elb-b"]),
+        Name=Join("-", [Ref("AWS::StackName"), "public-b"]),
     ),
 )
 
@@ -255,7 +255,7 @@ private_subnet_a = Subnet(
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Ref(primary_az),
     Tags=Tags(
-        Name=Join("-", [Ref("AWS::StackName"), "container-a"]),
+        Name=Join("-", [Ref("AWS::StackName"), "private-a"]),
     ),
 )
 
@@ -276,7 +276,7 @@ private_subnet_b = Subnet(
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Ref(secondary_az),
     Tags=Tags(
-        Name=Join("-", [Ref("AWS::StackName"), "container-b"]),
+        Name=Join("-", [Ref("AWS::StackName"), "private-b"]),
     ),
 )
 
