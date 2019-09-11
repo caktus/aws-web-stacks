@@ -1,12 +1,11 @@
 import os
-from itertools import product
 
 from troposphere import Join, Ref, Tags
 from troposphere.ec2 import SecurityGroup, SecurityGroupRule
 
 from .common import administrator_ip_address
 from .template import template
-from .vpc import public_subnet_a_cidr, public_subnet_b_cidr, vpc
+from .vpc import vpc
 
 load_balancer_security_group = SecurityGroup(
     "LoadBalancerSecurityGroup",
@@ -41,15 +40,13 @@ else:
     # web worker port (80)
     web_worker_ports = ["80"]
 
-cidrs = [Ref(public_subnet_a_cidr), Ref(public_subnet_b_cidr)]
-
-# HTTP from web public subnets
+# HTTP from web load balancer
 ingress_rules = [SecurityGroupRule(
     IpProtocol="tcp",
     FromPort=port,
     ToPort=port,
-    CidrIp=cidr,
-) for port, cidr in product(*[web_worker_ports, cidrs])]
+    SourceSecurityGroupId=Ref(load_balancer_security_group),
+) for port in web_worker_ports]
 
 # Health check
 if os.environ.get('USE_EB') != 'on':

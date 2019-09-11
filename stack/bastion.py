@@ -171,6 +171,9 @@ template.add_condition(bastion_type_set, Not(Equals(dont_create_value, Ref(basti
 bastion_type_is_openvpn_set = "BastionTypeIsOpenVPNSet"
 template.add_condition(bastion_type_is_openvpn_set, Equals("OpenVPN", Ref(bastion_type)))
 
+bastion_type_is_ssh_set = "BastionTypeIsSSHSet"
+template.add_condition(bastion_type_is_ssh_set, Equals("SSH", Ref(bastion_type)))
+
 bastion_ami_set = "BastionAMISet"
 template.add_condition(bastion_ami_set, Not(Equals(dont_create_value, Ref(bastion_ami))))
 
@@ -224,20 +227,35 @@ bastion_security_group_ingress_openvpn = ec2.SecurityGroupIngress(
     Condition=bastion_type_is_openvpn_set,
 )
 
-# Allow bastion full access to workers.
+# Allow OpenVPN server full access to backend servers.
 container_security_group_bastion_ingress = ec2.SecurityGroupIngress(
-    'ContainerSecurityGroupBastionIngress',
+    'ContainerSecurityGroupOpenVPNIngress',
     template=template,
     GroupId=Ref("ContainerSecurityGroup"),
     IpProtocol='-1',
     SourceSecurityGroupId=Ref(bastion_security_group),
-    Condition=bastion_type_set,
+    Condition=bastion_type_is_openvpn_set,
+)
+
+# Only allow Bastion to connect to backend servers via SSH.
+container_security_group_bastion_ingress = ec2.SecurityGroupIngress(
+    'ContainerSecurityGroupSSHBastionIngress',
+    template=template,
+    GroupId=Ref("ContainerSecurityGroup"),
+    IpProtocol='tcp',
+    FromPort=22,
+    ToPort=22,
+    SourceSecurityGroupId=Ref(bastion_security_group),
+    Condition=bastion_type_is_ssh_set,
 )
 
 bastion_database_condition = "BastionDatabaseCondition"
-template.add_condition(bastion_database_condition, And(Condition(bastion_type_set), Condition("DatabaseCondition")))
+template.add_condition(
+    bastion_database_condition,
+    And(Condition(bastion_type_is_openvpn_set), Condition("DatabaseCondition"))
+)
 
-# Allow bastion access to database.
+# Allow OpenVPN server (but not SSH bastion) access to the database, if any.
 database_security_group_bastion_ingress = ec2.SecurityGroupIngress(
     'DatabaseSecurityGroupBastionIngress',
     template=template,
