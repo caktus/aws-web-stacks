@@ -26,6 +26,7 @@ What's new in 1.5.0:
 * You now have the option of creating a bastion host or VPN server as part of the stack, when a
   stack with a NAT Gateway is used, to facilitate secure remote access to hosts within the VPC.
 * Add a parameter to specify the default canned ACL for the public assets bucket.
+* Block all public access for the private assets bucket.
 * Add parameters to customize VPC and subnet IPv4 CIDR blocks (**It is generally not possible to change the CIDR blocks for an existing stack.**).
 
 
