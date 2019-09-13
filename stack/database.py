@@ -1,6 +1,18 @@
 from collections import OrderedDict
 
-from troposphere import Equals, FindInMap, Join, Not, Ref, Tags, ec2, rds
+from troposphere import (
+    Equals,
+    FindInMap,
+    GetAtt,
+    If,
+    Join,
+    Not,
+    Output,
+    Ref,
+    Tags,
+    ec2,
+    rds
+)
 
 from .common import dont_create_value, use_aes256_encryption
 from .template import template
@@ -320,3 +332,46 @@ db_instance = rds.DBInstance(
     BackupRetentionPeriod=Ref(db_backup_retention_days),
     DeletionPolicy="Snapshot",
 )
+
+db_url = If(
+    db_condition,
+    Join("", [
+        Ref(db_engine),
+        "://",
+        Ref(db_user),
+        ":_PASSWORD_@",
+        GetAtt(db_instance, 'Endpoint.Address'),
+        ":",
+        GetAtt(db_instance, 'Endpoint.Port'),
+        "/",
+        Ref(db_name),
+    ]),
+    "",  # defaults to empty string if no DB was created
+)
+
+template.add_output([
+    Output(
+        "DatabaseURL",
+        Description="URL to connect (without the password) to the database.",
+        Value=db_url,
+        Condition=db_condition,
+    ),
+])
+
+template.add_output([
+    Output(
+        "DatabasePort",
+        Description="The port number on which the database accepts connections.",
+        Value=GetAtt(db_instance, 'Endpoint.Port'),
+        Condition=db_condition,
+    ),
+])
+
+template.add_output([
+    Output(
+        "DatabaseAddress",
+        Description="The connection endpoint for the database.",
+        Value=GetAtt(db_instance, 'Endpoint.Address'),
+        Condition=db_condition,
+    ),
+])
