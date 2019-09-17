@@ -282,6 +282,12 @@ db_logging = template.add_parameter(
     Parameter(
         "DatabaseCloudWatchLogTypes",
         Default="",
+        # For RDS on Postgres, an appropriate setting for this might be "postgresql,upgrade".
+        # This parameter corresponds to the "EnableCloudwatchLogsExports" option on the DBInstance.
+        # This option is not particularly well documented by AWS, but it looks like if you
+        # go to the "Modify" screen via the RDS console you can see the types supported by your
+        # instance. Then, lowercase it and remove " log" from the type, i.e., "Postgresql log"
+        # will be come "postgresql" for this parameter.
         Description="A comma-separated list of the RDS log types (if any) to publish to "
                     "CloudWatch Logs. Note that log types are database engine-specific.",
         Type="CommaDelimitedList",
