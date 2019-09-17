@@ -1,4 +1,15 @@
-from troposphere import Equals, If, Join, Not, Ref, Tags, ec2, elasticache
+from troposphere import (
+    Equals,
+    GetAtt,
+    If,
+    Join,
+    Not,
+    Output,
+    Ref,
+    Tags,
+    ec2,
+    elasticache
+)
 
 from .common import dont_create_value
 from .template import template
@@ -122,3 +133,62 @@ cache_cluster = elasticache.CacheCluster(
         Name=Join("-", [Ref("AWS::StackName"), "cache"]),
     ),
 )
+
+cache_address = If(
+    cache_condition,
+    If(
+        using_redis_condition,
+        GetAtt(cache_cluster, 'RedisEndpoint.Address'),
+        GetAtt(cache_cluster, 'ConfigurationEndpoint.Address')
+    ),
+    "",  # defaults to empty string if no cache was created
+)
+
+cache_port = If(
+    cache_condition,
+    If(
+        using_redis_condition,
+        GetAtt(cache_cluster, 'RedisEndpoint.Port'),
+        GetAtt(cache_cluster, 'ConfigurationEndpoint.Port')
+    ),
+    "",  # defaults to empty string if no cache was created
+)
+
+cache_url = If(
+    cache_condition,
+    Join("", [
+        Ref(cache_engine),
+        "://",
+        cache_address,
+        ":",
+        cache_port
+    ]),
+    "",  # defaults to empty string if no cache was created
+)
+
+template.add_output([
+    Output(
+        "CacheURL",
+        Description="URL to connect to the cache node/cluster.",
+        Value=cache_url,
+        Condition=cache_condition,
+    ),
+])
+
+template.add_output([
+    Output(
+        "CacheAddress",
+        Description="The DNS address for the cache node/cluster.",
+        Value=cache_address,
+        Condition=cache_condition,
+    ),
+])
+
+template.add_output([
+    Output(
+        "CachePort",
+        Description="The port number for the cache node/cluster.",
+        Value=cache_port,
+        Condition=cache_condition,
+    ),
+])
