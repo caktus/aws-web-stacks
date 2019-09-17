@@ -278,6 +278,18 @@ db_backup_retention_days = template.add_parameter(
     label="Backup Retention Days",
 )
 
+db_logging = template.add_parameter(
+    Parameter(
+        "DatabaseCloudWatchLogTypes",
+        Default="",
+        Description="A comma-separated list of the RDS log types (if any) to publish to "
+                    "CloudWatch Logs. Note that log types are database engine-specific.",
+        Type="CommaDelimitedList",
+    ),
+    group="Database",
+    label="Database Log Types",
+)
+
 db_security_group = ec2.SecurityGroup(
     'DatabaseSecurityGroup',
     template=template,
@@ -330,6 +342,7 @@ db_instance = rds.DBInstance(
     VPCSecurityGroups=[Ref(db_security_group)],
     DBParameterGroupName=Ref(db_parameter_group),
     BackupRetentionPeriod=Ref(db_backup_retention_days),
+    EnableCloudwatchLogsExports=Ref(db_logging),
     DeletionPolicy="Snapshot",
 )
 
