@@ -30,6 +30,7 @@ What's new in 2.0.0:
 * Block all public access for the private assets bucket.
 * Add parameters to customize VPC and subnet IPv4 CIDR blocks (**It is generally not possible to change the CIDR blocks for an existing stack.**).
 * Add RDS and ElastiCache endpoint outputs.
+* Add CustomAppCertificateArn parameter to allow association with an existing ACM certificate.
 
 
 `1.4.0`_ (2019-08-05)
