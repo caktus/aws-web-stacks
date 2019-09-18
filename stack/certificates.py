@@ -1,7 +1,7 @@
 # Note: GovCloud doesn't support the certificate manager, so this file is
 # only imported from load_balancer.py when we're not using GovCloud.
 
-from troposphere import Equals, If, Not, Ref
+from troposphere import Equals, If, Not, Or, Ref
 from troposphere.certificatemanager import Certificate, DomainValidationOption
 
 from .common import dont_create_value
@@ -26,22 +26,41 @@ certificate_validation_method = template.add_parameter(
     label="Certificate Validation Method"
 )
 
-cert_condition = "CertificateCondition"
-template.add_condition(cert_condition,
-                       Not(Equals(Ref(certificate_validation_method), dont_create_value)))
+custom_app_certificate_arn = template.add_parameter(
+    Parameter(
+        "CustomAppCertificateArn",
+        Type="String",
+        Description="Existing ACM certificate ARN to be used by the ELB.",
+    ),
+    group="Global",
+    label="Custom App Certificate ARN",
+)
+custom_app_certificate_arn_condition = "CustomAppCertArnCondition"
+template.add_condition(custom_app_certificate_arn_condition, Not(Equals(Ref(custom_app_certificate_arn), "")))
 
-application = Ref(template.add_resource(
-    Certificate(
-        'Certificate',
-        Condition=cert_condition,
-        DomainName=domain_name,
-        SubjectAlternativeNames=If(no_alt_domains, Ref("AWS::NoValue"), domain_name_alternates),
-        DomainValidationOptions=[
-            DomainValidationOption(
-                DomainName=domain_name,
-                ValidationDomain=domain_name,
-            ),
-        ],
-        ValidationMethod=Ref(certificate_validation_method)
-    )
+stack_cert_condition = "StackCertificateCondition"
+template.add_condition(stack_cert_condition, Not(Equals(Ref(certificate_validation_method), dont_create_value)))
+
+cert_condition = "CertificateCondition"
+template.add_condition(cert_condition, Or(
+    Not(Equals(Ref(custom_app_certificate_arn), "")),
+    Not(Equals(Ref(certificate_validation_method), dont_create_value))
 ))
+
+application = If(custom_app_certificate_arn_condition,
+                 Ref(custom_app_certificate_arn),
+                 Ref(template.add_resource(
+                     Certificate(
+                         'Certificate',
+                         Condition=stack_cert_condition,
+                         DomainName=domain_name,
+                         SubjectAlternativeNames=If(no_alt_domains, Ref("AWS::NoValue"), domain_name_alternates),
+                         DomainValidationOptions=[
+                             DomainValidationOption(
+                                 DomainName=domain_name,
+                                 ValidationDomain=domain_name,
+                             ),
+                         ],
+                         ValidationMethod=Ref(certificate_validation_method)
+                     )
+                 )))
