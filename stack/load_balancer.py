@@ -145,3 +145,9 @@ template.add_output(Output(
     Description="Loadbalancer DNS",
     Value=GetAtt(load_balancer, "DNSName")
 ))
+
+template.add_output(Output(
+    "LoadBalancerHostedZoneID",
+    Description="Loadbalancer hosted zone",
+    Value=GetAtt(load_balancer, "CanonicalHostedZoneNameID")
+))
