@@ -12,7 +12,7 @@ from .utils import ParameterWithDefaults as Parameter
 certificate_validation_method = template.add_parameter(
     Parameter(
         title="CertificateValidationMethod",
-        Default="DNS",
+        Default=dont_create_value,
         AllowedValues=[dont_create_value, 'DNS', 'Email'],
         Type='String',
         Description=""
@@ -30,7 +30,9 @@ custom_app_certificate_arn = template.add_parameter(
     Parameter(
         "CustomAppCertificateArn",
         Type="String",
-        Description="Existing ACM certificate ARN to be used by the ELB.",
+        Description=""
+        "An existing ACM certificate ARN to be used by the application ELB. "
+        "DNS and Email validation will not work with this option.",
     ),
     group="Global",
     label="Custom App Certificate ARN",
