@@ -148,6 +148,7 @@ cache_subnet_group = elasticache.SubnetGroup(
 
 cache_cluster = elasticache.CacheCluster(
     "CacheCluster",
+    ClusterName=Join("-", [Ref("AWS::StackName"), "cache"]),
     template=template,
     Engine=Ref(cache_engine),
     CacheNodeType=Ref(cache_node_type),
@@ -173,6 +174,7 @@ replication_group = elasticache.ReplicationGroup(
     Condition=using_redis_condition,
     NumNodeGroups=1,
     Port=6379,
+    ReplicationGroupId=Join("-", [Ref("AWS::StackName"), "cache"]),
     ReplicationGroupDescription="Redis ReplicationGroup",
     SecurityGroupIds=[Ref(cache_security_group)],
     TransitEncryptionEnabled=use_aes256_encryption,
