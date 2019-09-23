@@ -12,7 +12,7 @@ from .utils import ParameterWithDefaults as Parameter
 certificate_validation_method = template.add_parameter(
     Parameter(
         title="CertificateValidationMethod",
-        Default=dont_create_value,
+        Default="DNS",
         AllowedValues=[dont_create_value, 'DNS', 'Email'],
         Type='String',
         Description=""
