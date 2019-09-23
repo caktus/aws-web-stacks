@@ -97,10 +97,16 @@ template.add_condition(
     Equals(Ref(cache_engine), "memcached"),
 )
 
+
+# Parameter constraints (MinLength, AllowedPattern, etc.) don't allow a blank value,
+# so we use a special "blank" do-not-create value
+auth_token_dont_create_value = 'DO_NOT_CREATE_AUTH_TOKEN'
+
 cache_auth_token = template.add_parameter(
     Parameter(
         "CacheAuthToken",
         NoEcho=True,
+        Default=auth_token_dont_create_value,
         Description="The password used to access a Redis ReplicationGroup (required for HIPAA).",
         Type="String",
         MinLength="16",
@@ -114,7 +120,7 @@ cache_auth_token = template.add_parameter(
 )
 
 cache_auth_token_condition = "CacheAuthTokenCondition"
-template.add_condition(cache_auth_token_condition, Not(Equals(Ref(cache_auth_token), "")))
+template.add_condition(cache_auth_token_condition, Not(Equals(Ref(cache_auth_token), auth_token_dont_create_value)))
 
 cache_security_group = ec2.SecurityGroup(
     'CacheSecurityGroup',
@@ -171,7 +177,7 @@ redis_replication_group = elasticache.ReplicationGroup(
     template=template,
     AtRestEncryptionEnabled=use_aes256_encryption,
     AutomaticFailoverEnabled=False,
-    AuthToken=If(cache_auth_token_condition, Ref(cache_auth_token), ""),
+    AuthToken=If(cache_auth_token_condition, Ref(cache_auth_token), Ref("AWS::NoValue")),
     Engine=Ref(cache_engine),
     CacheNodeType=Ref(cache_node_type),
     CacheSubnetGroupName=Ref(cache_subnet_group),
