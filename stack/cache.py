@@ -152,9 +152,9 @@ cache_cluster = elasticache.CacheCluster(
     template=template,
     Engine=Ref(cache_engine),
     CacheNodeType=Ref(cache_node_type),
-    Condition=cache_condition,
+    Condition=using_memcached_condition,
     NumCacheNodes=1,  # Must be 1 for redis, but still required
-    Port=If(using_redis_condition, 6379, 11211),
+    Port=11211,
     VpcSecurityGroupIds=[Ref(cache_security_group)],
     CacheSubnetGroupName=Ref(cache_subnet_group),
     Tags=Tags(
@@ -162,7 +162,7 @@ cache_cluster = elasticache.CacheCluster(
     ),
 )
 
-replication_group = elasticache.ReplicationGroup(
+redis_replication_group = elasticache.ReplicationGroup(
     "CacheReplicationGroup",
     template=template,
     AtRestEncryptionEnabled=use_aes256_encryption,
@@ -191,7 +191,7 @@ cache_address = If(
     cache_condition,
     If(
         using_redis_condition,
-        GetAtt(replication_group, 'PrimaryEndPoint.Address'),
+        GetAtt(redis_replication_group, 'PrimaryEndPoint.Address'),
         GetAtt(cache_cluster, 'ConfigurationEndpoint.Address')
     ),
     "",  # defaults to empty string if no cache was created
@@ -201,7 +201,7 @@ cache_port = If(
     cache_condition,
     If(
         using_redis_condition,
-        GetAtt(replication_group, 'PrimaryEndPoint.Port'),
+        GetAtt(redis_replication_group, 'PrimaryEndPoint.Port'),
         GetAtt(cache_cluster, 'ConfigurationEndpoint.Port')
     ),
     "",  # defaults to empty string if no cache was created
