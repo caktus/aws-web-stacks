@@ -296,6 +296,9 @@ db_logging = template.add_parameter(
     label="Database Log Types",
 )
 
+db_logging_condition = "DatabaseLoggingCondition"
+template.add_condition(db_logging_condition, Not(Equals(Join(",", Ref(db_logging)), "")))
+
 db_security_group = ec2.SecurityGroup(
     'DatabaseSecurityGroup',
     template=template,
@@ -348,7 +351,7 @@ db_instance = rds.DBInstance(
     VPCSecurityGroups=[Ref(db_security_group)],
     DBParameterGroupName=Ref(db_parameter_group),
     BackupRetentionPeriod=Ref(db_backup_retention_days),
-    EnableCloudwatchLogsExports=Ref(db_logging),
+    EnableCloudwatchLogsExports=If(db_logging_condition, Ref(db_logging), Ref("AWS::NoValue")),
     DeletionPolicy="Snapshot",
 )
 
