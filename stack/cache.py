@@ -13,7 +13,11 @@ from troposphere import (
     elasticache
 )
 
-from .common import dont_create_value, use_aes256_encryption, use_aes256_encryption_cond
+from .common import (
+    dont_create_value,
+    use_aes256_encryption,
+    use_aes256_encryption_cond,
+)
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
