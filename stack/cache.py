@@ -1,4 +1,6 @@
 from troposphere import (
+    And,
+    Condition,
     Equals,
     GetAtt,
     If,
@@ -11,7 +13,7 @@ from troposphere import (
     elasticache
 )
 
-from .common import dont_create_value
+from .common import dont_create_value, use_aes256_encryption, use_aes256_encryption_cond
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
@@ -85,6 +87,31 @@ template.add_condition(
     Equals(Ref(cache_engine), "redis"),
 )
 
+using_memcached_condition = "UsingMemcached"
+template.add_condition(
+    using_memcached_condition,
+    Equals(Ref(cache_engine), "memcached"),
+)
+
+cache_auth_token = template.add_parameter(
+    Parameter(
+        "CacheAuthToken",
+        NoEcho=True,
+        Description="The password used to access a Redis ReplicationGroup (required for HIPAA).",
+        Type="String",
+        MinLength="16",
+        MaxLength="128",
+        AllowedPattern="[ !#-.0-?A-~]*",  # see http://www.catonmat.net/blog/my-favorite-regex/
+        ConstraintDescription="must consist of 16-128 printable ASCII "
+                              "characters except \"/\", \"\"\", or \"@\"."
+    ),
+    group="Cache",
+    label="AuthToken",
+)
+
+cache_auth_token_condition = "CacheAuthTokenCondition"
+template.add_condition(cache_auth_token_condition, Not(Equals(Ref(cache_auth_token), "")))
+
 cache_security_group = ec2.SecurityGroup(
     'CacheSecurityGroup',
     template=template,
@@ -134,11 +161,35 @@ cache_cluster = elasticache.CacheCluster(
     ),
 )
 
+replication_group = elasticache.ReplicationGroup(
+    "CacheReplicationGroup",
+    template=template,
+    AtRestEncryptionEnabled=use_aes256_encryption,
+    AutomaticFailoverEnabled=False,
+    AuthToken=If(cache_auth_token_condition, Ref(cache_auth_token), ""),
+    Engine=Ref(cache_engine),
+    CacheNodeType=Ref(cache_node_type),
+    CacheSubnetGroupName=Ref(cache_subnet_group),
+    Condition=using_redis_condition,
+    NumNodeGroups=1,
+    Port=6379,
+    ReplicationGroupDescription="Redis ReplicationGroup",
+    SecurityGroupIds=[Ref(cache_security_group)],
+    TransitEncryptionEnabled=use_aes256_encryption,
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "cache"]),
+    ),
+)
+
+secure_redis_condition = "SecureRedisCondition"
+template.add_condition(secure_redis_condition,
+                       And(Condition(using_redis_condition), Condition(use_aes256_encryption_cond)))
+
 cache_address = If(
     cache_condition,
     If(
         using_redis_condition,
-        GetAtt(cache_cluster, 'RedisEndpoint.Address'),
+        GetAtt(replication_group, 'PrimaryEndPoint.Address'),
         GetAtt(cache_cluster, 'ConfigurationEndpoint.Address')
     ),
     "",  # defaults to empty string if no cache was created
@@ -148,7 +199,7 @@ cache_port = If(
     cache_condition,
     If(
         using_redis_condition,
-        GetAtt(cache_cluster, 'RedisEndpoint.Port'),
+        GetAtt(replication_group, 'PrimaryEndPoint.Port'),
         GetAtt(cache_cluster, 'ConfigurationEndpoint.Port')
     ),
     "",  # defaults to empty string if no cache was created
@@ -158,7 +209,9 @@ cache_url = If(
     cache_condition,
     Join("", [
         Ref(cache_engine),
+        If(secure_redis_condition, "s", ""),
         "://",
+        If(cache_auth_token_condition, ":_PASSWORD_@", ""),
         cache_address,
         ":",
         cache_port
