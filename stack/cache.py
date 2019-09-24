@@ -131,30 +131,6 @@ redis_num_cache_clusters = Ref(template.add_parameter(
     label="Number of node groups",
 ))
 
-redis_num_node_groups = Ref(template.add_parameter(
-    Parameter(
-        "RedisNumNodeGroups",
-        Description=""
-        "Number of node groups for this Redis (cluster mode enabled) replication group. For "
-        "Redis (cluster mode disabled) either omit this parameter or set it to 1.",
-        Type="Number",
-        Default="1",
-    ),
-    group="Redis",
-    label="Number of node groups",
-))
-
-redis_replicas_per_group = Ref(template.add_parameter(
-    Parameter(
-        "RedisReplicasPerNodeGroup",
-        Description="Number of replica nodes",
-        Type="Number",
-        Default="0",
-    ),
-    group="Redis",
-    label="Number of replica nodes",
-))
-
 redis_snapshot_retention_limit = Ref(template.add_parameter(
     Parameter(
         "RedisSnapshotRetentionLimit",
@@ -260,12 +236,9 @@ redis_replication_group = elasticache.ReplicationGroup(
     CacheSubnetGroupName=Ref(cache_subnet_group),
     Condition=using_redis_condition,
     NumCacheClusters=redis_num_cache_clusters,
-    # NumNodeGroups=redis_num_node_groups,
     Port=constants.REDIS_PORT,
     PreferredCacheClusterAZs=[Ref(primary_az), Ref(secondary_az)],
-    # ReplicationGroupId=Join("-", [Ref("AWS::StackName"), "redis"]),  # custom named groups can't be updated when ..
     ReplicationGroupDescription="Redis ReplicationGroup",
-    # ReplicasPerNodeGroup=redis_replicas_per_group,
     SecurityGroupIds=[Ref(cache_security_group)],
     SnapshotRetentionLimit=redis_snapshot_retention_limit,
     TransitEncryptionEnabled=use_aes256_encryption,
