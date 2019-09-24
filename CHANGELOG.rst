@@ -15,6 +15,7 @@ Change Log
 
 * Update RDS resource name of database to be ``DatabaseInstance`` rather than ``PostgreSQL``. While other engines were previously supported, the title within the stack still referenced PostgreSQL. **This change will force a recreation of your RDS instance.**
 * Simplify the VPC layout to have 2 public and 2 private subnets. Due to this change, **updating an existing stack is not supported.**  You'll need to create a new stack and re-deploy all services within it.
+* Add support for running configuring Memcached and Redis clusters in tandem. The resource names have been adjusted to make this change and will force creation of new instances.
 
 What's new in 2.0.0:
 
