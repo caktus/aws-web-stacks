@@ -109,6 +109,17 @@ using_auth_token_condition = "AuthTokenCondition"
 template.add_condition(using_auth_token_condition,
                        Not(Equals(Ref(redis_auth_token), auth_token_dont_create_value)))
 
+redis_version = template.add_parameter(
+    Parameter(
+        "RedisVersion",
+        Default="",
+        Description="Redis version to use. See available versions: aws elasticache describe-cache-engine-versions",
+        Type="String",
+    ),
+    group="Redis",
+    label="Redis Version",
+)
+
 redis_num_cache_clusters = Ref(template.add_parameter(
     Parameter(
         "RedisNumCacheClusters",
@@ -244,6 +255,7 @@ redis_replication_group = elasticache.ReplicationGroup(
     AutomaticFailoverEnabled=Ref(redis_automatic_failover),
     AuthToken=If(using_auth_token_condition, Ref(redis_auth_token), Ref("AWS::NoValue")),
     Engine="redis",
+    EngineVersion=Ref(redis_version),
     CacheNodeType=Ref(redis_node_type),
     CacheSubnetGroupName=Ref(cache_subnet_group),
     Condition=using_redis_condition,
