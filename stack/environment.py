@@ -10,6 +10,7 @@ from .assets import (
     distribution,
     private_assets_bucket
 )
+from .cache import cache_url, redis_url
 from .common import secret_key
 from .database import (
     db_condition,
@@ -52,7 +53,8 @@ environment_variables = [
         ]),
         "",  # defaults to empty string if no DB was created
     )),
-    ("CACHE_URL", Ref("CacheURL")),
+    ("CACHE_URL", cache_url),
+    ("REDIS_URL", redis_url),
 ]
 
 if distribution:
