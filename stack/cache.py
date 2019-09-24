@@ -23,7 +23,13 @@ from .common import (
 from .security_groups import container_security_group
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
-from .vpc import private_subnet_a, private_subnet_b, vpc, primary_az, secondary_az
+from .vpc import (
+    primary_az,
+    private_subnet_a,
+    private_subnet_b,
+    secondary_az,
+    vpc
+)
 
 NODE_TYPES = [
     dont_create_value,
