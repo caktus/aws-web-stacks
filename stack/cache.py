@@ -23,7 +23,7 @@ from .common import (
 from .security_groups import container_security_group
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
-from .vpc import private_subnet_a, private_subnet_b, vpc
+from .vpc import private_subnet_a, private_subnet_b, vpc, primary_az, secondary_az
 
 NODE_TYPES = [
     dont_create_value,
@@ -109,6 +109,69 @@ using_auth_token_condition = "AuthTokenCondition"
 template.add_condition(using_auth_token_condition,
                        Not(Equals(Ref(redis_auth_token), auth_token_dont_create_value)))
 
+redis_num_cache_clusters = Ref(template.add_parameter(
+    Parameter(
+        "RedisNumCacheClusters",
+        Description="The number of clusters this replication group initially has.",
+        Type="Number",
+        Default="1",
+    ),
+    group="Redis",
+    label="Number of node groups",
+))
+
+redis_num_node_groups = Ref(template.add_parameter(
+    Parameter(
+        "RedisNumNodeGroups",
+        Description=""
+        "Number of node groups for this Redis (cluster mode enabled) replication group. For "
+        "Redis (cluster mode disabled) either omit this parameter or set it to 1.",
+        Type="Number",
+        Default="1",
+    ),
+    group="Redis",
+    label="Number of node groups",
+))
+
+redis_replicas_per_group = Ref(template.add_parameter(
+    Parameter(
+        "RedisReplicasPerNodeGroup",
+        Description="Number of replica nodes",
+        Type="Number",
+        Default="0",
+    ),
+    group="Redis",
+    label="Number of replica nodes",
+))
+
+redis_snapshot_retention_limit = Ref(template.add_parameter(
+    Parameter(
+        "RedisSnapshotRetentionLimit",
+        Default="0",
+        Description="The number of days for which ElastiCache retains automatic snapshots before deleting them."
+                    "For example, if you set SnapshotRetentionLimit to 5, a snapshot that was taken today is "
+                    "retained for 5 days before being deleted. 0 = automatic backups are disabled for this cluster.",
+        Type="Number",
+    ),
+    group="Redis",
+    label="Snapshow retention limit",
+))
+
+redis_automatic_failover = template.add_parameter(
+    Parameter(
+        "RedisAutomaticFailover",
+        Description="Specifies whether a read-only replica is automatically promoted to read/write primary if "
+                    "the existing primary fails.",
+        Type="String",
+        AllowedValues=["true", "false"],
+        Default="false",
+    ),
+    group="Redis",
+    label="Enable automatic failover",
+)
+redis_uses_automatic_failover = "RedisAutomaticFailoverCondition"
+template.add_condition(redis_uses_automatic_failover, Equals(Ref(redis_automatic_failover), "true"))
+
 secure_redis_condition = "SecureRedisCondition"
 template.add_condition(secure_redis_condition,
                        And(Condition(using_redis_condition), Condition(use_aes256_encryption_cond)))
@@ -158,27 +221,6 @@ cache_security_group = ec2.SecurityGroup(
     ),
 )
 
-redis_replication_group = elasticache.ReplicationGroup(
-    "RedisReplicationGroup",
-    template=template,
-    AtRestEncryptionEnabled=use_aes256_encryption,
-    AutomaticFailoverEnabled=False,
-    AuthToken=If(using_auth_token_condition, Ref(redis_auth_token), Ref("AWS::NoValue")),
-    Engine="redis",
-    CacheNodeType=Ref(redis_node_type),
-    CacheSubnetGroupName=Ref(cache_subnet_group),
-    Condition=using_redis_condition,
-    NumNodeGroups=1,
-    Port=constants.REDIS_PORT,
-    ReplicationGroupId=Join("-", [Ref("AWS::StackName"), "redis"]),
-    ReplicationGroupDescription="Redis ReplicationGroup",
-    SecurityGroupIds=[Ref(cache_security_group)],
-    TransitEncryptionEnabled=use_aes256_encryption,
-    Tags=Tags(
-        Name=Join("-", [Ref("AWS::StackName"), "redis"]),
-    ),
-)
-
 cache_cluster = elasticache.CacheCluster(
     "CacheCluster",
     ClusterName=Join("-", [Ref("AWS::StackName"), "cache"]),
@@ -192,6 +234,31 @@ cache_cluster = elasticache.CacheCluster(
     CacheSubnetGroupName=Ref(cache_subnet_group),
     Tags=Tags(
         Name=Join("-", [Ref("AWS::StackName"), "cache"]),
+    ),
+)
+
+redis_replication_group = elasticache.ReplicationGroup(
+    "RedisReplicationGroup",
+    template=template,
+    AtRestEncryptionEnabled=use_aes256_encryption,
+    AutomaticFailoverEnabled=Ref(redis_automatic_failover),
+    AuthToken=If(using_auth_token_condition, Ref(redis_auth_token), Ref("AWS::NoValue")),
+    Engine="redis",
+    CacheNodeType=Ref(redis_node_type),
+    CacheSubnetGroupName=Ref(cache_subnet_group),
+    Condition=using_redis_condition,
+    NumCacheClusters=redis_num_cache_clusters,
+    # NumNodeGroups=redis_num_node_groups,
+    Port=constants.REDIS_PORT,
+    PreferredCacheClusterAZs=[Ref(primary_az), Ref(secondary_az)],
+    # ReplicationGroupId=Join("-", [Ref("AWS::StackName"), "redis"]),  # custom named groups can't be updated when ..
+    ReplicationGroupDescription="Redis ReplicationGroup",
+    # ReplicasPerNodeGroup=redis_replicas_per_group,
+    SecurityGroupIds=[Ref(cache_security_group)],
+    SnapshotRetentionLimit=redis_snapshot_retention_limit,
+    TransitEncryptionEnabled=use_aes256_encryption,
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "redis"]),
     ),
 )
 
