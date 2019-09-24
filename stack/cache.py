@@ -173,6 +173,8 @@ using_either_cache_condition = "EitherCacheCondition"
 template.add_condition(using_either_cache_condition,
                        Or(Condition(using_memcached_condition), Condition(using_redis_condition)))
 
+# Subnet and security group shared by both clusters
+
 cache_subnet_group = elasticache.SubnetGroup(
     "CacheSubnetGroup",
     template=template,
@@ -216,7 +218,6 @@ cache_security_group = ec2.SecurityGroup(
 
 cache_cluster = elasticache.CacheCluster(
     "CacheCluster",
-    ClusterName=Join("-", [Ref("AWS::StackName"), "cache"]),
     template=template,
     Engine="memcached",
     CacheNodeType=Ref(cache_node_type),
