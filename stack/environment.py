@@ -10,12 +10,7 @@ from .assets import (
     distribution,
     private_assets_bucket
 )
-from .cache import (
-    cache_cluster,
-    cache_condition,
-    cache_engine,
-    using_redis_condition
-)
+from .cache import cache_url, redis_url
 from .common import secret_key
 from .database import (
     db_condition,
@@ -58,25 +53,8 @@ environment_variables = [
         ]),
         "",  # defaults to empty string if no DB was created
     )),
-    ("CACHE_URL", If(
-        cache_condition,
-        Join("", [
-            Ref(cache_engine),
-            "://",
-            If(
-                using_redis_condition,
-                GetAtt(cache_cluster, 'RedisEndpoint.Address'),
-                GetAtt(cache_cluster, 'ConfigurationEndpoint.Address')
-            ),
-            ":",
-            If(
-                using_redis_condition,
-                GetAtt(cache_cluster, 'RedisEndpoint.Port'),
-                GetAtt(cache_cluster, 'ConfigurationEndpoint.Port')
-            ),
-        ]),
-        "",  # defaults to empty string if no cache was created
-    )),
+    ("CACHE_URL", cache_url),
+    ("REDIS_URL", redis_url),
 ]
 
 if distribution:
