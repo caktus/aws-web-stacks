@@ -18,7 +18,9 @@ from troposphere import (
 from .common import (
     dont_create_value,
     use_aes256_encryption,
-    use_aes256_encryption_cond
+    use_aes256_encryption_cond,
+    cmk_arn,
+    use_cmk_arn
 )
 from .security_groups import container_security_group
 from .template import template
@@ -249,6 +251,7 @@ redis_replication_group = elasticache.ReplicationGroup(
     SecurityGroupIds=[Ref(cache_security_group)],
     SnapshotRetentionLimit=redis_snapshot_retention_limit,
     TransitEncryptionEnabled=use_aes256_encryption,
+    KmsKeyId=If(use_cmk_arn, Ref(cmk_arn), Ref("AWS::NoValue")),
     Tags=Tags(
         Name=Join("-", [Ref("AWS::StackName"), "redis"]),
     ),
