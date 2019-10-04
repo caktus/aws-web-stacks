@@ -1,4 +1,4 @@
-from troposphere import AWS_REGION, Equals, If, Ref
+from troposphere import AWS_REGION, Equals, If, Not, Ref
 
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
@@ -154,3 +154,16 @@ use_aes256_encryption = Ref(template.add_parameter(
 ))
 use_aes256_encryption_cond = "UseAES256EncryptionCond"
 template.add_condition(use_aes256_encryption_cond, Equals(use_aes256_encryption, "true"))
+
+cmk_arn = template.add_parameter(
+    Parameter(
+        "CmkArn",
+        Description="KMS CMK ARN to encrypt stack resources.",
+        Type="String",
+    ),
+    group="Global",
+    label="Customer managed key ARN",
+)
+
+use_cmk_arn = "CmkArnCondition"
+template.add_condition(use_cmk_arn, Not(Equals(Ref(cmk_arn), "")))
