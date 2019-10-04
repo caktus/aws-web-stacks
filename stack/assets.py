@@ -35,7 +35,12 @@ from troposphere.s3 import (
     VersioningConfiguration
 )
 
-from .common import arn_prefix, use_aes256_encryption_cond
+from .common import (
+    arn_prefix,
+    use_aes256_encryption_cond,
+    cmk_arn,
+    use_cmk_arn
+)
 from .domain import domain_name, domain_name_alternates, no_alt_domains
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
@@ -65,7 +70,8 @@ common_bucket_conf = dict(
             [
                 ServerSideEncryptionRule(
                     ServerSideEncryptionByDefault=ServerSideEncryptionByDefault(
-                        SSEAlgorithm='AES256'
+                        SSEAlgorithm=If(use_cmk_arn, 'aws:kms', 'AES256'),
+                        KMSMasterKeyID=If(use_cmk_arn, Ref(cmk_arn), Ref("AWS::NoValue")),
                     )
                 )
             ],
