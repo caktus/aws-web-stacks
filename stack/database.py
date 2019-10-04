@@ -14,7 +14,7 @@ from troposphere import (
     rds
 )
 
-from .common import dont_create_value, use_aes256_encryption
+from .common import dont_create_value, use_aes256_encryption, cmk_arn, use_cmk_arn
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
@@ -353,6 +353,7 @@ db_instance = rds.DBInstance(
     BackupRetentionPeriod=Ref(db_backup_retention_days),
     EnableCloudwatchLogsExports=If(db_logging_condition, Ref(db_logging), Ref("AWS::NoValue")),
     DeletionPolicy="Snapshot",
+    KmsKeyId=If(use_cmk_arn, Ref(cmk_arn), Ref("AWS::NoValue")),
 )
 
 db_url = If(
