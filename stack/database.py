@@ -14,7 +14,12 @@ from troposphere import (
     rds
 )
 
-from .common import dont_create_value, use_aes256_encryption, cmk_arn, use_cmk_arn
+from .common import (
+    cmk_arn,
+    dont_create_value,
+    use_aes256_encryption,
+    use_cmk_arn
+)
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 from .vpc import (

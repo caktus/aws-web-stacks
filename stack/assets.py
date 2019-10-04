@@ -37,8 +37,8 @@ from troposphere.s3 import (
 
 from .common import (
     arn_prefix,
-    use_aes256_encryption_cond,
     cmk_arn,
+    use_aes256_encryption_cond,
     use_cmk_arn
 )
 from .domain import domain_name, domain_name_alternates, no_alt_domains

@@ -16,10 +16,10 @@ from troposphere import (
 )
 
 from .common import (
+    cmk_arn,
     dont_create_value,
     use_aes256_encryption,
     use_aes256_encryption_cond,
-    cmk_arn,
     use_cmk_arn
 )
 from .security_groups import container_security_group
