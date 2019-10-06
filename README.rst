@@ -167,7 +167,7 @@ Encryption (using AWS Key Management Service)
 Server-side encryption support is available, via the ``UseAES256Encryption``
 parameter, on the following AWS resources:
 
-* EC2 EBS
+* EC2 EBS (for application EC2 instances and bastion host)
 * ElastiCache Redis (ReplicationGroup)
 * RDS
 * S3
