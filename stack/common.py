@@ -157,7 +157,7 @@ template.add_condition(use_aes256_encryption_cond, Equals(use_aes256_encryption,
 
 cmk_arn = template.add_parameter(
     Parameter(
-        "CmkArn",
+        "CustomerManagedCmkArn",
         Description="KMS CMK ARN to encrypt stack resources.",
         Type="String",
     ),
