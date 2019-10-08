@@ -160,6 +160,7 @@ cmk_arn = template.add_parameter(
         "CustomerManagedCmkArn",
         Description="KMS CMK ARN to encrypt stack resources.",
         Type="String",
+        Default="",
     ),
     group="Global",
     label="Customer managed key ARN",
