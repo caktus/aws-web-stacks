@@ -4,6 +4,7 @@ from troposphere import (
     Condition,
     Equals,
     FindInMap,
+    If,
     Join,
     Not,
     Output,
@@ -12,7 +13,12 @@ from troposphere import (
     Tags
 )
 
-from .common import dont_create_value, use_aes256_encryption
+from .common import (
+    cmk_arn,
+    dont_create_value,
+    use_aes256_encryption,
+    use_cmk_arn
+)
 from .template import template
 from .vpc import public_subnet_a, vpc
 
@@ -290,6 +296,7 @@ bastion_instance = ec2.Instance(
                 VolumeType="gp2",
                 VolumeSize=8,
                 Encrypted=use_aes256_encryption,
+                KmsKeyId=If(use_cmk_arn, Ref(cmk_arn), Ref("AWS::NoValue")),
             ),
         ),
     ],

@@ -161,6 +161,57 @@ Once verified, add an HTTPS listener to the environment's ELB::
                                          --listeners "SSLCertificateId=[CERTIFICATE-ARN],Protocol=HTTPS,LoadBalancerPort=443,InstanceProtocol=HTTP,InstancePort=80"
 
 
+Encryption (using AWS Key Management Service)
+---------------------------------------------
+
+Server-side encryption support is available, via the ``UseAES256Encryption``
+parameter, on the following AWS resources:
+
+* EC2 EBS (for application EC2 instances and bastion host)
+* ElastiCache Redis (ReplicationGroup)
+* RDS
+* S3
+
+By default, when enabled, an `AWS managed CMK`_ (customer master key) will be
+created the first time you try to create an encrypted resource within that
+service. AWS will manage the policies associated with AWS managed CMKs on your
+behalf. You can track AWS managed keys in your account and all usage is logged
+in AWS CloudTrail, but you have no direct control over the keys themselves.
+These keys will be shared across all resources utilizing default encryption
+within your AWS account.
+
+Customer Managed CMK
+~~~~~~~~~~~~~~~~~~~~
+
+The ``CustomerManagedCmkArn`` parameter allows your stack to be encrypted with a
+`Customer Managed CMK`_. You have full control over these CMKs, including
+establishing and maintaining their key policies, IAM policies, and grants,
+enabling and disabling them, rotating their cryptographic material, adding tags,
+creating aliases that refer to the CMK, and scheduling the CMKs for deletion.
+
+Required CMK Key Policy for Use with Encrypted Volumes
+``````````````````````````````````````````````````````
+
+**Important:** If you specify a customer managed CMK, several steps are required
+to support Amazon EBS encryption within Amazon EC2 Auto Scaling.
+
+1. You (or your account administrator) must give the appropriate
+**service-linked role** access to the CMK, so that Amazon EC2 Auto Scaling can
+launch instances on your behalf. To do this, you must modify the CMK's key
+policy. If omitted, auto scaling will fail to launch instances. See `Required
+CMK Key Policy for Use with Encrypted Volumes`_ for more information.
+
+2. You must encrypt the AMI specified in the ``AMI`` parameter with your
+customer managed CMK. Existing AMIs can easily be copied and encrypted with your
+key from within the AWS Console. Follow the steps in `Copying an AMI`_ and use
+your customer managed CMK ARN when prompted for a Master Key. Once copied, use
+the new AMI for your stack ``AMI`` parameter.
+
+.. _AWS managed CMK: https://docs.aws.amazon.com/en_pv/kms/latest/developerguide/concepts.html#aws-managed-cmk
+.. _Customer Managed CMK: https://docs.aws.amazon.com/en_pv/kms/latest/developerguide/concepts.html#customer-cmk
+.. _Required CMK Key Policy for Use with Encrypted Volumes: https://docs.aws.amazon.com/en_pv/autoscaling/ec2/userguide/key-policy-requirements-EBS-encryption.html
+.. _Copying an AMI: https://docs.aws.amazon.com/en_pv/AWSEC2/latest/UserGuide/CopyingAMIs#ami-copy-steps
+
 Resources Created
 -----------------
 

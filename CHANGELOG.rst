@@ -20,6 +20,7 @@ Change Log
 What's new in 2.0.0:
 
 * Re-purpose use_aes256_encryption flag to support encryption across S3, RDS, Elasticache (Redis only), and RDS (thanks @dsummersl)
+* Add support for Customer Managed CMKs with ``CustomerManagedCmkArn`` parameter
 * Add configurable ContainerVolumeSize to change root volume size of EC2 instances (thanks @dsummersl)
 * Change generated template output from JSON to YAML (thanks @cchurch)
 * Add required DBParameterGroup by default, which allows configuring database specific parameters. This avoids having to reboot a production database instance to add a DBParameterGroup in the future. (thanks @cchurch)
