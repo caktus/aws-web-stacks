@@ -183,7 +183,7 @@ within your AWS account.
 Customer Managed CMK
 ~~~~~~~~~~~~~~~~~~~~
 
-The ``CustomerManagedCmkArn`` property allows your stack to be encrypted with a
+The ``CustomerManagedCmkArn`` parameter allows your stack to be encrypted with a
 `Customer Managed CMK`_. You have full control over these CMKs, including
 establishing and maintaining their key policies, IAM policies, and grants,
 enabling and disabling them, rotating their cryptographic material, adding tags,
