@@ -99,7 +99,7 @@ container_volume_size = Ref(template.add_parameter(
         "ContainerVolumeSize",
         Description="Size of instance EBS root volume (in GB)",
         Type="Number",
-        Default="20",
+        Default="20" if USE_EKS else "8",
     ),
     group="Application Server",
     label="Root Volume Size",
