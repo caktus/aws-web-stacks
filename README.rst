@@ -19,8 +19,8 @@ which allows for some validation at build time and simplifies the management of 
 templates.
 
 If a NAT gateway is not used, it's possible to create a fully-managed, self-contained hosting
-environment for your application entirely within the free tier on AWS. To try it out, select
-one of the following:
+environment for your application entirely within the free tier on AWS (albeit not with all stacks,
+for example, there is no free tier for EKS). To try it out, select one of the following:
 
 +---------------------+-------------------+---------------------------+---------------+-----------------+---------------+
 |                     | Elastic Beanstalk | Elastic Container Service | EC2 Instances | Dokku           | EKS           |
