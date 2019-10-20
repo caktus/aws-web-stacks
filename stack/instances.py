@@ -44,12 +44,13 @@ if USE_EKS:
         Parameter(
             "AMISSMParam",
             Description="AWS Systems Manager Parameter Store parameter of the "
-                        "AMI ID for the worker node instances.",
+                        "AMI ID for the worker node instances (AMI retrieved from "
+                        "this parameter if not specified in the stack).",
             Type="AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
             Default="/aws/service/eks/optimized-ami/1.14/amazon-linux-2/recommended/image_id",
         ),
         group="Application Server",
-        label="Amazon Machine Image (AMI)",
+        label="SSM AMI Parameter",
     ))
     ami_condition = "AMICondition"
     template.add_condition(
@@ -223,10 +224,7 @@ container_instance_configuration = autoscaling.LaunchConfiguration(
 
 autoscaling_group_extra = {}
 autoscaling_group_tags = []
-if not USE_EKS:
-    from .load_balancer import load_balancer
-    autoscaling_group_extra["LoadBalancerNames"] = [Ref(load_balancer)]
-else:
+if USE_EKS:
     # TBD: We might want to make this UpdatePolicy standard, but applying
     # only for EKS since it may change behavior for existing stacks.
     autoscaling_group_extra["UpdatePolicy"] = AutoScalingRollingUpdate(
@@ -241,6 +239,11 @@ else:
             "PropagateAtLaunch": True,
         }
     )
+else:
+    # EKS manages its own ELBs, so only include the load balancer if
+    # we're not creating an EKS stack.
+    from .load_balancer import load_balancer
+    autoscaling_group_extra["LoadBalancerNames"] = [Ref(load_balancer)]
 
 autoscaling_group = autoscaling.AutoScalingGroup(
     autoscaling_group_name,
