@@ -22,7 +22,12 @@ from .logs import logging_policy
 from .security_groups import container_security_group
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
-from .vpc import private_subnet_a, private_subnet_b
+from .vpc import (
+    private_subnet_a,
+    private_subnet_b,
+    public_subnet_a,
+    public_subnet_b
+)
 
 USE_EKS = os.getenv("USE_EKS") == "on"
 
@@ -171,6 +176,10 @@ if USE_EKS:
         template=template,
         ResourcesVpcConfig=eks.ResourcesVpcConfig(
             SubnetIds=[
+                # For load balancers
+                Ref(public_subnet_a),
+                Ref(public_subnet_b),
+                # For worker nodes
                 Ref(private_subnet_a),
                 Ref(private_subnet_b),
             ],
