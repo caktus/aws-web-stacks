@@ -86,12 +86,12 @@ container_security_group = SecurityGroup(
     VpcId=Ref(vpc),
     SecurityGroupIngress=ingress_rules,
     Tags=Tags(
+        Tag("Name", Join("-", [Ref("AWS::StackName"), "container"])),
         *(
             [Tag(Sub("kubernetes.io/cluster/${EksCluster}"), "owned")]
             if USE_EKS
             else []
         ),
-        Name=Join("-", [Ref("AWS::StackName"), "container"]),
     ),
 )
 
