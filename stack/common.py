@@ -131,7 +131,7 @@ container_instance_type = Ref(template.add_parameter(
     label="Instance Type",
 ))
 
-if os.getenv("USE_EKS") != "on":
+if "on" in set([os.getenv("USE_DOKKU"), os.getenv("USE_EB"), os.getenv("USE_ECS")]):
     secret_key = Ref(template.add_parameter(
         Parameter(
             "SecretKey",
