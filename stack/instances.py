@@ -31,7 +31,7 @@ ami = Ref(template.add_parameter(
         "AMI",
         Description="%sThe Amazon Machine Image (AMI) to use for instances. Make "
                     "sure to use the correct AMI for your region and instance "
-                    "type (t2 instances require HVM AMIs)." % "(Optional) " if USE_EKS else "",
+                    "type (t2 instances require HVM AMIs)." % ("(Optional) " if USE_EKS else ""),
         Type="String",
         Default="",
     ),
