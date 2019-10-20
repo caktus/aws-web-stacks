@@ -22,24 +22,24 @@ If a NAT gateway is not used, it's possible to create a fully-managed, self-cont
 environment for your application entirely within the free tier on AWS. To try it out, select
 one of the following:
 
-+---------------------+-------------------+---------------------------+---------------+-----------------+
-|                     | Elastic Beanstalk | Elastic Container Service | EC2 Instances | Dokku           |
-+=====================+===================+===========================+===============+=================+
-| Without NAT Gateway | |EB-No-NAT|_      | |ECS-No-NAT|_             | |EC2-No-NAT|_ | |Dokku-No-NAT|_ |
-+---------------------+-------------------+---------------------------+---------------+-----------------+
-| With NAT Gateway    | |EB-NAT|_         | |ECS-NAT|_                | |EC2-NAT|_    | n/a             |
-+---------------------+-------------------+---------------------------+---------------+-----------------+
++---------------------+-------------------+---------------------------+---------------+-----------------+---------------+
+|                     | Elastic Beanstalk | Elastic Container Service | EC2 Instances | Dokku           | EKS           |
++=====================+===================+===========================+===============+=================+===============+
+| Without NAT Gateway | |EB-No-NAT|_      | |ECS-No-NAT|_             | |EC2-No-NAT|_ | |Dokku-No-NAT|_ | |EKS-No-NAT|_ |
++---------------------+-------------------+---------------------------+---------------+-----------------+---------------+
+| With NAT Gateway    | |EB-NAT|_         | |ECS-NAT|_                | |EC2-NAT|_    | n/a             | |EKS-NAT|_    |
++---------------------+-------------------+---------------------------+---------------+-----------------+---------------+
 
 If you'd like to review the CloudFormation template first, or update an existing stack, you may also
 wish to use the YAML template directly:
 
-+---------------------+-------------------+---------------------------+--------------------+----------------------+
-|                     | Elastic Beanstalk | Elastic Container Service | EC2 Instances      | Dokku                |
-+=====================+===================+===========================+====================+======================+
-| Without NAT Gateway | `eb-no-nat.yaml`_ | `ecs-no-nat.yaml`_        | `ec2-no-nat.yaml`_ | `dokku-no-nat.yaml`_ |
-+---------------------+-------------------+---------------------------+--------------------+----------------------+
-| With NAT Gateway    | `eb-nat.yaml`_    | `ecs-nat.yaml`_           | `ec2-nat.yaml`_    | n/a                  |
-+---------------------+-------------------+---------------------------+--------------------+----------------------+
++---------------------+-------------------+---------------------------+--------------------+----------------------+--------------------+
+|                     | Elastic Beanstalk | Elastic Container Service | EC2 Instances      | Dokku                | EKS                |
++=====================+===================+===========================+====================+======================+====================+
+| Without NAT Gateway | `eb-no-nat.yaml`_ | `ecs-no-nat.yaml`_        | `ec2-no-nat.yaml`_ | `dokku-no-nat.yaml`_ | `eks-no-nat.yaml`_ |
++---------------------+-------------------+---------------------------+--------------------+----------------------+--------------------+
+| With NAT Gateway    | `eb-nat.yaml`_    | `ecs-nat.yaml`_           | `ec2-nat.yaml`_    | n/a                  | `eks-nat.yaml`_    |
++---------------------+-------------------+---------------------------+--------------------+----------------------+--------------------+
 
 .. |EB-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
 .. _EB-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eb-no-nat.yaml
@@ -69,6 +69,14 @@ wish to use the YAML template directly:
 .. _Dokku-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=dokku-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.yaml
 .. _dokku-no-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.yaml
 
+.. |EKS-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
+.. _EKS-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eks-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eks-no-nat.yaml
+.. _eks-no-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/eks-no-nat.yaml
+
+.. |EKS-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
+.. _EKS-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eks-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eks-nat.yaml
+.. _eks-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/eks-nat.yaml
+
 Documentation
 -------------
 
@@ -76,8 +84,8 @@ In addition to this README, there is additional documentation at
 http://aws-web-stacks.readthedocs.io/
 
 
-Elastic Beanstalk, Elastic Container Service, EC2, or Dokku?
-------------------------------------------------------------
+Elastic Beanstalk, Elastic Container Service, EC2, Dokku, or EKS?
+-----------------------------------------------------------------
 
 **Elastic Beanstalk** is the recommended starting point. Elastic Beanstalk comes with a preconfigured
 autoscaling configuration, allows for automated, managed updates to the underlying servers, allows changing
@@ -86,7 +94,8 @@ tool for managing deployments. The Elastic Beanstalk environment uses the
 `multicontainer docker environment <http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_docker_ecs.html>`_
 to maximize flexibility in terms of the application(s) and container(s) deployed to the stack.
 
-**Elastic Container Service (ECS)** might be useful if complex container service definitions are required.
+**Elastic Container Service (ECS)** or **Elastic Kubernetes Service (EKS)** might be useful if complex container
+service definitions are required.
 
 If you prefer to configure application servers manually using Ansible, Salt, Chef, Puppet, or another such tool,
 choose the **EC2** option. Be aware that the instances created are managed by an autoscaling group, so you should
