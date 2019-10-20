@@ -132,6 +132,27 @@ typically take the longest to finish, and the EB environment or ECS service crea
 will not begin until all of its dependencies, including the CloudFront distribution and RDS
 instance, have been created.
 
+EKS Worker Nodes
+----------------
+
+The EKS stack includes EKS worker nodes, however, they will not be allowed to join the cluster
+until you specifically grant them access as described in the `AWS EKS User Guide
+<https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html>`_. In short, you need to:
+
+1. Download the AWS IAM Authenticator configuration map template from AWS::
+
+    curl -o aws-auth-cm.yaml https://amazon-eks.s3-us-west-2.amazonaws.com/cloudformation/2019-10-08/aws-auth-cm.yaml
+
+2. Open the file with your favorite text editor. Replace the ``<ARN of instance role (not instance profile)>``
+   snippet with the ``ContainerInstanceRole`` ARN from the stack that you created, and save the file.
+   **Important:** Do not modify any other lines in this file.
+
+3. Apply the configuration::
+
+    kubectl apply -f aws-auth-cm.yaml
+
+If you your nodes still aren't joining the cluster, consult the AWS EKS User Guide.
+
 SSL Certificate
 ---------------
 
