@@ -174,6 +174,10 @@ if USE_EKS:
     cluster = eks.Cluster(
         "EksCluster",
         template=template,
+        # Unlike most other resources in the stack, we hard-code the cluster name
+        # both so it's easy to find and so it cannot be accidentally recreated
+        # (for example if the ResourcesVpcConfig is changed).
+        Name=Sub("${AWS::StackName}-cluster"),
         ResourcesVpcConfig=eks.ResourcesVpcConfig(
             SubnetIds=[
                 # For load balancers
@@ -221,8 +225,8 @@ container_instance_configuration = autoscaling.LaunchConfiguration(
                     "/etc/eks/bootstrap.sh ${EksCluster}\n"
                     "/opt/aws/bin/cfn-signal --exit-code $?"
                     "    --stack ${AWS::StackName}"
-                    "    --resource NodeGroup"
-                    "    --region ${AWS::Region}\n"
+                    "    --resource %s"
+                    "    --region ${AWS::Region}\n" % autoscaling_group_name
                 )
             )
         )
