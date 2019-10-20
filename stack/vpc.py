@@ -1,6 +1,6 @@
 import os
 
-from troposphere import GetAtt, Join, Ref, Tags
+from troposphere import GetAtt, Join, Ref, Tag, Tags
 from troposphere.ec2 import (
     EIP,
     VPC,
@@ -166,6 +166,11 @@ public_route = Route(
     RouteTableId=Ref(public_route_table),
 )
 
+public_subnet_eks_tags = []
+private_subnet_eks_tags = []
+if os.getenv('USE_EKS') == 'on':
+    public_subnet_eks_tags.append(Tag('kubernetes.io/role/elb', '1'))
+    private_subnet_eks_tags.append(Tag('kubernetes.io/role/internal-elb', '1'))
 
 # Holds load balancer, NAT gateway, and bastion (if specified)
 public_subnet_a = Subnet(
@@ -175,6 +180,7 @@ public_subnet_a = Subnet(
     CidrBlock=Ref(public_subnet_a_cidr),
     AvailabilityZone=Ref(primary_az),
     Tags=Tags(
+        *public_subnet_eks_tags,
         Name=Join("-", [Ref("AWS::StackName"), "public-a"]),
     ),
 )
@@ -193,6 +199,7 @@ public_subnet_b = Subnet(
     CidrBlock=Ref(public_subnet_b_cidr),
     AvailabilityZone=Ref(secondary_az),
     Tags=Tags(
+        *public_subnet_eks_tags,
         Name=Join("-", [Ref("AWS::StackName"), "public-b"]),
     ),
 )
@@ -255,6 +262,7 @@ private_subnet_a = Subnet(
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Ref(primary_az),
     Tags=Tags(
+        *private_subnet_eks_tags,
         Name=Join("-", [Ref("AWS::StackName"), "private-a"]),
     ),
 )
@@ -276,6 +284,7 @@ private_subnet_b = Subnet(
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Ref(secondary_az),
     Tags=Tags(
+        *private_subnet_eks_tags,
         Name=Join("-", [Ref("AWS::StackName"), "private-b"]),
     ),
 )
