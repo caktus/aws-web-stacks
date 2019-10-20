@@ -14,7 +14,7 @@ from troposphere import (
     eks,
     iam
 )
-from troposphere.policies import AutoScalingRollingUpdate
+from troposphere.policies import AutoScalingRollingUpdate, UpdatePolicy
 
 from .assets import assets_management_policy
 from .common import container_instance_type, use_aes256_encryption
@@ -194,7 +194,7 @@ container_instance_configuration = autoscaling.LaunchConfiguration(
     IamInstanceProfile=Ref(container_instance_profile),
     BlockDeviceMappings=[
         autoscaling.BlockDeviceMapping(
-            DeviceName="/dev/sda1",
+            DeviceName="/dev/xvda" if USE_EKS else "/dev/sda1",
             Ebs=autoscaling.EBSBlockDevice(
                 VolumeType="gp2",
                 VolumeSize=container_volume_size,
@@ -211,9 +211,9 @@ container_instance_configuration = autoscaling.LaunchConfiguration(
                     "set -o xtrace\n"
                     "/etc/eks/bootstrap.sh ${EksCluster}\n"
                     "/opt/aws/bin/cfn-signal --exit-code $?"
-                    "    --stack  ${AWS::StackName}"
+                    "    --stack ${AWS::StackName}"
                     "    --resource NodeGroup"
-                    "    --region ${AWS::Region}"
+                    "    --region ${AWS::Region}\n"
                 )
             )
         )
@@ -227,10 +227,12 @@ autoscaling_group_tags = []
 if USE_EKS:
     # TBD: We might want to make this UpdatePolicy standard, but applying
     # only for EKS since it may change behavior for existing stacks.
-    autoscaling_group_extra["UpdatePolicy"] = AutoScalingRollingUpdate(
-        MaxBatchSize=1,
-        MinInstancesInService=desired_container_instances,
-        PauseTime="PT5M",
+    autoscaling_group_extra["UpdatePolicy"] = UpdatePolicy(
+        AutoScalingRollingUpdate=AutoScalingRollingUpdate(
+            MaxBatchSize=1,
+            MinInstancesInService=desired_container_instances,
+            PauseTime="PT5M",
+        )
     )
     autoscaling_group_tags.append(
         {
