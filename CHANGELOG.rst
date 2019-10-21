@@ -19,6 +19,7 @@ Change Log
 
 What's new in 2.0.0:
 
+* Add support for Elastic Kubernetes Service (EKS).
 * Re-purpose use_aes256_encryption flag to support encryption across S3, RDS, Elasticache (Redis only), and RDS (thanks @dsummersl)
 * Add support for Customer Managed CMKs with ``CustomerManagedCmkArn`` parameter
 * Add configurable ContainerVolumeSize to change root volume size of EC2 instances (thanks @dsummersl)
