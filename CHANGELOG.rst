@@ -24,6 +24,7 @@ What's new in 2.0.0:
 * Add support for Customer Managed CMKs with ``CustomerManagedCmkArn`` parameter
 * Add configurable ContainerVolumeSize to change root volume size of EC2 instances (thanks @dsummersl)
 * Change generated template output from JSON to YAML (thanks @cchurch)
+* The stack no longer prompts for a ``SECRET_KEY`` if it won't be used for the stack type in question.
 * Add required DBParameterGroup by default, which allows configuring database specific parameters. This avoids having to reboot a production database instance to add a DBParameterGroup in the future. (thanks @cchurch)
 * Add tags to all resources, including a common ``aws-web-stacks:stack-name`` tag with the stack's name
 * Add a ``aws-web-stacks:role`` tag to EC2 instances to identify as bastion vs. worker.
