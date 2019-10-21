@@ -5,8 +5,8 @@ AWS Web Stacks
     :target: https://circleci.com/gh/caktus/aws-web-stacks
 
 AWS Web Stacks is a library of CloudFormation templates that dramatically simplify hosting web applications
-on AWS. The library supports using Elastic Container Service (ECS), Elastic Beanstalk (EB), EC2 instances
-(via an AMI you specify), or `Dokku <http://dokku.viewdocs.io/dokku/>`_ for the application server(s) and
+on AWS. The library supports using Elastic Beanstalk, ECS, EKS, EC2 instances (via an AMI you specify),
+or `Dokku <http://dokku.viewdocs.io/dokku/>`_ for the application server(s) and
 provides auxilary managed services such as an RDS instance, ElastiCache instance, Elasticsearch instance
 (free) SSL certificate via AWS Certificate Manager, S3 bucket for static assets, ECS repository for hosting
 Docker images, etc. All resources (that support VPCs) are created in a self-contained VPC, which may use a
@@ -22,24 +22,24 @@ If a NAT gateway is not used, it's possible to create a fully-managed, self-cont
 environment for your application entirely within the free tier on AWS (albeit not with all stacks,
 for example, there is no free tier for EKS). To try it out, select one of the following:
 
-+---------------------+-------------------+---------------------------+---------------+-----------------+---------------+
-|                     | Elastic Beanstalk | Elastic Container Service | EC2 Instances | Dokku           | EKS           |
-+=====================+===================+===========================+===============+=================+===============+
-| Without NAT Gateway | |EB-No-NAT|_      | |ECS-No-NAT|_             | |EC2-No-NAT|_ | |Dokku-No-NAT|_ | |EKS-No-NAT|_ |
-+---------------------+-------------------+---------------------------+---------------+-----------------+---------------+
-| With NAT Gateway    | |EB-NAT|_         | |ECS-NAT|_                | |EC2-NAT|_    | n/a             | |EKS-NAT|_    |
-+---------------------+-------------------+---------------------------+---------------+-----------------+---------------+
++---------------------+-------------------+---------------+---------------+---------------+-----------------+
+|                     | Elastic Beanstalk | ECS           | EKS           | EC2 Instances | Dokku           |
++=====================+===================+===============+===============+===============+=================+
+| Without NAT Gateway | |EB-No-NAT|_      | |ECS-No-NAT|_ | |EKS-No-NAT|_ | |EC2-No-NAT|_ | |Dokku-No-NAT|_ |
++---------------------+-------------------+---------------+---------------+---------------+-----------------+
+| With NAT Gateway    | |EB-NAT|_         | |ECS-NAT|_    | |EKS-NAT|_    | |EC2-NAT|_    | n/a             |
++---------------------+-------------------+---------------+---------------+---------------+-----------------+
 
 If you'd like to review the CloudFormation template first, or update an existing stack, you may also
 wish to use the YAML template directly:
 
-+---------------------+-------------------+---------------------------+--------------------+----------------------+--------------------+
-|                     | Elastic Beanstalk | Elastic Container Service | EC2 Instances      | Dokku                | EKS                |
-+=====================+===================+===========================+====================+======================+====================+
-| Without NAT Gateway | `eb-no-nat.yaml`_ | `ecs-no-nat.yaml`_        | `ec2-no-nat.yaml`_ | `dokku-no-nat.yaml`_ | `eks-no-nat.yaml`_ |
-+---------------------+-------------------+---------------------------+--------------------+----------------------+--------------------+
-| With NAT Gateway    | `eb-nat.yaml`_    | `ecs-nat.yaml`_           | `ec2-nat.yaml`_    | n/a                  | `eks-nat.yaml`_    |
-+---------------------+-------------------+---------------------------+--------------------+----------------------+--------------------+
++---------------------+-------------------+--------------------+--------------------+--------------------+----------------------+
+|                     | Elastic Beanstalk | ECS                | EKS                | EC2 Instances      | Dokku                |
++=====================+===================+====================+====================+====================+======================+
+| Without NAT Gateway | `eb-no-nat.yaml`_ | `ecs-no-nat.yaml`_ | `eks-no-nat.yaml`_ | `ec2-no-nat.yaml`_ | `dokku-no-nat.yaml`_ |
++---------------------+-------------------+--------------------+--------------------+--------------------+----------------------+
+| With NAT Gateway    | `eb-nat.yaml`_    | `ecs-nat.yaml`_    | `eks-nat.yaml`_    | `ec2-nat.yaml`_    | n/a                  |
++---------------------+-------------------+--------------------+--------------------+--------------------+----------------------+
 
 .. |EB-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
 .. _EB-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eb-no-nat.yaml
@@ -57,6 +57,14 @@ wish to use the YAML template directly:
 .. _ECS-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ecs-nat.yaml
 .. _ecs-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/ecs-nat.yaml
 
+.. |EKS-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
+.. _EKS-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eks-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eks-no-nat.yaml
+.. _eks-no-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/eks-no-nat.yaml
+
+.. |EKS-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
+.. _EKS-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eks-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eks-nat.yaml
+.. _eks-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/eks-nat.yaml
+
 .. |EC2-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
 .. _EC2-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ec2-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ec2-no-nat.yaml
 .. _ec2-no-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/ec2-no-nat.yaml
@@ -68,14 +76,6 @@ wish to use the YAML template directly:
 .. |Dokku-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
 .. _Dokku-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=dokku-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.yaml
 .. _dokku-no-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.yaml
-
-.. |EKS-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _EKS-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eks-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eks-no-nat.yaml
-.. _eks-no-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/eks-no-nat.yaml
-
-.. |EKS-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _EKS-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eks-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eks-nat.yaml
-.. _eks-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/eks-nat.yaml
 
 Documentation
 -------------
