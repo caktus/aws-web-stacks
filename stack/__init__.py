@@ -7,6 +7,10 @@ from . import logs  # noqa: F401
 from . import vpc  # noqa: F401
 from . import template
 
+
+if os.environ.get('USE_NAT_GATEWAY') == 'on':
+    from . import bastion  # noqa: F401
+
 if os.environ.get('USE_ECS') == 'on':
     from . import repository  # noqa: F401
     from . import cluster  # noqa: F401
@@ -24,4 +28,7 @@ if os.environ.get('USE_GOVCLOUD') != 'on':
     from . import search  # noqa: F401
     from . import cdn  # noqa: F401
 
-print(template.template.to_json())
+# Must be last to tag all resources
+from . import tags  # noqa: F401
+
+print(template.template.to_yaml())

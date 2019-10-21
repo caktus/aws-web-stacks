@@ -1,7 +1,7 @@
 import troposphere.cloudformation as cloudformation
 import troposphere.ec2 as ec2
 import troposphere.iam as iam
-from troposphere import Base64, FindInMap, Join, Output, Parameter, Ref, Tags
+from troposphere import Base64, FindInMap, Join, Output, Ref, Tags
 from troposphere.policies import CreationPolicy, ResourceSignal
 
 from .assets import assets_management_policy
@@ -10,7 +10,8 @@ from .domain import domain_name
 from .environment import environment_variables
 from .logs import logging_policy
 from .template import template
-from .vpc import container_a_subnet, vpc
+from .utils import ParameterWithDefaults as Parameter
+from .vpc import private_subnet_a, vpc
 
 key_name = template.add_parameter(
     Parameter(
@@ -163,7 +164,7 @@ ec2_instance = template.add_resource(ec2.Instance(
     KeyName=Ref(key_name),
     SecurityGroupIds=[Ref(security_group)],
     IamInstanceProfile=Ref(instance_profile),
-    SubnetId=Ref(container_a_subnet),
+    SubnetId=Ref(private_subnet_a),
     BlockDeviceMappings=[
         ec2.BlockDeviceMapping(
             DeviceName="/dev/sda1",

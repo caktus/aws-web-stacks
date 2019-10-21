@@ -1,23 +1,14 @@
 import os
 
 from troposphere import elasticloadbalancing as elb
-from troposphere import Equals, GetAtt, If, Join, Output, Parameter, Ref
+from troposphere import GetAtt, If, Join, Output, Ref
 
 from .security_groups import load_balancer_security_group
 from .template import template
-from .vpc import loadbalancer_a_subnet, loadbalancer_b_subnet
+from .utils import ParameterWithDefaults as Parameter
+from .vpc import public_subnet_a, public_subnet_b
 
-web_worker_health_check = Ref(template.add_parameter(
-    Parameter(
-        "WebWorkerHealthCheck",
-        Description="Web worker health check URL path, e.g., \"/health-check\"; "
-                    "will default to TCP-only health check if left blank",
-        Type="String",
-        Default="",
-    ),
-    group="Load Balancer",
-    label="Health Check URL",
-))
+# Web worker
 
 if os.environ.get('USE_ECS') == 'on':
     web_worker_port = Ref(template.add_parameter(
@@ -55,11 +46,42 @@ web_worker_protocol = Ref(template.add_parameter(
     label="Web Worker Protocol",
 ))
 
-tcp_health_check_condition = "TcpHealthCheck"
-template.add_condition(
-    tcp_health_check_condition,
-    Equals(web_worker_health_check, ""),
-)
+# Web worker health check
+
+web_worker_health_check_protocol = Ref(template.add_parameter(
+    Parameter(
+        "WebWorkerHealthCheckProtocol",
+        Description="Web worker health check protocol",
+        Type="String",
+        Default="TCP",
+        AllowedValues=["TCP", "HTTP", "HTTPS"],
+    ),
+    group="Load Balancer",
+    label="Health Check: Protocol",
+))
+
+web_worker_health_check_port = Ref(template.add_parameter(
+    Parameter(
+        "WebWorkerHealthCheckPort",
+        Description="Web worker health check port",
+        Type="Number",
+        Default="80",
+    ),
+    group="Load Balancer",
+    label="Health Check: Port",
+))
+
+web_worker_health_check = Ref(template.add_parameter(
+    Parameter(
+        "WebWorkerHealthCheck",
+        Description="Web worker health check URL path, e.g., \"/health-check\"; "
+                    "required unless WebWorkerHealthCheckProtocol is TCP",
+        Type="String",
+        Default="",
+    ),
+    group="Load Balancer",
+    label="Health Check: URL",
+))
 
 # Web load balancer
 
@@ -85,34 +107,31 @@ if os.environ.get('USE_GOVCLOUD') == 'on':
     ))
 else:
     from .certificates import application as application_certificate
-    listeners.append(elb.Listener(
+    from .certificates import cert_condition
+    listeners.append(If(cert_condition, elb.Listener(
         LoadBalancerPort=443,
         InstanceProtocol=web_worker_protocol,
         InstancePort=web_worker_port,
         Protocol='HTTPS',
         SSLCertificateId=application_certificate,
-    ))
+    ), Ref("AWS::NoValue")))
 
 load_balancer = elb.LoadBalancer(
     'LoadBalancer',
     template=template,
     Subnets=[
-        Ref(loadbalancer_a_subnet),
-        Ref(loadbalancer_b_subnet),
+        Ref(public_subnet_a),
+        Ref(public_subnet_b),
     ],
     SecurityGroups=[Ref(load_balancer_security_group)],
     Listeners=listeners,
     HealthCheck=elb.HealthCheck(
-        Target=If(
-            tcp_health_check_condition,
-            Join("", ["TCP:", web_worker_port]),
-            Join("", [
-                web_worker_protocol,
-                ":",
-                web_worker_port,
-                web_worker_health_check,
-            ]),
-        ),
+        Target=Join("", [
+            web_worker_health_check_protocol,
+            ":",
+            web_worker_health_check_port,
+            web_worker_health_check,
+        ]),
         HealthyThreshold="2",
         UnhealthyThreshold="2",
         Interval="100",
@@ -125,4 +144,10 @@ template.add_output(Output(
     "LoadBalancerDNSName",
     Description="Loadbalancer DNS",
     Value=GetAtt(load_balancer, "DNSName")
+))
+
+template.add_output(Output(
+    "LoadBalancerHostedZoneID",
+    Description="Loadbalancer hosted zone",
+    Value=GetAtt(load_balancer, "CanonicalHostedZoneNameID")
 ))

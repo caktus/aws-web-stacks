@@ -31,43 +31,49 @@ one of the following:
 +---------------------+-------------------+---------------------------+---------------+-----------------+
 
 If you'd like to review the CloudFormation template first, or update an existing stack, you may also
-wish to use the JSON template directly:
+wish to use the YAML template directly:
 
 +---------------------+-------------------+---------------------------+--------------------+----------------------+
 |                     | Elastic Beanstalk | Elastic Container Service | EC2 Instances      | Dokku                |
 +=====================+===================+===========================+====================+======================+
-| Without NAT Gateway | `eb-no-nat.json`_ | `ecs-no-nat.json`_        | `ec2-no-nat.json`_ | `dokku-no-nat.json`_ |
+| Without NAT Gateway | `eb-no-nat.yaml`_ | `ecs-no-nat.yaml`_        | `ec2-no-nat.yaml`_ | `dokku-no-nat.yaml`_ |
 +---------------------+-------------------+---------------------------+--------------------+----------------------+
-| With NAT Gateway    | `eb-nat.json`_    | `ecs-nat.json`_           | `ec2-nat.json`_    | n/a                  |
+| With NAT Gateway    | `eb-nat.yaml`_    | `ecs-nat.yaml`_           | `ec2-nat.yaml`_    | n/a                  |
 +---------------------+-------------------+---------------------------+--------------------+----------------------+
 
 .. |EB-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _EB-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eb-no-nat.json
-.. _eb-no-nat.json: https://s3.amazonaws.com/aws-web-stacks/eb-no-nat.json
+.. _EB-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eb-no-nat.yaml
+.. _eb-no-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/eb-no-nat.yaml
 
 .. |EB-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _EB-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eb-nat.json
-.. _eb-nat.json: https://s3.amazonaws.com/aws-web-stacks/eb-nat.json
+.. _EB-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=eb-app-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/eb-nat.yaml
+.. _eb-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/eb-nat.yaml
 
 .. |ECS-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _ECS-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ecs-no-nat.json
-.. _ecs-no-nat.json: https://s3.amazonaws.com/aws-web-stacks/ecs-no-nat.json
+.. _ECS-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ecs-no-nat.yaml
+.. _ecs-no-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/ecs-no-nat.yaml
 
 .. |ECS-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _ECS-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ecs-nat.json
-.. _ecs-nat.json: https://s3.amazonaws.com/aws-web-stacks/ecs-nat.json
+.. _ECS-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ecs-app-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ecs-nat.yaml
+.. _ecs-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/ecs-nat.yaml
 
 .. |EC2-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _EC2-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ec2-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ec2-no-nat.json
-.. _ec2-no-nat.json: https://s3.amazonaws.com/aws-web-stacks/ec2-no-nat.json
+.. _EC2-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ec2-app-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ec2-no-nat.yaml
+.. _ec2-no-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/ec2-no-nat.yaml
 
 .. |EC2-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _EC2-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ec2-app-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ec2-nat.json
-.. _ec2-nat.json: https://s3.amazonaws.com/aws-web-stacks/ec2-nat.json
+.. _EC2-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ec2-app-with-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/ec2-nat.yaml
+.. _ec2-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/ec2-nat.yaml
 
 .. |Dokku-No-NAT| image:: https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png
-.. _Dokku-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=dokku-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.json
-.. _dokku-no-nat.json: https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.json
+.. _Dokku-No-NAT: https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=dokku-no-nat&templateURL=https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.yaml
+.. _dokku-no-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/dokku-no-nat.yaml
+
+Documentation
+-------------
+
+In addition to this README, there is additional documentation at
+http://aws-web-stacks.readthedocs.io/
 
 
 Elastic Beanstalk, Elastic Container Service, EC2, or Dokku?
@@ -102,6 +108,13 @@ NAT Gateways
 have the added benefit of preventing network connections to EC2 instances within the VPC, but
 come at an added cost (and no free tier).
 
+If a NAT Gateway stack is selected, you'll have the option of creating a bastion host or VPN server
+in the stack, using an AMI and instance type of your choice. The bastion type selected will determine which
+ports are opened by default for this host. If ``SSH``, only SSH traffic will be allowed from the IP address
+or subnet configured by the ``AdministratorIPAddress`` parameter. If ``OpenVPN``, HTTPS and SSH traffic will
+be allowed from the ``AdministratorIPAddress``, and OpenVPN UDP traffic from any address. Additional ports
+will need to be opened manually via the AWS console or API.
+
 Stack Creation Process
 ----------------------
 
@@ -121,6 +134,83 @@ query) and follow the link to approve the certificate. If you're using a ``.io``
 `prior steps <http://docs.aws.amazon.com/acm/latest/userguide/troubleshoot-iodomains.html>`_
 may be necessary to receive email for ``.io`` domains, because domain owner emails cannot
 be discovered via ``whois``.
+
+Manual ACM Certificates
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You also have the option to *not* create a certificate as part of the stack provisioning process. If
+you do this, an HTTPS listener (and corresponding certificate) can be manually attached to the load
+balancer after stack creation via the AWS Console or using ``awscli`` using the steps below.
+
+To request a new certificate using DNS validation, run the following command with ``--domain-name``
+matching your desired domain::
+
+  aws acm request-certificate --domain-name [DOMAIN NAME] --validation-method DNS
+
+You can query the CNAME ``name`` and ``value`` variables using ``describe-certificate``::
+
+  aws acm list-certificates
+  aws acm describe-certificate --certificate-arn=YOUR-CertificateArn
+
+Add the listed CNAME to your DNS provider to complete the verification process.
+
+Once verified, add an HTTPS listener to the environment's ELB::
+
+  aws elb describe-load-balancers --query "LoadBalancerDescriptions[*].LoadBalancerName"
+  aws elb create-load-balancer-listeners --load-balancer-name [LB NAME]
+                                         --listeners "SSLCertificateId=[CERTIFICATE-ARN],Protocol=HTTPS,LoadBalancerPort=443,InstanceProtocol=HTTP,InstancePort=80"
+
+
+Encryption (using AWS Key Management Service)
+---------------------------------------------
+
+Server-side encryption support is available, via the ``UseAES256Encryption``
+parameter, on the following AWS resources:
+
+* EC2 EBS (for application EC2 instances and bastion host)
+* ElastiCache Redis (ReplicationGroup)
+* RDS
+* S3
+
+By default, when enabled, an `AWS managed CMK`_ (customer master key) will be
+created the first time you try to create an encrypted resource within that
+service. AWS will manage the policies associated with AWS managed CMKs on your
+behalf. You can track AWS managed keys in your account and all usage is logged
+in AWS CloudTrail, but you have no direct control over the keys themselves.
+These keys will be shared across all resources utilizing default encryption
+within your AWS account.
+
+Customer Managed CMK
+~~~~~~~~~~~~~~~~~~~~
+
+The ``CustomerManagedCmkArn`` parameter allows your stack to be encrypted with a
+`Customer Managed CMK`_. You have full control over these CMKs, including
+establishing and maintaining their key policies, IAM policies, and grants,
+enabling and disabling them, rotating their cryptographic material, adding tags,
+creating aliases that refer to the CMK, and scheduling the CMKs for deletion.
+
+Required CMK Key Policy for Use with Encrypted Volumes
+``````````````````````````````````````````````````````
+
+**Important:** If you specify a customer managed CMK, several steps are required
+to support Amazon EBS encryption within Amazon EC2 Auto Scaling.
+
+1. You (or your account administrator) must give the appropriate
+**service-linked role** access to the CMK, so that Amazon EC2 Auto Scaling can
+launch instances on your behalf. To do this, you must modify the CMK's key
+policy. If omitted, auto scaling will fail to launch instances. See `Required
+CMK Key Policy for Use with Encrypted Volumes`_ for more information.
+
+2. You must encrypt the AMI specified in the ``AMI`` parameter with your
+customer managed CMK. Existing AMIs can easily be copied and encrypted with your
+key from within the AWS Console. Follow the steps in `Copying an AMI`_ and use
+your customer managed CMK ARN when prompted for a Master Key. Once copied, use
+the new AMI for your stack ``AMI`` parameter.
+
+.. _AWS managed CMK: https://docs.aws.amazon.com/en_pv/kms/latest/developerguide/concepts.html#aws-managed-cmk
+.. _Customer Managed CMK: https://docs.aws.amazon.com/en_pv/kms/latest/developerguide/concepts.html#customer-cmk
+.. _Required CMK Key Policy for Use with Encrypted Volumes: https://docs.aws.amazon.com/en_pv/autoscaling/ec2/userguide/key-policy-requirements-EBS-encryption.html
+.. _Copying an AMI: https://docs.aws.amazon.com/en_pv/AWSEC2/latest/UserGuide/CopyingAMIs#ami-copy-steps
 
 Resources Created
 -----------------
@@ -164,13 +254,13 @@ stack in GovCloud by downloading one of the following templates and uploading it
 via the AWS Management Console:
 
 +---------------------+-------------------+
-| Without NAT Gateway | `gc-no-nat.json`_ |
+| Without NAT Gateway | `gc-no-nat.yaml`_ |
 +---------------------+-------------------+
-| With NAT Gateway    | `gc-nat.json`_    |
+| With NAT Gateway    | `gc-nat.yaml`_    |
 +---------------------+-------------------+
 
-.. _gc-no-nat.json: https://s3.amazonaws.com/aws-web-stacks/gc-no-nat.json
-.. _gc-nat.json: https://s3.amazonaws.com/aws-web-stacks/gc-nat.json
+.. _gc-no-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/gc-no-nat.yaml
+.. _gc-nat.yaml: https://s3.amazonaws.com/aws-web-stacks/gc-nat.yaml
 
 This template will create:
 
@@ -187,8 +277,8 @@ application on the specified port, with all of the necessary secrets and environ
 Note that the Elastic Load Balancer will not direct traffic to your instances until the health
 check you specify during stack creation returns a successful response.
 
-Environment Variables
----------------------
+Environment Variables within your server instances
+--------------------------------------------------
 
 Once your environment is created you'll have an Elastic Beanstalk (EB) or Elastic Compute Service
 (ECS) environment with the environment variables you need to run a containerized web application.
@@ -384,6 +474,52 @@ job to automatically renew the cert as needed::
 
 The Python sample app should now be accessible over HTTPS at https://python-sample.your.domain/
 
+Creating or updating templates
+------------------------------
+
+Templates built from the latest release of aws-web-stacks will be available in
+S3 (see links near the top of this file). They're built with generic defaults.
+
+Templates are built by setting some environment variables with your preferences
+and then running ``python -c 'import stack'`` (see the Makefile).
+The template file is output to standard output. It's easy to do this on one line::
+
+    USE_EC2=on python -c 'import stack' >my_ec2_stack_template.yaml
+
+Here are the environment variables that control the template creation.
+
+USE_EC2=on
+    Create EC2 instances directly.
+USE_GOVCLOUD=on
+    Create EC2 instances directly, but disables AWS services that aren't available
+    in GovCloud like the AWS Certificate Manager and Elastic Search.
+USE_EB=on
+    Create an Elastic Beanstalk application
+USE_ECS=on
+    Create an Elastic Container Service.
+USE_DOKKU=on
+    Create an EC2 instance containing a Dokku server
+
+I believe those environment variables are mutually exclusive.  The remaining
+ones can be used in combination with each other or one of the above.
+
+USE_NAT_GATEWAY=on
+    Don't put the services inside your VPC onto the public internet, and
+    add a NAT gateway to the stack to the services can make connections out.
+DEFAULTS_FILE=<path to JSON file>
+    Changes the default values for parameters. The JSON file should just be
+    a dictionary mapping parameter names to default values, e.g.::
+
+        {
+            "AMI": "ami-078c57a94e9bdc6e0",
+            "AssetsUseCloudFront": "false"
+        }
+
+One more example, creating EC2 instances without a NAT gateway and overriding
+the parameter defaults::
+
+    USE_EC2=on DEFAULTS_FILE=stack_defaults.json python -c 'import stack' >stack.yaml
+
 Contributing
 ------------
 
@@ -391,4 +527,4 @@ Please read `contributing guidelines here <https://github.com/caktus/aws-web-sta
 
 Good luck and have fun!
 
-Copyright 2017 Jean-Phillipe Serafin, Tobias McNulty.
+Copyright 2017, 2018 Jean-Phillipe Serafin, Tobias McNulty.

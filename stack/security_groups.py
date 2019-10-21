@@ -1,11 +1,11 @@
 import os
-from itertools import product
 
-from troposphere import Ref
+from troposphere import Join, Ref, Tags
 from troposphere.ec2 import SecurityGroup, SecurityGroupRule
 
+from .common import administrator_ip_address
 from .template import template
-from .vpc import loadbalancer_a_subnet_cidr, loadbalancer_b_subnet_cidr, vpc
+from .vpc import vpc
 
 load_balancer_security_group = SecurityGroup(
     "LoadBalancerSecurityGroup",
@@ -22,6 +22,9 @@ load_balancer_security_group = SecurityGroup(
             CidrIp="0.0.0.0/0",
         ) for port in ["80", "443"]
     ],
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "elb"]),
+    ),
 )
 
 # allow traffic from the load balancer subnets to the web workers
@@ -37,20 +40,41 @@ else:
     # web worker port (80)
     web_worker_ports = ["80"]
 
-cidrs = [loadbalancer_a_subnet_cidr, loadbalancer_b_subnet_cidr]
+# HTTP from web load balancer
+ingress_rules = [SecurityGroupRule(
+    IpProtocol="tcp",
+    FromPort=port,
+    ToPort=port,
+    SourceSecurityGroupId=Ref(load_balancer_security_group),
+) for port in web_worker_ports]
+
+# Health check
+if os.environ.get('USE_EB') != 'on':
+    ingress_rules.append(SecurityGroupRule(
+        IpProtocol="tcp",
+        FromPort=Ref("WebWorkerHealthCheckPort"),
+        ToPort=Ref("WebWorkerHealthCheckPort"),
+        Description="ELB Health Check",  # SecurityGroupRule doesn't support a Description attribute
+        SourceSecurityGroupId=Ref(load_balancer_security_group),
+    ))
+
+if os.environ.get('USE_NAT_GATEWAY') != 'on':
+    # Allow direct administrator access via SSH.
+    ingress_rules.append(SecurityGroupRule(
+        IpProtocol="tcp",
+        FromPort="22",
+        ToPort="22",
+        Description="Administrator SSH Access",
+        CidrIp=administrator_ip_address,
+    ))
 
 container_security_group = SecurityGroup(
     'ContainerSecurityGroup',
     template=template,
     GroupDescription="Container security group.",
     VpcId=Ref(vpc),
-    SecurityGroupIngress=[
-        # HTTP from web public subnets
-        SecurityGroupRule(
-            IpProtocol="tcp",
-            FromPort=port,
-            ToPort=port,
-            CidrIp=cidr,
-        ) for port, cidr in product(*[web_worker_ports, cidrs])
-    ],
+    SecurityGroupIngress=ingress_rules,
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "container"]),
+    ),
 )

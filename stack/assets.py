@@ -9,7 +9,6 @@ from troposphere import (
     Join,
     Not,
     Output,
-    Parameter,
     Ref,
     Split,
     iam
@@ -21,23 +20,66 @@ from troposphere.cloudfront import (
     DistributionConfig,
     ForwardedValues,
     Origin,
-    S3Origin,
+    S3OriginConfig,
     ViewerCertificate
 )
 from troposphere.s3 import (
     Bucket,
+    BucketEncryption,
     CorsConfiguration,
     CorsRules,
     Private,
-    PublicRead,
+    PublicAccessBlockConfiguration,
+    ServerSideEncryptionByDefault,
+    ServerSideEncryptionRule,
     VersioningConfiguration
 )
 
-from .common import arn_prefix
+from .common import (
+    arn_prefix,
+    cmk_arn,
+    use_aes256_encryption_cond,
+    use_cmk_arn
+)
 from .domain import all_domains_list
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
+
+assets_bucket_access_control = template.add_parameter(
+    Parameter(
+        "AssetsBucketAccessControl",
+        Default="PublicRead",
+        Description="Canned ACL for the public S3 bucket. Private is recommended; it "
+                    "allows for objects to be make publicly readable, but prevents "
+                    "listing of the bucket contents.",
+        Type="String",
+        AllowedValues=[
+            "PublicRead",
+            "Private",
+        ],
+        ConstraintDescription="Must be PublicRead or Private.",
+    ),
+    group="Static Media",
+    label="Assets Bucket ACL",
+)
 
 common_bucket_conf = dict(
+    BucketEncryption=BucketEncryption(
+        ServerSideEncryptionConfiguration=If(
+            use_aes256_encryption_cond,
+            [
+                ServerSideEncryptionRule(
+                    ServerSideEncryptionByDefault=ServerSideEncryptionByDefault(
+                        SSEAlgorithm=If(use_cmk_arn, 'aws:kms', 'AES256'),
+                        KMSMasterKeyID=If(use_cmk_arn, Ref(cmk_arn), Ref("AWS::NoValue")),
+                    )
+                )
+            ],
+            [
+                ServerSideEncryptionRule()
+            ]
+        )
+    ),
     VersioningConfiguration=VersioningConfiguration(
         Status="Enabled"
     ),
@@ -61,11 +103,12 @@ common_bucket_conf = dict(
     ),
 )
 
-# Create an S3 bucket that holds statics and media
+# Create an S3 bucket that holds statics and media. Default to private to prevent
+# public list permissions, but still allow objects to be made publicly readable.
 assets_bucket = template.add_resource(
     Bucket(
         "AssetsBucket",
-        AccessControl=PublicRead,
+        AccessControl=Ref(assets_bucket_access_control),
         **common_bucket_conf,
     )
 )
@@ -84,6 +127,12 @@ private_assets_bucket = template.add_resource(
     Bucket(
         "PrivateAssetsBucket",
         AccessControl=Private,
+        PublicAccessBlockConfiguration=PublicAccessBlockConfiguration(
+            BlockPublicAcls=True,
+            BlockPublicPolicy=True,
+            IgnorePublicAcls=True,
+            RestrictPublicBuckets=True,
+        ),
         **common_bucket_conf,
     )
 )
@@ -219,7 +268,7 @@ if os.environ.get('USE_GOVCLOUD') != 'on':
                 Origins=[Origin(
                     Id="Assets",
                     DomainName=GetAtt(assets_bucket, "DomainName"),
-                    S3OriginConfig=S3Origin(
+                    S3OriginConfig=S3OriginConfig(
                         OriginAccessIdentity="",
                     ),
                 )],

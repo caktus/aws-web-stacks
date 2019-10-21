@@ -13,7 +13,7 @@ from troposphere import (
 )
 from troposphere.cloudfront import (
     Cookies,
-    CustomOrigin,
+    CustomOriginConfig,
     DefaultCacheBehavior,
     Distribution,
     DistributionConfig,
@@ -111,7 +111,7 @@ if origin_domain_name:
                 Origins=[Origin(
                     Id="ApplicationServer",
                     DomainName=origin_domain_name,
-                    CustomOriginConfig=CustomOrigin(
+                    CustomOriginConfig=CustomOriginConfig(
                         OriginProtocolPolicy="match-viewer",
                     ),
                 )],

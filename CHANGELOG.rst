@@ -1,16 +1,72 @@
 Change Log
 ==========
 
-`1.3.0`_ (TBD)
---------------
+
+`X.Y.Z`_ (TBD-DD-DD)
+---------------------
+
+* TBD
+
+
+`2.0.0`_ (TBD)
+---------------------
+
+**Backwards-incompatible changes:**
+
+* Update RDS resource name of database to be ``DatabaseInstance`` rather than ``PostgreSQL``. While other engines were previously supported, the title within the stack still referenced PostgreSQL. **This change will force a recreation of your RDS instance.**
+* Simplify the VPC layout to have 2 public and 2 private subnets. Due to this change, **updating an existing stack is not supported.**  You'll need to create a new stack and re-deploy all services within it.
+* Add support to provision Memcached and Redis clusters in tandem. The resource names have been adjusted to make this change and will force creation of new instances, possibly requiring a new stack.
+
+What's new in 2.0.0:
+
+* Re-purpose use_aes256_encryption flag to support encryption across S3, RDS, Elasticache (Redis only), and RDS (thanks @dsummersl)
+* Add support for Customer Managed CMKs with ``CustomerManagedCmkArn`` parameter
+* Add configurable ContainerVolumeSize to change root volume size of EC2 instances (thanks @dsummersl)
+* Change generated template output from JSON to YAML (thanks @cchurch)
+* Add required DBParameterGroup by default, which allows configuring database specific parameters. This avoids having to reboot a production database instance to add a DBParameterGroup in the future. (thanks @cchurch)
+* Add tags to all resources, including a common ``aws-web-stacks:stack-name`` tag with the stack's name
+* Add a ``aws-web-stacks:role`` tag to EC2 instances to identify as bastion vs. worker.
+* You now have the option of creating a bastion host or VPN server as part of the stack, when a
+  stack with a NAT Gateway is used, to facilitate secure remote access to hosts within the VPC.
+* Add a parameter to specify the default canned ACL for the public assets bucket.
+* Block all public access for the private assets bucket.
+* Add parameters to customize VPC and subnet IPv4 CIDR blocks (**It is generally not possible to change the CIDR blocks for an existing stack.**).
+* Add RDS and ElastiCache endpoint outputs.
+* Add CustomAppCertificateArn parameter to allow association with an existing ACM certificate.
+
+
+`1.4.0`_ (2019-08-05)
+---------------------
 
 Features:
 
+* Allow ACM certificate to be optional and/or be specified at a later date via a manual process. See
+  Manual ACM Certificates in README for more information.
+* Adds AdministratorIPAddress parameter so SSH access can be configured (thanks @dsummersl).
+* Adds AssetsUseAES256Encryption parameter to enable AES256 encryption on asset buckets (thanks @dsummersl).
+* Adds IgnorePublicAcls setting to private access buckets.
+* Upgrade Circle CI to 2.0
+* Miscellaneous fixes for release (thanks @cchurch)
+
+
+`1.3.0`_ (2018-09-13)
+---------------------
+
+Features:
+
+* Allow overriding parameter defaults at template creation time without having to change the
+  Python code.  See `the README
+  <https://github.com/caktus/aws-web-stacks/blob/master/README.rst#dokku>`_.
+* Add a parameter to control whether certificates are validated by DNS or email, and default
+  to DNS since GDPR has made email validation less likely to work.
 * The database type of the RDS instance can now be configured (previously, only Postgres could
   be used). Note that, for backwards-compatibility reasons, the resources in the CloudFormation
   stack is still named ``PostgreSQL`` (this avoids unnecessarily recreating the RDS instance
-  on pre-existing stacks).
-* The RDS instance now supports all allowable special characters in the password field.
+  on pre-existing stacks). See: PR #32
+* The RDS instance now supports all allowable special characters in the password field. See: PR #31
+* The CloudFront distribution linked to the S3 assets bucket can now be disabled / enabled at the
+  time a stack is created or updated; the CloudFront distribution now supports a custom domain name
+  and SSL certificate. See: PR #30
 
 `1.2.0`_ (2017-09-27)
 ---------------------
@@ -125,6 +181,9 @@ Backwards-incompatible changes:
 * Initial public release
 
 
+.. _2.0.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.0.0/
+.. _1.4.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.4.0/
+.. _1.3.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.3.0/
 .. _1.2.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.2.0/
 .. _1.1.2: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.1.2/
 .. _1.1.1: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.1.1/

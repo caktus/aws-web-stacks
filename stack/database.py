@@ -1,14 +1,32 @@
 from collections import OrderedDict
 
-from troposphere import Equals, FindInMap, Not, Parameter, Ref, ec2, rds
+from troposphere import (
+    Equals,
+    FindInMap,
+    GetAtt,
+    If,
+    Join,
+    Not,
+    Output,
+    Ref,
+    Tags,
+    ec2,
+    rds
+)
 
-from .common import dont_create_value
+from .common import (
+    cmk_arn,
+    dont_create_value,
+    use_aes256_encryption,
+    use_cmk_arn
+)
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
-    container_a_subnet,
-    container_a_subnet_cidr,
-    container_b_subnet,
-    container_b_subnet_cidr,
+    private_subnet_a,
+    private_subnet_a_cidr,
+    private_subnet_b,
+    private_subnet_b_cidr,
     vpc
 )
 
@@ -43,6 +61,12 @@ db_class = template.add_parameter(
             'db.m4.2xlarge',
             'db.m4.4xlarge',
             'db.m4.10xlarge',
+            'db.r4.large',
+            'db.r4.xlarge',
+            'db.r4.2xlarge',
+            'db.r4.4xlarge',
+            'db.r4.8xlarge',
+            'db.r4.16xlarge',
             'db.r3.large',
             'db.r3.xlarge',
             'db.r3.2xlarge',
@@ -70,6 +94,9 @@ db_class = template.add_parameter(
     label="Instance Type",
 )
 
+db_condition = "DatabaseCondition"
+template.add_condition(db_condition, Not(Equals(Ref(db_class), dont_create_value)))
+
 db_engine = template.add_parameter(
     Parameter(
         "DatabaseEngine",
@@ -87,11 +114,76 @@ db_engine_version = template.add_parameter(
     Parameter(
         "DatabaseEngineVersion",
         Default="",
-        Description="Database engine version to use",
+        Description="Database version to use",
         Type="String",
     ),
     group="Database",
     label="Engine Version",
+)
+
+db_parameter_group_family = template.add_parameter(
+    Parameter(
+        "DatabaseParameterGroupFamily",
+        Type="String",
+        AllowedValues=[
+            "aurora-mysql5.7",
+            "docdb3.6",
+            "neptune1",
+            "aurora-postgresql9.6",
+            "aurora-postgresql10",
+            "mariadb10.0",
+            "mariadb10.1",
+            "mariadb10.2",
+            "mariadb10.3",
+            "mysql5.5",
+            "mysql5.6",
+            "mysql5.7",
+            "mysql8.0",
+            "oracle-ee-11.2",
+            "oracle-ee-12.1",
+            "oracle-ee-12.2",
+            "oracle-se-11.2",
+            "oracle-se1-11.2",
+            "oracle-se2-12.1",
+            "oracle-se2-12.2",
+            "aurora5.6",
+            "postgres9.3",
+            "postgres9.4",
+            "postgres9.5",
+            "postgres9.6",
+            "postgres10",
+            "postgres11",
+            "sqlserver-ee-11.0",
+            "sqlserver-ee-12.0",
+            "sqlserver-ee-13.0",
+            "sqlserver-ee-14.0",
+            "sqlserver-ex-11.0",
+            "sqlserver-ex-12.0",
+            "sqlserver-ex-13.0",
+            "sqlserver-ex-14.0",
+            "sqlserver-se-11.0",
+            "sqlserver-se-12.0",
+            "sqlserver-se-13.0",
+            "sqlserver-se-14.0",
+            "sqlserver-web-11.0",
+            "sqlserver-web-12.0",
+            "sqlserver-web-13.0",
+            "sqlserver-web-14.0",
+        ],
+        Description="Database parameter group family name; must match the engine and version of "
+                    "the RDS instance.",
+    ),
+    group="Database",
+    label="Parameter Group Family",
+)
+
+db_parameter_group = rds.DBParameterGroup(
+    "DatabaseParameterGroup",
+    template=template,
+    Condition=db_condition,
+    Description="Database parameter group.",
+    Family=Ref(db_parameter_group_family),
+    Parameters={},
 )
 
 db_name = template.add_parameter(
@@ -119,11 +211,11 @@ db_user = template.add_parameter(
         Description="The database admin account username",
         Type="String",
         MinLength="1",
-        MaxLength="16",
-        AllowedPattern="[a-zA-Z][a-zA-Z0-9]*",
+        MaxLength="63",
+        AllowedPattern="[a-zA-Z][a-zA-Z0-9_]*",
         ConstraintDescription=(
             "must begin with a letter and contain only"
-            " alphanumeric characters."
+            " alphanumeric characters and underscores."
         )
     ),
     group="Database",
@@ -134,7 +226,9 @@ db_password = template.add_parameter(
     Parameter(
         "DatabasePassword",
         NoEcho=True,
-        Description="The database admin account password",
+        Description=''
+        '''The database admin account password must consist of 10-41 printable'''
+        '''ASCII characters *except* "/", """, or "@".''',
         Type="String",
         MinLength="10",
         MaxLength="41",
@@ -158,21 +252,6 @@ db_allocated_storage = template.add_parameter(
     ),
     group="Database",
     label="Storage (GB)",
-)
-
-db_storage_encrypted = template.add_parameter(
-    Parameter(
-        "DatabaseStorageEncrypted",
-        Default="false",
-        Description="Whether or not to encrypt the underlying database storage",
-        Type="String",
-        AllowedValues=[
-            'true',
-            'false',
-        ],
-    ),
-    group="Database",
-    label="Enable Encrypted Storage",
 )
 
 db_multi_az = template.add_parameter(
@@ -204,8 +283,26 @@ db_backup_retention_days = template.add_parameter(
     label="Backup Retention Days",
 )
 
-db_condition = "DatabaseCondition"
-template.add_condition(db_condition, Not(Equals(Ref(db_class), dont_create_value)))
+db_logging = template.add_parameter(
+    Parameter(
+        "DatabaseCloudWatchLogTypes",
+        Default="",
+        # For RDS on Postgres, an appropriate setting for this might be "postgresql,upgrade".
+        # This parameter corresponds to the "EnableCloudwatchLogsExports" option on the DBInstance.
+        # This option is not particularly well documented by AWS, but it looks like if you
+        # go to the "Modify" screen via the RDS console you can see the types supported by your
+        # instance. Then, lowercase it and remove " log" from the type, i.e., "Postgresql log"
+        # will be come "postgresql" for this parameter.
+        Description="A comma-separated list of the RDS log types (if any) to publish to "
+                    "CloudWatch Logs. Note that log types are database engine-specific.",
+        Type="CommaDelimitedList",
+    ),
+    group="Database",
+    label="Database Log Types",
+)
+
+db_logging_condition = "DatabaseLoggingCondition"
+template.add_condition(db_logging_condition, Not(Equals(Join(",", Ref(db_logging)), "")))
 
 db_security_group = ec2.SecurityGroup(
     'DatabaseSecurityGroup',
@@ -219,15 +316,18 @@ db_security_group = ec2.SecurityGroup(
             IpProtocol="tcp",
             FromPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
             ToPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
-            CidrIp=container_a_subnet_cidr,
+            CidrIp=Ref(private_subnet_a_cidr),
         ),
         ec2.SecurityGroupRule(
             IpProtocol="tcp",
             FromPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
             ToPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
-            CidrIp=container_b_subnet_cidr,
+            CidrIp=Ref(private_subnet_b_cidr),
         ),
     ],
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "rds"]),
+    ),
 )
 
 db_subnet_group = rds.DBSubnetGroup(
@@ -235,12 +335,11 @@ db_subnet_group = rds.DBSubnetGroup(
     template=template,
     Condition=db_condition,
     DBSubnetGroupDescription="Subnets available for the RDS DB Instance",
-    SubnetIds=[Ref(container_a_subnet), Ref(container_b_subnet)],
+    SubnetIds=[Ref(private_subnet_a), Ref(private_subnet_b)],
 )
 
 db_instance = rds.DBInstance(
-    # TODO: rename this resource to something generic along with the next major release
-    "PostgreSQL",
+    "DatabaseInstance",
     template=template,
     DBName=Ref(db_name),
     Condition=db_condition,
@@ -249,12 +348,58 @@ db_instance = rds.DBInstance(
     Engine=Ref(db_engine),
     EngineVersion=Ref(db_engine_version),
     MultiAZ=Ref(db_multi_az),
-    StorageEncrypted=Ref(db_storage_encrypted),
+    StorageEncrypted=use_aes256_encryption,
     StorageType="gp2",
     MasterUsername=Ref(db_user),
     MasterUserPassword=Ref(db_password),
     DBSubnetGroupName=Ref(db_subnet_group),
     VPCSecurityGroups=[Ref(db_security_group)],
+    DBParameterGroupName=Ref(db_parameter_group),
     BackupRetentionPeriod=Ref(db_backup_retention_days),
+    EnableCloudwatchLogsExports=If(db_logging_condition, Ref(db_logging), Ref("AWS::NoValue")),
     DeletionPolicy="Snapshot",
+    KmsKeyId=If(use_cmk_arn, Ref(cmk_arn), Ref("AWS::NoValue")),
 )
+
+db_url = If(
+    db_condition,
+    Join("", [
+        Ref(db_engine),
+        "://",
+        Ref(db_user),
+        ":_PASSWORD_@",
+        GetAtt(db_instance, 'Endpoint.Address'),
+        ":",
+        GetAtt(db_instance, 'Endpoint.Port'),
+        "/",
+        Ref(db_name),
+    ]),
+    "",  # defaults to empty string if no DB was created
+)
+
+template.add_output([
+    Output(
+        "DatabaseURL",
+        Description="URL to connect (without the password) to the database.",
+        Value=db_url,
+        Condition=db_condition,
+    ),
+])
+
+template.add_output([
+    Output(
+        "DatabasePort",
+        Description="The port number on which the database accepts connections.",
+        Value=GetAtt(db_instance, 'Endpoint.Port'),
+        Condition=db_condition,
+    ),
+])
+
+template.add_output([
+    Output(
+        "DatabaseAddress",
+        Description="The connection endpoint for the database.",
+        Value=GetAtt(db_instance, 'Endpoint.Address'),
+        Condition=db_condition,
+    ),
+])

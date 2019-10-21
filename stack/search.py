@@ -1,5 +1,5 @@
 from awacs.aws import Action, Allow, Policy, Principal, Statement
-from troposphere import Equals, GetAtt, Not, Output, Parameter, Ref
+from troposphere import Equals, GetAtt, Not, Output, Ref
 from troposphere.elasticsearch import (
     Domain,
     EBSOptions,
@@ -8,6 +8,7 @@ from troposphere.elasticsearch import (
 
 from .common import dont_create_value, instance_role
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 
 es_instance_type = template.add_parameter(
     Parameter(

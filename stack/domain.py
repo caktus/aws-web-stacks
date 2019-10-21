@@ -1,6 +1,7 @@
-from troposphere import Equals, If, Join, Parameter, Ref, Split
+from troposphere import Equals, If, Join, Ref, Split
 
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 
 domain_name = Ref(template.add_parameter(
     Parameter(
