@@ -5,6 +5,7 @@ from .common import container_instance_type, use_aes256_encryption
 from .load_balancer import load_balancer, web_worker_health_check
 from .logs import logging_policy
 from .security_groups import container_security_group
+from .ses import ses_policy
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 from .vpc import private_subnet_a, private_subnet_b
@@ -86,6 +87,7 @@ container_instance_role = iam.Role(
     Policies=[
         assets_management_policy,
         logging_policy,
+        ses_policy,
     ]
 )
 
