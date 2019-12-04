@@ -105,7 +105,8 @@ db_replication = template.add_parameter(
         Type="String",
         AllowedValues=["true", "false"],
         Default="false",
-        Description="Whether to create a database server replica - WARNING this will fail if DatabaseBackupRetentionDays is 0.",
+        Description="Whether to create a database server replica - "
+        "WARNING this will fail if DatabaseBackupRetentionDays is 0.",
     ),
     group="Database",
     label="Database replication"
