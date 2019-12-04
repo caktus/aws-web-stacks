@@ -1,6 +1,8 @@
 from collections import OrderedDict
 
 from troposphere import (
+    And,
+    Condition,
     Equals,
     FindInMap,
     GetAtt,
@@ -96,6 +98,26 @@ db_class = template.add_parameter(
 
 db_condition = "DatabaseCondition"
 template.add_condition(db_condition, Not(Equals(Ref(db_class), dont_create_value)))
+
+db_replication = template.add_parameter(
+    Parameter(
+        "DatabaseReplication",
+        Type="String",
+        AllowedValues=["true", "false"],
+        Default="false",
+        Description="Whether to create a database server replica - WARNING this will fail if DatabaseBackupRetentionDays is 0.",
+    ),
+    group="Database",
+    label="Database replication"
+)
+db_replication_condition = "DatabaseReplicationCondition"
+template.add_condition(
+    db_replication_condition,
+    And(
+        Condition(db_condition),
+        Equals(Ref(db_replication), "true")
+    )
+)
 
 db_engine = template.add_parameter(
     Parameter(
@@ -361,6 +383,16 @@ db_instance = rds.DBInstance(
     KmsKeyId=If(use_cmk_arn, Ref(cmk_arn), Ref("AWS::NoValue")),
 )
 
+db_replica = rds.DBInstance(
+    "DatabaseReplica",
+    template=template,
+    Condition=db_replication_condition,
+    SourceDBInstanceIdentifier=Ref(db_instance),
+    DBInstanceClass=Ref(db_class),
+    Engine=Ref(db_engine),
+    VPCSecurityGroups=[Ref(db_security_group)],
+)
+
 db_url = If(
     db_condition,
     Join("", [
@@ -377,12 +409,37 @@ db_url = If(
     "",  # defaults to empty string if no DB was created
 )
 
+db_replica_url = If(
+    db_replication_condition,
+    Join("", [
+        Ref(db_engine),
+        "://",
+        Ref(db_user),
+        ":_PASSWORD_@",
+        GetAtt(db_replica, 'Endpoint.Address'),
+        ":",
+        GetAtt(db_replica, 'Endpoint.Port'),
+        "/",
+        Ref(db_name),
+    ]),
+    "",  # defaults to empty string if no DB was created
+)
+
 template.add_output([
     Output(
         "DatabaseURL",
         Description="URL to connect (without the password) to the database.",
         Value=db_url,
         Condition=db_condition,
+    ),
+])
+
+template.add_output([
+    Output(
+        "DatabaseReplicaURL",
+        Description="URL to connect (without the password) to the database replica.",
+        Value=db_replica_url,
+        Condition=db_replication_condition,
     ),
 ])
 
@@ -401,5 +458,14 @@ template.add_output([
         Description="The connection endpoint for the database.",
         Value=GetAtt(db_instance, 'Endpoint.Address'),
         Condition=db_condition,
+    ),
+])
+
+template.add_output([
+    Output(
+        "DatabaseReplicaAddress",
+        Description="The connection endpoint for the database replica.",
+        Value=GetAtt(db_replica, "Endpoint.Address"),
+        Condition=db_replication_condition
     ),
 ])
