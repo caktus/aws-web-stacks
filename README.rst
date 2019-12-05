@@ -310,6 +310,8 @@ These environment variables are:
 * ``DATABASE_URL``: The URL to the RDS instance created as part of this stack. If ``(none)`` is
   selected for the ``DatabaseClass`` during stack creation, the value of this variable will be
   an empty string (``''``).
+* ``DATABASE_REPLICA_URL``: The URL to the RDS database replica instance. This is an empty string
+  if there's no replica database.
 * ``CACHE_URL``: The URL to the Redis or Memcached instance created as part of this stack (may be
   used as a cache or session storage, e.g.). If using Redis, note that it supports multiple
   databases and no database ID is included as part of the URL, so you should append a forward slash

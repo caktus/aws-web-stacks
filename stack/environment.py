@@ -18,6 +18,8 @@ from .database import (
     db_instance,
     db_name,
     db_password,
+    db_replica,
+    db_replication_condition,
     db_user
 )
 from .domain import domain_name, domain_name_alternates
@@ -48,6 +50,23 @@ environment_variables = [
             GetAtt(db_instance, 'Endpoint.Address'),
             ":",
             GetAtt(db_instance, 'Endpoint.Port'),
+            "/",
+            Ref(db_name),
+        ]),
+        "",  # defaults to empty string if no DB was created
+    )),
+    ("DATABASE_REPLICA_URL", If(
+        db_replication_condition,
+        Join("", [
+            Ref(db_engine),
+            "://",
+            Ref(db_user),
+            ":",
+            Ref(db_password),
+            "@",
+            GetAtt(db_replica, 'Endpoint.Address'),
+            ":",
+            GetAtt(db_replica, 'Endpoint.Port'),
             "/",
             Ref(db_name),
         ]),
