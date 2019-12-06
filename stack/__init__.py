@@ -5,6 +5,7 @@ from . import cache  # noqa: F401
 from . import database  # noqa: F401
 from . import logs  # noqa: F401
 from . import vpc  # noqa: F401
+from . import transfer  # noqa: F401
 from . import template
 
 if os.environ.get('USE_GOVCLOUD') != 'on':
