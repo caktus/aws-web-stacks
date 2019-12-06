@@ -31,6 +31,6 @@ transfer_server = transfer.Server(
     IdentityProviderType="SERVICE_MANAGED",
     EndpointType="PUBLIC",
     Tags=Tags(
-        Name=Join("-", [Ref("AWS::StackName"), "rds"]),
+        Name=Join("-", [Ref("AWS::StackName"), "sftp"]),
     ),
 )
