@@ -1,17 +1,7 @@
-from troposphere import (
-    Equals,
-    iam,
-    Join,
-    Parameter,
-    Ref,
-    Tags,
-    transfer,
-)
+from troposphere import Equals, Join, Parameter, Ref, Tags, iam, transfer
 
 from .assets import private_assets_bucket
-from .common import (
-    arn_prefix,
-)
+from .common import arn_prefix
 from .template import template
 
 use_transfer_server = template.add_parameter(
