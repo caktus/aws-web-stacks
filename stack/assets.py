@@ -64,22 +64,6 @@ assets_bucket_access_control = template.add_parameter(
 )
 
 common_bucket_conf = dict(
-    BucketEncryption=BucketEncryption(
-        ServerSideEncryptionConfiguration=If(
-            use_aes256_encryption_cond,
-            [
-                ServerSideEncryptionRule(
-                    ServerSideEncryptionByDefault=ServerSideEncryptionByDefault(
-                        SSEAlgorithm=If(use_cmk_arn, 'aws:kms', 'AES256'),
-                        KMSMasterKeyID=If(use_cmk_arn, Ref(cmk_arn), Ref("AWS::NoValue")),
-                    )
-                )
-            ],
-            [
-                ServerSideEncryptionRule()
-            ]
-        )
-    ),
     VersioningConfiguration=VersioningConfiguration(
         Status="Enabled"
     ),
@@ -118,6 +102,21 @@ assets_bucket = template.add_resource(
     Bucket(
         "AssetsBucket",
         AccessControl=Ref(assets_bucket_access_control),
+        BucketEncryption=BucketEncryption(
+            ServerSideEncryptionConfiguration=If(
+                use_aes256_encryption_cond,
+                [
+                    ServerSideEncryptionRule(
+                        ServerSideEncryptionByDefault=ServerSideEncryptionByDefault(
+                            SSEAlgorithm='AES256'
+                        )
+                    )
+                ],
+                [
+                    ServerSideEncryptionRule()
+                ]
+            )
+        ),
         **common_bucket_conf,
     )
 )
@@ -141,6 +140,22 @@ private_assets_bucket = template.add_resource(
             BlockPublicPolicy=True,
             IgnorePublicAcls=True,
             RestrictPublicBuckets=True,
+        ),
+        BucketEncryption=BucketEncryption(
+            ServerSideEncryptionConfiguration=If(
+                use_aes256_encryption_cond,
+                [
+                    ServerSideEncryptionRule(
+                        ServerSideEncryptionByDefault=ServerSideEncryptionByDefault(
+                            SSEAlgorithm=If(use_cmk_arn, 'aws:kms', 'AES256'),
+                            KMSMasterKeyID=If(use_cmk_arn, Ref(cmk_arn), Ref("AWS::NoValue")),
+                        )
+                    )
+                ],
+                [
+                    ServerSideEncryptionRule()
+                ]
+            )
         ),
         **common_bucket_conf,
     )
@@ -304,7 +319,7 @@ if os.environ.get('USE_GOVCLOUD') != 'on':
     # Output CloudFront url
     template.add_output(Output(
         "AssetsDistributionDomainName",
-        Description="The assest CDN domain name",
+        Description="The assets CDN domain name",
         Value=GetAtt(distribution, "DomainName"),
         Condition=assets_use_cloudfront_condition,
     ))
