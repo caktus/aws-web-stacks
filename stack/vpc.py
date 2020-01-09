@@ -1,6 +1,6 @@
 import os
 
-from troposphere import GetAtt, Join, Ref, Tags
+from troposphere import GetAtt, Join, Ref, Sub, Tags
 from troposphere.ec2 import (
     EIP,
     VPC,
@@ -10,6 +10,7 @@ from troposphere.ec2 import (
     RouteTable,
     Subnet,
     SubnetRouteTableAssociation,
+    VPCEndpoint,
     VPCGatewayAttachment
 )
 
@@ -242,6 +243,16 @@ if USE_NAT_GATEWAY:
     )
 
     private_route_table = Ref(nat_gateway_route_table)
+
+    # Add a VPC Endpoint for S3 so we can talk directly to S3
+    # (without going through NAT gateway)
+    VPCEndpoint(
+        "VPCS3Endpoint",
+        template=template,
+        ServiceName=Sub("com.amazonaws.${AWS::Region}.s3"),
+        VpcId=Ref(vpc),
+        RouteTableIds=[Ref(private_route_table)],
+    )
 else:
     private_route_table = Ref(public_route_table)
 
