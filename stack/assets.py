@@ -5,13 +5,14 @@ from troposphere import (
     And,
     Equals,
     GetAtt,
+    iam,
     If,
     Join,
     Not,
+    NoValue,
     Output,
     Ref,
     Split,
-    iam
 )
 from troposphere.certificatemanager import Certificate, DomainValidationOption
 from troposphere.cloudfront import (
@@ -102,20 +103,18 @@ assets_bucket = template.add_resource(
     Bucket(
         "AssetsBucket",
         AccessControl=Ref(assets_bucket_access_control),
-        BucketEncryption=BucketEncryption(
-            ServerSideEncryptionConfiguration=If(
-                use_aes256_encryption_cond,
-                [
+        BucketEncryption=If(
+            use_aes256_encryption_cond,
+            BucketEncryption(
+                ServerSideEncryptionConfiguration=[
                     ServerSideEncryptionRule(
                         ServerSideEncryptionByDefault=ServerSideEncryptionByDefault(
                             SSEAlgorithm='AES256'
                         )
                     )
-                ],
-                [
-                    ServerSideEncryptionRule()
                 ]
-            )
+            ),
+            NoValue
         ),
         **common_bucket_conf,
     )
@@ -141,21 +140,19 @@ private_assets_bucket = template.add_resource(
             IgnorePublicAcls=True,
             RestrictPublicBuckets=True,
         ),
-        BucketEncryption=BucketEncryption(
-            ServerSideEncryptionConfiguration=If(
-                use_aes256_encryption_cond,
-                [
+        BucketEncryption=If(
+            use_aes256_encryption_cond,
+            BucketEncryption(
+                ServerSideEncryptionConfiguration=[
                     ServerSideEncryptionRule(
                         ServerSideEncryptionByDefault=ServerSideEncryptionByDefault(
                             SSEAlgorithm=If(use_cmk_arn, 'aws:kms', 'AES256'),
                             KMSMasterKeyID=If(use_cmk_arn, Ref(cmk_arn), Ref("AWS::NoValue")),
                         )
                     )
-                ],
-                [
-                    ServerSideEncryptionRule()
                 ]
-            )
+            ),
+            NoValue
         ),
         **common_bucket_conf,
     )
