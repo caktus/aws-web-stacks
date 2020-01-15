@@ -5,7 +5,6 @@ from troposphere import (
     And,
     Equals,
     GetAtt,
-    iam,
     If,
     Join,
     Not,
@@ -13,7 +12,7 @@ from troposphere import (
     Output,
     Ref,
     Split,
-    Condition,
+    iam
 )
 from troposphere.certificatemanager import Certificate, DomainValidationOption
 from troposphere.cloudfront import (

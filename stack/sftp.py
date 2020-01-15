@@ -2,18 +2,15 @@ from troposphere import (
     And,
     Condition,
     Equals,
-    GetAtt,
-    If,
     Join,
     Not,
     Parameter,
     Ref,
     Tags,
-    iam,
-    transfer,
+    transfer
 )
 
-from .common import arn_prefix, cmk_arn, use_aes256_encryption_cond, use_cmk_arn
+from .common import use_aes256_encryption_cond, use_cmk_arn
 from .template import template
 
 use_sftp_server = template.add_parameter(
