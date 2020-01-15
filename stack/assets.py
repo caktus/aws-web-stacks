@@ -256,7 +256,7 @@ assets_management_policy = iam.Policy(
     PolicyName="AssetsManagementPolicy",
     PolicyDocument=dict(
         Statement=If(
-            Condition(use_sftp_condition),
+            use_sftp_condition,
             assets_management_policy_statements_including_sftp_bucket,
             assets_management_policy_statements,
         )
