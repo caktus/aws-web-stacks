@@ -35,6 +35,8 @@ What's new in 2.0.0:
 * Add CustomAppCertificateArn parameter to allow association with an existing ACM certificate.
 * Add VPC Endpoint for S3.
 * Add DatabaseReplication parameter to add a database replica (** this will fail if DatabaseBackupRetentionDays is 0.**).
+* Add optional SFTP server, including S3 bucket, transfer server, and user role and scopedown policy to use when creating
+  users in the transfer server.
 
 
 `1.4.0`_ (2019-08-05)

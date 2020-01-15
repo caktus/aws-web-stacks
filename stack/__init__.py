@@ -1,5 +1,6 @@
 import os
 
+from . import sftp  # noqa: F401
 from . import assets  # noqa: F401
 from . import cache  # noqa: F401
 from . import database  # noqa: F401
