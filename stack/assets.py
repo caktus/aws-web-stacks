@@ -229,28 +229,6 @@ if os.environ.get('USE_GOVCLOUD') != 'on':
     assets_custom_domain_condition = "AssetsCloudFrontDomainCondition"
     template.add_condition(assets_custom_domain_condition, Not(Equals(Ref(assets_cloudfront_domain), "")))
 
-    # Currently, you can specify only certificates that are in the US East (N. Virginia) region.
-    # http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distributionconfig-viewercertificate.html
-    assets_custom_domain_and_us_east_1_condition = "AssetsCloudFrontDomainAndUsEast1Condition"
-    template.add_condition(
-        assets_custom_domain_and_us_east_1_condition,
-        And(Not(Equals(Ref(assets_cloudfront_domain), "")), Equals(Ref(AWS_REGION), "us-east-1"))
-    )
-
-    assets_certificate = template.add_resource(
-        Certificate(
-            'AssetsCertificate',
-            Condition=assets_custom_domain_and_us_east_1_condition,
-            DomainName=Ref(assets_cloudfront_domain),
-            DomainValidationOptions=[
-                DomainValidationOption(
-                    DomainName=Ref(assets_cloudfront_domain),
-                    ValidationDomain=Ref(assets_cloudfront_domain),
-                ),
-            ],
-        )
-    )
-
     assets_certificate_arn = template.add_parameter(
         Parameter(
             "AssetsCloudFrontCertArn",
@@ -265,6 +243,32 @@ if os.environ.get('USE_GOVCLOUD') != 'on':
     assets_certificate_arn_condition = "AssetsCloudFrontCertArnCondition"
     template.add_condition(assets_certificate_arn_condition, Not(Equals(Ref(assets_certificate_arn), "")))
 
+    # Currently, you can specify only certificates that are in the US East (N. Virginia) region.
+    # http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distributionconfig-viewercertificate.html
+    assets_create_certificate_condition = "AssetsCreateCertificateCondition"
+    template.add_condition(
+        assets_create_certificate_condition,
+        And(
+            Not(Equals(Ref(assets_cloudfront_domain), "")),
+            Equals(Ref(AWS_REGION), "us-east-1"),
+            Equals(Ref(assets_certificate_arn), "")
+        )
+    )
+
+    assets_certificate = template.add_resource(
+        Certificate(
+            'AssetsCertificate',
+            Condition=assets_create_certificate_condition,
+            DomainName=Ref(assets_cloudfront_domain),
+            DomainValidationOptions=[
+                DomainValidationOption(
+                    DomainName=Ref(assets_cloudfront_domain),
+                    ValidationDomain=Ref(assets_cloudfront_domain),
+                ),
+            ],
+        )
+    )
+
     # Create a CloudFront CDN distribution
     distribution = template.add_resource(
         Distribution(
@@ -275,7 +279,7 @@ if os.environ.get('USE_GOVCLOUD') != 'on':
                 # use the ACM certificate we created (if any), otherwise fall back to the manually-supplied
                 # ARN (if any)
                 ViewerCertificate=If(
-                    assets_custom_domain_and_us_east_1_condition,
+                    assets_create_certificate_condition,
                     ViewerCertificate(
                         AcmCertificateArn=Ref(assets_certificate),
                         SslSupportMethod='sni-only',
