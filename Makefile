@@ -12,7 +12,7 @@ templates:
 	USE_EB=on USE_NAT_GATEWAY=on python -c 'import stack' > content/eb-nat.yaml
 	USE_ECS=on python -c 'import stack' > content/ecs-no-nat.yaml
 	USE_ECS=on USE_NAT_GATEWAY=on python -c 'import stack' > content/ecs-nat.yaml
-	USE_DOKKU=on python -c 'import stack' > content/dokku-no-nat.yaml
+	USE_MICROK8S=on python -c 'import stack' > content/microk8s-no-nat.yaml
 	# USE_DOKKU=on USE_NAT_GATEWAY=on python -c 'import stack' > content/dokku-nat.yaml (disabled; need to SSH to instance to deploy)
 	USE_GOVCLOUD=on python -c 'import stack' > content/gc-no-nat.yaml
 	USE_GOVCLOUD=on USE_NAT_GATEWAY=on python -c 'import stack' > content/gc-nat.yaml

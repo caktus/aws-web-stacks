@@ -49,7 +49,7 @@ ingress_rules = [SecurityGroupRule(
 ) for port in web_worker_ports]
 
 # Health check
-if os.environ.get('USE_EB') != 'on':
+if os.environ.get('USE_EB') != 'on' and os.environ.get('USE_MICROK8S') != 'on':
     ingress_rules.append(SecurityGroupRule(
         IpProtocol="tcp",
         FromPort=Ref("WebWorkerHealthCheckPort"),
