@@ -21,7 +21,7 @@ What's new in 2.0.0:
 
 * Add support for Elastic Kubernetes Service (EKS).
 * Re-purpose use_aes256_encryption flag to support encryption across S3, RDS, Elasticache (Redis only), and RDS (thanks @dsummersl)
-* Add support for Customer Managed CMKs with ``CustomerManagedCmkArn`` parameter
+* Add support for Customer Managed CMKs with ``CustomerManagedCmkArn`` parameter (not applied to public buckets)
 * Add configurable ContainerVolumeSize to change root volume size of EC2 instances (thanks @dsummersl)
 * Change generated template output from JSON to YAML (thanks @cchurch)
 * The stack no longer prompts for a ``SECRET_KEY`` if it won't be used for the stack type in question.
@@ -35,6 +35,10 @@ What's new in 2.0.0:
 * Add parameters to customize VPC and subnet IPv4 CIDR blocks (**It is generally not possible to change the CIDR blocks for an existing stack.**).
 * Add RDS and ElastiCache endpoint outputs.
 * Add CustomAppCertificateArn parameter to allow association with an existing ACM certificate.
+* Add VPC Endpoint for S3.
+* Add DatabaseReplication parameter to add a database replica (** this will fail if DatabaseBackupRetentionDays is 0.**).
+* Add optional SFTP server, including S3 bucket, transfer server, and user role and scopedown policy to use when creating
+  users in the transfer server.
 
 
 `1.4.0`_ (2019-08-05)
