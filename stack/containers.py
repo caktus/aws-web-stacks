@@ -1,16 +1,16 @@
 """
-Common between instances and EKS.
+Common (almost) between instances, DOKKU, ECS, and EKS.
 """
-import os
-
+from awacs import ecr
 from troposphere import Ref, iam
 
-from stack.assets import assets_management_policy
-from stack.logs import logging_policy
+from stack import USE_EKS, USE_ECS
 from stack.template import template
 from stack.utils import ParameterWithDefaults as Parameter
 
-USE_EKS = os.environ.get("USE_EKS") == "on"
+if not USE_EKS:
+    from stack.assets import assets_management_policy
+    from stack.logs import logging_policy
 
 desired_container_instances = Ref(
     template.add_parameter(
@@ -18,7 +18,7 @@ desired_container_instances = Ref(
             "DesiredScale",
             Description="Desired container instances count",
             Type="Number",
-            Default="2",
+            Default="3" if USE_ECS else "2",
         ),
         group="Application Server",
         label="Desired Instance Count",
@@ -30,7 +30,7 @@ max_container_instances = Ref(
             "MaxScale",
             Description="Maximum container instances count",
             Type="Number",
-            Default="4",
+            Default="3" if USE_ECS else "4",
         ),
         group="Application Server",
         label="Maximum Instance Count",
@@ -50,6 +50,45 @@ container_volume_size = Ref(
     )
 )
 
+if USE_EKS:
+    container_policies = []
+else:
+    container_policies = [assets_management_policy, logging_policy]
+if USE_ECS:
+    container_policies.extend(
+        [
+            iam.Policy(
+                PolicyName="ECSManagementPolicy",
+                PolicyDocument=dict(
+                    Statement=[
+                        dict(
+                            Effect="Allow",
+                            Action=["ecs:*", "elasticloadbalancing:*"],
+                            Resource="*",
+                        )
+                    ],
+                ),
+            ),
+            iam.Policy(
+                PolicyName="ECRManagementPolicy",
+                PolicyDocument=dict(
+                    Statement=[
+                        dict(
+                            Effect="Allow",
+                            Action=[
+                                ecr.GetAuthorizationToken,
+                                ecr.GetDownloadUrlForLayer,
+                                ecr.BatchGetImage,
+                                ecr.BatchCheckLayerAvailability,
+                            ],
+                            Resource="*",
+                        )
+                    ],
+                ),
+            ),
+        ]
+    )
+
 container_instance_role = iam.Role(
     "ContainerInstanceRole",
     template=template,
@@ -63,7 +102,7 @@ container_instance_role = iam.Role(
         ]
     ),
     Path="/",
-    Policies=[assets_management_policy, logging_policy,],
+    Policies=container_policies,
     **(
         dict(
             ManagedPolicyArns=[
@@ -83,6 +122,7 @@ container_instance_profile = iam.InstanceProfile(
     Path="/",
     Roles=[Ref(container_instance_role)],
 )
+
 container_instance_type = Ref(
     template.add_parameter(
         Parameter(

@@ -1,5 +1,3 @@
-import os
-
 from troposphere import GetAtt, Join, Ref, Sub, Tag, Tags
 from troposphere.ec2 import (
     EIP,
@@ -11,14 +9,12 @@ from troposphere.ec2 import (
     Subnet,
     SubnetRouteTableAssociation,
     VPCEndpoint,
-    VPCGatewayAttachment,
+    VPCGatewayAttachment
 )
 
+from . import USE_EKS, USE_NAT_GATEWAY
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
-
-USE_NAT_GATEWAY = os.environ.get("USE_NAT_GATEWAY") == "on"
-USE_DOKKU = os.environ.get("USE_DOKKU") == "on"
 
 # Allows for private IPv4 ranges in the 10.0.0.0/8, 172.16.0.0/12 and 192.168.0.0/16
 # address spaces, with block size between /16 and /28 as allowed by VPCs and subnets.
@@ -50,7 +46,7 @@ vpc_cidr = template.add_parameter(
     Parameter(
         "VpcCidr",
         Description="The primary IPv4 CIDR block for the VPC. "
-        "[Possibly not modifiable after stack creation]",
+                    "[Possibly not modifiable after stack creation]",
         Type="String",
         Default="10.0.0.0/20",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -64,7 +60,7 @@ public_subnet_a_cidr = template.add_parameter(
     Parameter(
         "PublicSubnetACidr",
         Description="IPv4 CIDR block for the public subnet in the primary AZ. "
-        "[Possibly not modifiable after stack creation]",
+                    "[Possibly not modifiable after stack creation]",
         Type="String",
         Default="10.0.0.0/22",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -78,7 +74,7 @@ public_subnet_b_cidr = template.add_parameter(
     Parameter(
         "PublicSubnetBCidr",
         Description="IPv4 CIDR block for the public subnet in the secondary AZ. "
-        "[Possibly not modifiable after stack creation]",
+                    "[Possibly not modifiable after stack creation]",
         Type="String",
         Default="10.0.4.0/22",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -92,7 +88,7 @@ private_subnet_a_cidr = template.add_parameter(
     Parameter(
         "PrivateSubnetACidr",
         Description="IPv4 CIDR block for the private subnet in the primary AZ. "
-        "[Possibly not modifiable after stack creation]",
+                    "[Possibly not modifiable after stack creation]",
         Type="String",
         Default="10.0.8.0/22",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -106,7 +102,7 @@ private_subnet_b_cidr = template.add_parameter(
     Parameter(
         "PrivateSubnetBCidr",
         Description="IPv4 CIDR block for the private subnet in the secondary AZ. "
-        "[Possibly not modifiable after stack creation]",
+                    "[Possibly not modifiable after stack creation]",
         Type="String",
         Default="10.0.12.0/22",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -123,7 +119,9 @@ vpc = VPC(
     CidrBlock=Ref(vpc_cidr),
     EnableDnsSupport=True,
     EnableDnsHostnames=True,
-    Tags=Tags(Name=Join("-", [Ref("AWS::StackName"), "vpc"]),),
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "vpc"]),
+    ),
 )
 
 
@@ -131,7 +129,9 @@ vpc = VPC(
 internet_gateway = InternetGateway(
     "InternetGateway",
     template=template,
-    Tags=Tags(Name=Join("-", [Ref("AWS::StackName"), "igw"]),),
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "igw"]),
+    ),
 )
 
 
@@ -149,7 +149,9 @@ public_route_table = RouteTable(
     "PublicRouteTable",
     template=template,
     VpcId=Ref(vpc),
-    Tags=Tags(Name=Join("-", [Ref("AWS::StackName"), "public"]),),
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "public"]),
+    ),
 )
 
 
@@ -163,7 +165,7 @@ public_route = Route(
 
 public_subnet_eks_tags = []
 private_subnet_eks_tags = []
-if os.getenv("USE_EKS") == "on":
+if USE_EKS:
     public_subnet_eks_tags.append(Tag("kubernetes.io/role/elb", "1"))
     # Tag your private subnets so that Kubernetes knows that it can use them for internal load balancers.
     private_subnet_eks_tags.append(Tag("kubernetes.io/role/internal-elb", "1"))
@@ -210,14 +212,20 @@ SubnetRouteTableAssociation(
 
 if USE_NAT_GATEWAY:
     # NAT
-    nat_ip = EIP("NatIp", template=template, Domain="vpc",)
+    nat_ip = EIP(
+        "NatIp",
+        template=template,
+        Domain="vpc",
+    )
 
     nat_gateway = NatGateway(
         "NatGateway",
         template=template,
         AllocationId=GetAtt(nat_ip, "AllocationId"),
         SubnetId=Ref(public_subnet_a),
-        Tags=Tags(Name=Join("-", [Ref("AWS::StackName"), "nat"]),),
+        Tags=Tags(
+            Name=Join("-", [Ref("AWS::StackName"), "nat"]),
+        ),
     )
 
     # Private route table
@@ -225,7 +233,9 @@ if USE_NAT_GATEWAY:
         "NatGatewayRouteTable",
         template=template,
         VpcId=Ref(vpc),
-        Tags=Tags(Name=Join("-", [Ref("AWS::StackName"), "private"]),),
+        Tags=Tags(
+            Name=Join("-", [Ref("AWS::StackName"), "private"]),
+        ),
     )
 
     private_nat_route = Route(

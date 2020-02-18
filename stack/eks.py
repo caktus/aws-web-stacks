@@ -67,7 +67,7 @@ cluster = eks.Cluster(
             Ref(private_subnet_a),
             Ref(private_subnet_b),
         ],
-        SecurityGroupIds=[Ref(eks_security_group),],
+        SecurityGroupIds=[Ref(eks_security_group)],
     ),
     RoleArn=GetAtt(eks_service_role, "Arn"),
 )
@@ -91,8 +91,7 @@ CaktusNodegroup(
         MaxSize=max_container_instances,
         MinSize=2,
     ),
-    Subnets=[Ref(private_subnet_a), Ref(private_subnet_b),],
-    Tags=dict(),  # Have to provide a dict to force it not to be serialized as a Tags object would be
+    Subnets=[Ref(private_subnet_a), Ref(private_subnet_b)],
 )
 
 # OUTPUTS
@@ -101,7 +100,7 @@ template.add_output(
         Output(
             "ClusterEndpoint",
             Description="The connection endpoint for the cluster API.",
-            Value=GetAtt(cluster, "Endpoint.Address"),
+            Value=GetAtt(cluster, "Endpoint"),
         ),
     ]
 )

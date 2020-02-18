@@ -1,7 +1,6 @@
-import os
-
 from troposphere import AWS_REGION, GetAtt, If, Join, Ref
 
+from . import USE_GOVCLOUD
 from .assets import (
     assets_bucket,
     assets_cloudfront_domain,
@@ -24,7 +23,7 @@ from .database import (
 )
 from .domain import domain_name, domain_name_alternates
 
-if os.environ.get('USE_GOVCLOUD') != 'on':
+if not USE_GOVCLOUD:
     # not supported by GovCloud, so add it only if it was created (and in this
     # case we want to avoid importing if it's not needed)
     from .search import es_condition, es_domain

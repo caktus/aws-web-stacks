@@ -1,4 +1,3 @@
-from awacs import ecr
 from troposphere import (
     AWS_ACCOUNT_ID,
     AWS_REGION,
@@ -25,11 +24,11 @@ from troposphere.ecs import (
     TaskDefinition
 )
 
-from .assets import assets_management_policy
-from .containers import container_instance_type
+from .containers import container_instance_type, container_instance_profile, max_container_instances, \
+    desired_container_instances
 from .environment import environment_variables
 from .load_balancer import load_balancer, web_worker_port
-from .logs import container_log_group, logging_policy
+from .logs import container_log_group
 from .repository import repository
 from .security_groups import container_security_group
 from .template import template
@@ -71,28 +70,6 @@ web_worker_desired_count = Ref(template.add_parameter(
     label="Web Worker Count",
 ))
 
-desired_container_instances = Ref(template.add_parameter(
-    Parameter(
-        "DesiredScale",
-        Description="Desired container instances count",
-        Type="Number",
-        Default="3",
-    ),
-    group="Application Server",
-    label="Maximum Instance Count",
-))
-
-max_container_instances = Ref(template.add_parameter(
-    Parameter(
-        "MaxScale",
-        Description="Maximum container instances count",
-        Type="Number",
-        Default="3",
-    ),
-    group="Application Server",
-    label="Maximum Instance Count",
-))
-
 app_revision = Ref(template.add_parameter(
     Parameter(
         "WebAppRevision",
@@ -123,58 +100,6 @@ template.add_mapping("ECSRegionMap", {
 cluster = Cluster(
     "Cluster",
     template=template,
-)
-
-# ECS container role
-ecs_container_instance_role = iam.Role(
-    "ECSContainerInstanceRole",
-    template=template,
-    AssumeRolePolicyDocument=dict(Statement=[dict(
-        Effect="Allow",
-        Principal=dict(Service=["ec2.amazonaws.com"]),
-        Action=["sts:AssumeRole"],
-    )]),
-    Path="/",
-    Policies=[
-        assets_management_policy,
-        logging_policy,
-        iam.Policy(
-            PolicyName="ECSManagementPolicy",
-            PolicyDocument=dict(
-                Statement=[dict(
-                    Effect="Allow",
-                    Action=[
-                        "ecs:*",
-                        "elasticloadbalancing:*",
-                    ],
-                    Resource="*",
-                )],
-            ),
-        ),
-        iam.Policy(
-            PolicyName='ECRManagementPolicy',
-            PolicyDocument=dict(
-                Statement=[dict(
-                    Effect='Allow',
-                    Action=[
-                        ecr.GetAuthorizationToken,
-                        ecr.GetDownloadUrlForLayer,
-                        ecr.BatchGetImage,
-                        ecr.BatchCheckLayerAvailability,
-                    ],
-                    Resource="*",
-                )],
-            ),
-        ),
-    ]
-)
-
-# ECS container instance profile
-ecs_container_instance_profile = iam.InstanceProfile(
-    "ECSContainerInstanceProfile",
-    template=template,
-    Path="/",
-    Roles=[Ref(ecs_container_instance_role)],
 )
 
 container_instance_configuration_name = "ECSContainerLaunchConfiguration"
@@ -253,7 +178,7 @@ container_instance_configuration = autoscaling.LaunchConfiguration(
     SecurityGroups=[Ref(container_security_group)],
     InstanceType=container_instance_type,
     ImageId=FindInMap("ECSRegionMap", Ref(AWS_REGION), "AMI"),
-    IamInstanceProfile=Ref(ecs_container_instance_profile),
+    IamInstanceProfile=Ref(container_instance_profile),
     UserData=Base64(Join('', [
         "#!/bin/bash -xe\n",
         "yum install -y aws-cfn-bootstrap\n",
