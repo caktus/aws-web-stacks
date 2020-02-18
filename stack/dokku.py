@@ -5,7 +5,7 @@ from troposphere import Base64, FindInMap, Join, Output, Ref, Tags
 from troposphere.policies import CreationPolicy, ResourceSignal
 
 from .assets import assets_management_policy
-from .common import container_instance_type
+from .containers import container_instance_type
 from .domain import domain_name
 from .environment import environment_variables
 from .logs import logging_policy

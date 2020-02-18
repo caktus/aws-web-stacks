@@ -26,7 +26,7 @@ from troposphere.ecs import (
 )
 
 from .assets import assets_management_policy
-from .common import container_instance_type
+from .containers import container_instance_type
 from .environment import environment_variables
 from .load_balancer import load_balancer, web_worker_port
 from .logs import container_log_group, logging_policy
@@ -126,8 +126,8 @@ cluster = Cluster(
 )
 
 # ECS container role
-container_instance_role = iam.Role(
-    "ContainerInstanceRole",
+ecs_container_instance_role = iam.Role(
+    "ECSContainerInstanceRole",
     template=template,
     AssumeRolePolicyDocument=dict(Statement=[dict(
         Effect="Allow",
@@ -170,14 +170,14 @@ container_instance_role = iam.Role(
 )
 
 # ECS container instance profile
-container_instance_profile = iam.InstanceProfile(
-    "ContainerInstanceProfile",
+ecs_container_instance_profile = iam.InstanceProfile(
+    "ECSContainerInstanceProfile",
     template=template,
     Path="/",
-    Roles=[Ref(container_instance_role)],
+    Roles=[Ref(ecs_container_instance_role)],
 )
 
-container_instance_configuration_name = "ContainerLaunchConfiguration"
+container_instance_configuration_name = "ECSContainerLaunchConfiguration"
 
 autoscaling_group_name = "AutoScalingGroup"
 
@@ -253,7 +253,7 @@ container_instance_configuration = autoscaling.LaunchConfiguration(
     SecurityGroups=[Ref(container_security_group)],
     InstanceType=container_instance_type,
     ImageId=FindInMap("ECSRegionMap", Ref(AWS_REGION), "AMI"),
-    IamInstanceProfile=Ref(container_instance_profile),
+    IamInstanceProfile=Ref(ecs_container_instance_profile),
     UserData=Base64(Join('', [
         "#!/bin/bash -xe\n",
         "yum install -y aws-cfn-bootstrap\n",

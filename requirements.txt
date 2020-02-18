@@ -1,5 +1,5 @@
 awacs==0.9.6
-troposphere==2.5.2
+troposphere==2.5.3
 flake8==3.4.1
 isort==4.2.15
 sphinx==1.6.7

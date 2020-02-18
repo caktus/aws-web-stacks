@@ -11,7 +11,7 @@ from troposphere.iam import InstanceProfile, Role
 
 from .assets import assets_management_policy
 from .certificates import application as application_certificate
-from .common import container_instance_type
+from .containers import container_instance_type
 from .environment import environment_variables
 from .logs import logging_policy
 from .security_groups import (
