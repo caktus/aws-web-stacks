@@ -24,8 +24,12 @@ from troposphere.ecs import (
     TaskDefinition
 )
 
-from .containers import container_instance_type, container_instance_profile, max_container_instances, \
-    desired_container_instances
+from .containers import (
+    container_instance_profile,
+    container_instance_type,
+    desired_container_instances,
+    max_container_instances
+)
 from .environment import environment_variables
 from .load_balancer import load_balancer, web_worker_port
 from .logs import container_log_group

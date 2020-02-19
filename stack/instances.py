@@ -1,18 +1,12 @@
-from troposphere import (
-    AWS_STACK_NAME,
-    Equals,
-    Join,
-    Ref,
-    autoscaling,
-)
+from troposphere import AWS_STACK_NAME, Equals, Join, Ref, autoscaling
 
 from .common import use_aes256_encryption
 from .containers import (
-    desired_container_instances,
-    max_container_instances,
-    container_volume_size,
     container_instance_profile,
     container_instance_type,
+    container_volume_size,
+    desired_container_instances,
+    max_container_instances
 )
 from .load_balancer import load_balancer, web_worker_health_check
 from .security_groups import container_security_group

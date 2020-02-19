@@ -3,7 +3,7 @@ import troposphere.ec2 as ec2
 from troposphere import Base64, FindInMap, Join, Output, Ref, Tags
 from troposphere.policies import CreationPolicy, ResourceSignal
 
-from .containers import container_instance_type, container_instance_profile
+from .containers import container_instance_profile, container_instance_type
 from .domain import domain_name
 from .environment import environment_variables
 from .template import template

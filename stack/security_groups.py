@@ -1,7 +1,7 @@
 from troposphere import Join, Ref, Sub, Tag, Tags
 from troposphere.ec2 import SecurityGroup, SecurityGroupRule
 
-from . import USE_EKS, USE_ECS, USE_EC2, USE_GOVCLOUD, USE_EB, USE_NAT_GATEWAY
+from . import USE_EB, USE_EC2, USE_ECS, USE_EKS, USE_GOVCLOUD, USE_NAT_GATEWAY
 from .common import administrator_ip_address
 from .template import template
 from .vpc import vpc

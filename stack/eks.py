@@ -1,19 +1,19 @@
-from troposphere import ec2, Ref, Tags, Join, iam, eks, Sub, GetAtt, Output
+from troposphere import GetAtt, Join, Output, Ref, Sub, Tags, ec2, eks, iam
 
 from .containers import (
     container_instance_role,
+    container_instance_type,
     container_volume_size,
     desired_container_instances,
-    max_container_instances,
-    container_instance_type,
+    max_container_instances
 )
 from .template import template
 from .vpc import (
-    vpc,
-    public_subnet_a,
-    public_subnet_b,
     private_subnet_a,
     private_subnet_b,
+    public_subnet_a,
+    public_subnet_b,
+    vpc
 )
 
 
