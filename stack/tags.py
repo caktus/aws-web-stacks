@@ -15,6 +15,7 @@ def tags_types_of_resource(resource):
         return tags_type
     return [tags_type]
 
+
 def tags_type_of_resource(resource):
     """
     Return the type that this resource expects its Tags
@@ -22,6 +23,7 @@ def tags_type_of_resource(resource):
     If there are multiple possibilities, returns the first.
     """
     return tags_types_of_resource(resource)[0]
+
 
 def add_empty_tags(resource):
     # Put an empty tags prop on this resource, of the right type.
@@ -58,5 +60,6 @@ def add_common_tags(template):
             resource.Tags = common_tags + tags
         else:
             raise TypeError("Unknown type %s for Tags on %s" % (type(resource.Tags), resource))
+
 
 add_common_tags(template)

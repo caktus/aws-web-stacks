@@ -4,7 +4,7 @@ Common (almost) between instances, DOKKU, ECS, and EKS.
 from awacs import ecr
 from troposphere import Ref, iam
 
-from stack import USE_ECS, USE_EKS, USE_DOKKU, USE_EB
+from stack import USE_DOKKU, USE_EB, USE_ECS, USE_EKS
 from stack.template import template
 from stack.utils import ParameterWithDefaults as Parameter
 

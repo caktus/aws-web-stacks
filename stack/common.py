@@ -1,6 +1,6 @@
 from troposphere import AWS_REGION, Equals, If, Not, Ref
 
-from . import USE_DOKKU, USE_EB, USE_ECS, USE_EC2, USE_GOVCLOUD
+from . import USE_DOKKU, USE_EB, USE_EC2, USE_ECS, USE_GOVCLOUD
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 
