@@ -1,6 +1,6 @@
 from troposphere import AWS_REGION, Equals, If, Not, Ref
 
-from . import USE_DOKKU, USE_EB, USE_ECS
+from . import USE_DOKKU, USE_EB, USE_ECS, USE_EC2, USE_GOVCLOUD
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 
@@ -23,7 +23,7 @@ administrator_ip_address = Ref(template.add_parameter(
     label="Admin IP Address",
 ))
 
-if any([USE_DOKKU, USE_EB, USE_ECS]):
+if any([USE_DOKKU, USE_EB, USE_ECS, USE_EC2, USE_GOVCLOUD]):
     secret_key = Ref(template.add_parameter(
         Parameter(
             "SecretKey",

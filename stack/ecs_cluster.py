@@ -106,7 +106,7 @@ cluster = Cluster(
     template=template,
 )
 
-container_instance_configuration_name = "ECSContainerLaunchConfiguration"
+container_instance_configuration_name = "ContainerLaunchConfiguration"
 
 autoscaling_group_name = "AutoScalingGroup"
 

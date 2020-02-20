@@ -4,7 +4,7 @@ Common (almost) between instances, DOKKU, ECS, and EKS.
 from awacs import ecr
 from troposphere import Ref, iam
 
-from stack import USE_ECS, USE_EKS
+from stack import USE_ECS, USE_EKS, USE_DOKKU, USE_EB
 from stack.template import template
 from stack.utils import ParameterWithDefaults as Parameter
 
@@ -12,43 +12,45 @@ if not USE_EKS:
     from stack.assets import assets_management_policy
     from stack.logs import logging_policy
 
-desired_container_instances = Ref(
-    template.add_parameter(
-        Parameter(
-            "DesiredScale",
-            Description="Desired container instances count",
-            Type="Number",
-            Default="3" if USE_ECS else "2",
-        ),
-        group="Application Server",
-        label="Desired Instance Count",
+if not USE_DOKKU and not USE_EB:
+    desired_container_instances = Ref(
+        template.add_parameter(
+            Parameter(
+                "DesiredScale",
+                Description="Desired container instances count",
+                Type="Number",
+                Default="3" if USE_ECS else "2",
+            ),
+            group="Application Server",
+            label="Desired Instance Count",
+        )
     )
-)
-max_container_instances = Ref(
-    template.add_parameter(
-        Parameter(
-            "MaxScale",
-            Description="Maximum container instances count",
-            Type="Number",
-            Default="3" if USE_ECS else "4",
-        ),
-        group="Application Server",
-        label="Maximum Instance Count",
+    max_container_instances = Ref(
+        template.add_parameter(
+            Parameter(
+                "MaxScale",
+                Description="Maximum container instances count",
+                Type="Number",
+                Default="3" if USE_ECS else "4",
+            ),
+            group="Application Server",
+            label="Maximum Instance Count",
+        )
     )
-)
 
-container_volume_size = Ref(
-    template.add_parameter(
-        Parameter(
-            "ContainerVolumeSize",
-            Description="Size of instance EBS root volume (in GB)",
-            Type="Number",
-            Default="20" if USE_EKS else "8",
-        ),
-        group="Application Server",
-        label="Root Volume Size",
-    )
-)
+    if not USE_ECS:
+        container_volume_size = Ref(
+            template.add_parameter(
+                Parameter(
+                    "ContainerVolumeSize",
+                    Description="Size of instance EBS root volume (in GB)",
+                    Type="Number",
+                    Default="20" if USE_EKS else "8",
+                ),
+                group="Application Server",
+                label="Root Volume Size",
+            )
+        )
 
 if USE_EKS:
     container_policies = []
@@ -89,39 +91,40 @@ if USE_ECS:
         ]
     )
 
-container_instance_role = iam.Role(
-    "ContainerInstanceRole",
-    template=template,
-    AssumeRolePolicyDocument=dict(
-        Statement=[
-            dict(
-                Effect="Allow",
-                Principal=dict(Service=["ec2.amazonaws.com"]),
-                Action=["sts:AssumeRole"],
-            )
-        ]
-    ),
-    Path="/",
-    Policies=container_policies,
-    **(
-        dict(
-            ManagedPolicyArns=[
-                "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
-                "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
-                "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
+if not USE_EB:
+    container_instance_role = iam.Role(
+        "ContainerInstanceRole",
+        template=template,
+        AssumeRolePolicyDocument=dict(
+            Statement=[
+                dict(
+                    Effect="Allow",
+                    Principal=dict(Service=["ec2.amazonaws.com"]),
+                    Action=["sts:AssumeRole"],
+                )
             ]
-        )
-        if USE_EKS
-        else {}
-    ),
-)
+        ),
+        Path="/",
+        Policies=container_policies,
+        **(
+            dict(
+                ManagedPolicyArns=[
+                    "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+                    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
+                    "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
+                ]
+            )
+            if USE_EKS
+            else {}
+        ),
+    )
 
-container_instance_profile = iam.InstanceProfile(
-    "ContainerInstanceProfile",
-    template=template,
-    Path="/",
-    Roles=[Ref(container_instance_role)],
-)
+    container_instance_profile = iam.InstanceProfile(
+        "ContainerInstanceProfile",
+        template=template,
+        Path="/",
+        Roles=[Ref(container_instance_role)],
+    )
 
 container_instance_type = Ref(
     template.add_parameter(
