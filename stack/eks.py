@@ -17,11 +17,6 @@ from .vpc import (
 )
 
 
-# Subclass Nodegroup to fix type of tags
-class CaktusNodegroup(eks.Nodegroup):
-    props = dict(eks.Nodegroup.props, Tags=(dict, False),)
-
-
 eks_service_role = iam.Role(
     # an IAM role that Kubernetes can assume to create AWS resources
     "EksServiceRole",
@@ -72,7 +67,7 @@ cluster = eks.Cluster(
     RoleArn=GetAtt(eks_service_role, "Arn"),
 )
 
-CaktusNodegroup(
+eks.Nodegroup(
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-eks-nodegroup.html
     "Nodegroup",
     template=template,
