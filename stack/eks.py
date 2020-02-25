@@ -16,7 +16,6 @@ from .vpc import (
     vpc
 )
 
-
 eks_service_role = iam.Role(
     # an IAM role that Kubernetes can assume to create AWS resources
     "EksServiceRole",
