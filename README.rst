@@ -508,6 +508,8 @@ USE_EB=on
     Create an Elastic Beanstalk application
 USE_ECS=on
     Create an Elastic Container Service.
+USE_EKS=on
+    Create an AWS EKS (Kubernetes) cluster.
 USE_DOKKU=on
     Create an EC2 instance containing a Dokku server
 
