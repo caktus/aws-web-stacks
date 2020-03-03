@@ -35,7 +35,7 @@ jobs:
             make check
       - deploy:
           command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+            if [ "${CIRCLE_BRANCH}" == "master" -o "${CIRCLE_BRANCH}" == "develop" ]; then
               . env/bin/activate
               make upload
             fi
