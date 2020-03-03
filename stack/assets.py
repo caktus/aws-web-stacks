@@ -1,5 +1,3 @@
-import os
-
 from troposphere import (
     AWS_REGION,
     And,
@@ -36,6 +34,7 @@ from troposphere.s3 import (
     VersioningConfiguration
 )
 
+from . import USE_GOVCLOUD
 from .common import (
     arn_prefix,
     cmk_arn,
@@ -263,7 +262,7 @@ assets_management_policy = iam.Policy(
 )
 
 
-if os.environ.get('USE_GOVCLOUD') != 'on':
+if not USE_GOVCLOUD:
     assets_use_cloudfront = template.add_parameter(
         Parameter(
             "AssetsUseCloudFront",

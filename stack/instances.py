@@ -1,9 +1,14 @@
-from troposphere import AWS_STACK_NAME, Equals, Join, Ref, autoscaling, iam
+from troposphere import AWS_STACK_NAME, Equals, Join, Ref, autoscaling
 
-from .assets import assets_management_policy
-from .common import container_instance_type, use_aes256_encryption
+from .common import use_aes256_encryption
+from .containers import (
+    container_instance_profile,
+    container_instance_type,
+    container_volume_size,
+    desired_container_instances,
+    max_container_instances
+)
 from .load_balancer import load_balancer, web_worker_health_check
-from .logs import logging_policy
 from .security_groups import container_security_group
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
@@ -34,67 +39,10 @@ key_name = template.add_parameter(
     label="SSH Key Name",
 )
 
-desired_container_instances = Ref(template.add_parameter(
-    Parameter(
-        "DesiredScale",
-        Description="Desired container instances count",
-        Type="Number",
-        Default="2",
-    ),
-    group="Application Server",
-    label="Desired Instance Count",
-))
-
-max_container_instances = Ref(template.add_parameter(
-    Parameter(
-        "MaxScale",
-        Description="Maximum container instances count",
-        Type="Number",
-        Default="4",
-    ),
-    group="Application Server",
-    label="Maximum Instance Count",
-))
-
-container_volume_size = Ref(template.add_parameter(
-    Parameter(
-        "ContainerVolumeSize",
-        Description="Size of instance EBS root volume (in GB)",
-        Type="Number",
-        Default="8",
-    ),
-    group="Application Server",
-    label="Root Volume Size",
-))
-
 tcp_health_check_condition = "TcpHealthCheck"
 template.add_condition(
     tcp_health_check_condition,
     Equals(web_worker_health_check, ""),
-)
-
-# EC2 instance role
-container_instance_role = iam.Role(
-    "ContainerInstanceRole",
-    template=template,
-    AssumeRolePolicyDocument=dict(Statement=[dict(
-        Effect="Allow",
-        Principal=dict(Service=["ec2.amazonaws.com"]),
-        Action=["sts:AssumeRole"],
-    )]),
-    Path="/",
-    Policies=[
-        assets_management_policy,
-        logging_policy,
-    ]
-)
-
-# EC2 instance profile
-container_instance_profile = iam.InstanceProfile(
-    "ContainerInstanceProfile",
-    template=template,
-    Path="/",
-    Roles=[Ref(container_instance_role)],
 )
 
 instance_configuration_name = "LaunchConfiguration"

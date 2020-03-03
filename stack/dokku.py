@@ -1,14 +1,11 @@
 import troposphere.cloudformation as cloudformation
 import troposphere.ec2 as ec2
-import troposphere.iam as iam
 from troposphere import Base64, FindInMap, Join, Output, Ref, Tags
 from troposphere.policies import CreationPolicy, ResourceSignal
 
-from .assets import assets_management_policy
-from .common import container_instance_type
+from .containers import container_instance_profile, container_instance_type
 from .domain import domain_name
 from .environment import environment_variables
-from .logs import logging_policy
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 from .vpc import private_subnet_a, vpc
@@ -100,30 +97,6 @@ template.add_mapping('RegionMap', {
     "us-west-2": {"AMI": "ami-8803e0f0"},
 })
 
-# EC2 instance role
-instance_role = iam.Role(
-    "ContainerInstanceRole",
-    template=template,
-    AssumeRolePolicyDocument=dict(Statement=[dict(
-        Effect="Allow",
-        Principal=dict(Service=["ec2.amazonaws.com"]),
-        Action=["sts:AssumeRole"],
-    )]),
-    Path="/",
-    Policies=[
-        assets_management_policy,
-        logging_policy,
-    ]
-)
-
-# EC2 instance profile
-instance_profile = iam.InstanceProfile(
-    "ContainerInstanceProfile",
-    template=template,
-    Path="/",
-    Roles=[Ref(instance_role)],
-)
-
 # EC2 security group
 security_group = template.add_resource(ec2.SecurityGroup(
     'SecurityGroup',
@@ -163,7 +136,7 @@ ec2_instance = template.add_resource(ec2.Instance(
     InstanceType=container_instance_type,
     KeyName=Ref(key_name),
     SecurityGroupIds=[Ref(security_group)],
-    IamInstanceProfile=Ref(instance_profile),
+    IamInstanceProfile=Ref(container_instance_profile),
     SubnetId=Ref(private_subnet_a),
     BlockDeviceMappings=[
         ec2.BlockDeviceMapping(

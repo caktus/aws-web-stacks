@@ -9,9 +9,10 @@ from troposphere.elasticbeanstalk import (
 )
 from troposphere.iam import InstanceProfile, Role
 
+from . import USE_NAT_GATEWAY
 from .assets import assets_management_policy
 from .certificates import application as application_certificate
-from .common import container_instance_type
+from .containers import container_instance_type
 from .environment import environment_variables
 from .logs import logging_policy
 from .security_groups import (
@@ -21,7 +22,6 @@ from .security_groups import (
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
-    USE_NAT_GATEWAY,
     private_subnet_a,
     private_subnet_b,
     public_subnet_a,

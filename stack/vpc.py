@@ -1,6 +1,4 @@
-import os
-
-from troposphere import GetAtt, Join, Ref, Sub, Tags
+from troposphere import GetAtt, Join, Ref, Sub, Tag, Tags
 from troposphere.ec2 import (
     EIP,
     VPC,
@@ -14,11 +12,9 @@ from troposphere.ec2 import (
     VPCGatewayAttachment
 )
 
+from . import USE_EKS, USE_NAT_GATEWAY
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
-
-USE_NAT_GATEWAY = os.environ.get('USE_NAT_GATEWAY') == 'on'
-USE_DOKKU = os.environ.get('USE_DOKKU') == 'on'
 
 # Allows for private IPv4 ranges in the 10.0.0.0/8, 172.16.0.0/12 and 192.168.0.0/16
 # address spaces, with block size between /16 and /28 as allowed by VPCs and subnets.
@@ -167,6 +163,12 @@ public_route = Route(
     RouteTableId=Ref(public_route_table),
 )
 
+public_subnet_eks_tags = []
+private_subnet_eks_tags = []
+if USE_EKS:
+    public_subnet_eks_tags.append(Tag("kubernetes.io/role/elb", "1"))
+    # Tag your private subnets so that Kubernetes knows that it can use them for internal load balancers.
+    private_subnet_eks_tags.append(Tag("kubernetes.io/role/internal-elb", "1"))
 
 # Holds load balancer, NAT gateway, and bastion (if specified)
 public_subnet_a = Subnet(
@@ -176,7 +178,8 @@ public_subnet_a = Subnet(
     CidrBlock=Ref(public_subnet_a_cidr),
     AvailabilityZone=Ref(primary_az),
     Tags=Tags(
-        Name=Join("-", [Ref("AWS::StackName"), "public-a"]),
+        Tag("Name", Join("-", [Ref("AWS::StackName"), "public-a"])),
+        *public_subnet_eks_tags,
     ),
 )
 
@@ -194,7 +197,8 @@ public_subnet_b = Subnet(
     CidrBlock=Ref(public_subnet_b_cidr),
     AvailabilityZone=Ref(secondary_az),
     Tags=Tags(
-        Name=Join("-", [Ref("AWS::StackName"), "public-b"]),
+        Tag("Name", Join("-", [Ref("AWS::StackName"), "public-b"])),
+        *public_subnet_eks_tags,
     ),
 )
 
@@ -266,7 +270,8 @@ private_subnet_a = Subnet(
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Ref(primary_az),
     Tags=Tags(
-        Name=Join("-", [Ref("AWS::StackName"), "private-a"]),
+        Tag("Name", Join("-", [Ref("AWS::StackName"), "private-a"])),
+        *private_subnet_eks_tags,
     ),
 )
 
@@ -287,7 +292,8 @@ private_subnet_b = Subnet(
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Ref(secondary_az),
     Tags=Tags(
-        Name=Join("-", [Ref("AWS::StackName"), "private-b"]),
+        Tag("Name", Join("-", [Ref("AWS::StackName"), "private-b"])),
+        *private_subnet_eks_tags,
     ),
 )
 
