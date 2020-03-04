@@ -8,7 +8,7 @@ Change Log
 * TBD
 
 
-`2.0.0`_ (TBD)
+`2.0.0`_ (2020-03-04)
 ---------------------
 
 **Backwards-incompatible changes:**
