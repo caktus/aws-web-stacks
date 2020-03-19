@@ -17,7 +17,10 @@ from .template import template
 repository = Repository(
     "ApplicationRepository",
     template=template,
-    RepositoryName=Ref(AWS_STACK_NAME),
+    # Do we need to specify a repository name? The stack name might not be
+    # a valid repository name, and if we just leave it out, AWS will make one
+    # up for us.
+    #RepositoryName=Ref(AWS_STACK_NAME),
     # Allow all account users to manage images.
     RepositoryPolicyText=Policy(
         Version="2008-10-17",

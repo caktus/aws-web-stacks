@@ -93,7 +93,7 @@ template.add_output(
     [
         Output(
             "ClusterEndpoint",
-            Description="The connection endpoint for the cluster API.",
+            Description="The connection endpoint for the EKS cluster API.",
             Value=GetAtt(cluster, "Endpoint"),
         ),
     ]
