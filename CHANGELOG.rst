@@ -5,6 +5,8 @@ Change Log
 `X.Y.Z`_ (TBD-DD-DD)
 ---------------------
 
+* Optionally create RDS, Redis, memcached, elasticsearch services when creating
+  an EKS cluster.
 * TBD
 
 

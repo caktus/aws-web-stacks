@@ -59,15 +59,17 @@ if not USE_EKS:
             SourceSecurityGroupId=Ref(load_balancer_security_group),
         ))
 
-if not USE_NAT_GATEWAY:
-    # Allow direct administrator access via SSH.
-    ingress_rules.append(SecurityGroupRule(
-        IpProtocol="tcp",
-        FromPort="22",
-        ToPort="22",
-        Description="Administrator SSH Access",
-        CidrIp=administrator_ip_address,
-    ))
+    if not USE_NAT_GATEWAY:
+        # Allow direct administrator access via SSH.
+        ingress_rules.append(SecurityGroupRule(
+            IpProtocol="tcp",
+            FromPort="22",
+            ToPort="22",
+            Description="Administrator SSH Access",
+            CidrIp=administrator_ip_address,
+        ))
+else:
+    ingress_rules = []
 
 container_security_group = SecurityGroup(
     # NOTE: If creating an EKS cluster, eks.py will modify this security group.
