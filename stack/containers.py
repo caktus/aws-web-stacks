@@ -5,10 +5,10 @@ from awacs import ecr
 from troposphere import Ref, iam
 
 from stack import USE_DOKKU, USE_EB, USE_ECS, USE_EKS
-from stack.template import template
-from stack.utils import ParameterWithDefaults as Parameter
 from stack.assets import assets_management_policy
 from stack.logs import logging_policy
+from stack.template import template
+from stack.utils import ParameterWithDefaults as Parameter
 
 if not USE_DOKKU and not USE_EB:
     desired_container_instances = Ref(
