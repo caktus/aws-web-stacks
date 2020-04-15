@@ -7,10 +7,8 @@ from troposphere import Ref, iam
 from stack import USE_DOKKU, USE_EB, USE_ECS, USE_EKS
 from stack.template import template
 from stack.utils import ParameterWithDefaults as Parameter
-
-if not USE_EKS:
-    from stack.assets import assets_management_policy
-    from stack.logs import logging_policy
+from stack.assets import assets_management_policy
+from stack.logs import logging_policy
 
 if not USE_DOKKU and not USE_EB:
     desired_container_instances = Ref(
@@ -52,10 +50,8 @@ if not USE_DOKKU and not USE_EB:
             )
         )
 
-if USE_EKS:
-    container_policies = []
-else:
-    container_policies = [assets_management_policy, logging_policy]
+container_policies = [assets_management_policy, logging_policy]
+
 if USE_ECS:
     container_policies.extend(
         [
