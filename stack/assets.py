@@ -298,6 +298,7 @@ if not USE_GOVCLOUD:
                         "region, and (3) you wish to serve static media over HTTPS, you must manually create an "
                         "ACM certificate in the us-east-1 region and provide its ARN here.",
             Type="String",
+            Default="",
         ),
         group="Static Media",
         label="CloudFront SSL Certificate ARN",
