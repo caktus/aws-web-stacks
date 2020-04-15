@@ -436,6 +436,7 @@ sftp_scopedown_policy = iam.ManagedPolicy(
     # This is for applying when adding users to the transfer server. It's not used directly in the stack creation,
     # other than adding it to IAM for later use.
     "SFTPUserScopeDownPolicy",
+    Condition=use_sftp_condition,
     PolicyDocument=dict(
         Version="2012-10-17",
         Statement=If(
@@ -475,6 +476,7 @@ sftp_user_role = iam.Role(
     # to be used later when adding users to the transfer server.
     "SFTPUserRole",
     template=template,
+    Condition=use_sftp_condition,
     AssumeRolePolicyDocument=dict(
         Statement=[
             dict(
