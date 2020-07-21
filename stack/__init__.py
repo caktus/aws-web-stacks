@@ -10,6 +10,8 @@ USE_GOVCLOUD = os.environ.get("USE_GOVCLOUD") == "on"
 USE_NAT_GATEWAY = os.environ.get("USE_NAT_GATEWAY") == "on"
 
 if USE_EKS:
+    from . import sftp  # noqa: F401
+    from . import assets  # noqa: F401
     from . import vpc  # noqa: F401
     from . import template
     from . import repository  # noqa: F401
