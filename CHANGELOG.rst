@@ -7,6 +7,9 @@ Change Log
 
 * Optionally create RDS, Redis, memcached, elasticsearch services when creating
   an EKS cluster.
+* Include standard aws-web-stacks public and private asset buckets when using EKS.
+* Make AssetsCloudFrontCertArn empty by default so it's optional
+* Make SFTPUserRole and SFTPUserScopeDownPolicy key off use_sftp_condition
 * TBD
 
 
