@@ -198,6 +198,7 @@ db_parameter_group_family = template.add_parameter(
             "postgres9.6",
             "postgres10",
             "postgres11",
+            "postgres12",
             "sqlserver-ee-11.0",
             "sqlserver-ee-12.0",
             "sqlserver-ee-13.0",
