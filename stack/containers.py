@@ -122,14 +122,22 @@ if not USE_EB:
         Roles=[Ref(container_instance_role)],
     )
 
+# https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html#AvailableInstanceTypes
 container_instance_type = Ref(
     template.add_parameter(
         Parameter(
             "ContainerInstanceType",
             Description="The application server instance type",
             Type="String",
-            Default="t2.micro",
+            Default="t3a.micro",
             AllowedValues=[
+                "t3a.nano",
+                "t3a.micro",
+                "t3a.small",
+                "t3a.medium",
+                "t3a.large",
+                "t3a.xlarge",
+                "t3a.2xlarge",
                 "t3.nano",
                 "t3.micro",
                 "t3.small",
