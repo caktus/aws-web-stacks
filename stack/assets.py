@@ -172,7 +172,9 @@ template.add_output(
 # Bucket for SFTP service
 sftp_assets_bucket = Bucket(
     "SFTPAssetsBucket",
-    Condition=use_sftp_condition,
+    # This bucket intentionally has no Condition (i.e., it is always created,
+    # even if SFTP is disabled) because it is referenced throughout the policies
+    # and roles in this file.
     AccessControl=Private,
     PublicAccessBlockConfiguration=PublicAccessBlockConfiguration(
         BlockPublicAcls=True,

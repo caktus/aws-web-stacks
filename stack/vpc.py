@@ -255,7 +255,7 @@ if USE_NAT_GATEWAY:
         template=template,
         ServiceName=Sub("com.amazonaws.${AWS::Region}.s3"),
         VpcId=Ref(vpc),
-        RouteTableIds=[Ref(private_route_table)],
+        RouteTableIds=[private_route_table],
     )
 else:
     private_route_table = Ref(public_route_table)
