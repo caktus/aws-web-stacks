@@ -1,0 +1,72 @@
+name: package release
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - '[0-9]+.[0-9]+*' # Push events to matching v*, i.e. 1.0, 20.15.10
+
+jobs:
+  # Split release/upload workflow adapted from:
+  # https://github.com/actions/create-release/issues/14#issuecomment-555379810
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+    # Save release_url for package-deps job
+    - name: Output Release URL File
+      run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
+    - name: Save Release URL File for publish
+      uses: actions/upload-artifact@v1
+      with:
+        name: release_url
+        path: release_url.txt
+  package-deps:
+    name: Package and upload dependencies
+    needs: [release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Build templates and upload to S3
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # FIXME: Clean up how version is set
+          echo ${{ github.ref }} > version.txt
+          make
+          make upload
+      - name: Zip stacks
+        run: |
+          mv content/${{ github.ref }}/ aws-web-stacks-${{ github.ref }}/
+          zip -r aws-web-stacks-${{ github.ref }}.zip aws-web-stacks-${{ github.ref }}/
+      - name: Load Release URL File from release job
+        uses: actions/download-artifact@v1
+        with:
+          name: release_url
+      - name: Get Upload URL
+        id: get_release_info
+        run: |
+          echo "::set-output name=upload_url::$(cat release_url/release_url.txt)"
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_info.outputs.upload_url }}
+          asset_path: aws-web-stacks-${{ github.ref }}.zip
+          asset_name: aws-web-stacks-${{ github.ref }}.zip
+          asset_content_type: application/zip
