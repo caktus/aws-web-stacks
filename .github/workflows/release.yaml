@@ -45,8 +45,8 @@ jobs:
           pip install awscli
           # FIXME: Clean up how version is set
           pwd
-          # strip leading 'v'
-          echo "${{ github.ref }}" | cut -c2- > version.txt
+          # strip leading 'refs/tags/v' (start on 12th char)
+          echo "${{ github.ref }}" | cut -c12- > version.txt
           cat version.txt
           make
           make upload
