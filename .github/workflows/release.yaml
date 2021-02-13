@@ -16,7 +16,6 @@ jobs:
     steps:
       - name: Set output variables
         id: vars
-        # Set version and asset_name as an outputs
         run: |
           # strip the leading 'refs/tags/v' (start on 12th char)
           VERSION=$(echo ${{ github.ref }} | cut -c12-)
@@ -29,6 +28,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          # Don't use 'version' variable because we want the leading 'v' here.
+          # The actions/create-release@v1 action seems to remove the leading
+          # refs/tags/ on our behalf.
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }} (${{ steps.vars.outputs.release_date}})
           draft: false
@@ -43,19 +45,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install awscli
-      - name: Build templates
+      - name: Build CloudFormation templates
         run: make VERSION=${{ steps.vars.outputs.version }} versioned_templates
-      - name: Upload to S3
+      - name: Upload CloudFormation templates to S3
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
         run: make upload
-      - name: Zip stacks
+      - name: Zip CloudFormation templates
         run: |
-          mv content/${{ steps.vars.outputs.version }}/ ${{ steps.vars.outputs.asset_name }}/
+          cp -r content/${{ steps.vars.outputs.version }}/ ${{ steps.vars.outputs.asset_name }}/
           zip -r ${{ steps.vars.outputs.asset_name }}.zip ${{ steps.vars.outputs.asset_name }}/
-      - name: Upload Release Asset
+      - name: Upload CloudFormation templates to GitHub release
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
