@@ -2,7 +2,7 @@ Change Log
 ==========
 
 
-`X.Y.Z`_ (TBD-DD-DD)
+`2.1.0`_ (2021-02-13)
 ---------------------
 
 * Optionally create RDS, Redis, memcached, elasticsearch services when creating
@@ -10,7 +10,9 @@ Change Log
 * Include standard aws-web-stacks public and private asset buckets when using EKS.
 * Make AssetsCloudFrontCertArn empty by default so it's optional
 * Make SFTPUserRole and SFTPUserScopeDownPolicy key off use_sftp_condition
-* TBD
+* Add support for new EC2 and RDS instance types
+* Add support for RDS for PostgreSQL version 12
+* Other minor bug fixes
 
 
 `2.0.0`_ (2020-03-04)
