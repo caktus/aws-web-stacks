@@ -14,7 +14,10 @@ templates:
 	# USE_DOKKU=on USE_NAT_GATEWAY=on python -c 'import stack' > content/dokku-nat.yaml (disabled; need to SSH to instance to deploy)
 	USE_GOVCLOUD=on python -c 'import stack' > content/gc-no-nat.yaml
 	USE_GOVCLOUD=on USE_NAT_GATEWAY=on python -c 'import stack' > content/gc-nat.yaml
-	cd content/; mkdir -p `cat ../version.txt`; for file in `ls *nat.yaml`; do cp $$file `cat ../version.txt`/`echo $$file|cut -d'.' -f1`-`cat ../version.txt`.yaml; done
+
+versioned_templates: templates
+	# version must be passed via the command-line, e.g., make VERSION=x.y.z versioned_templates
+	set -e; cd content/; mkdir -p $(VERSION); for file in `ls *nat.yaml`; do cp $$file $(VERSION)/`echo $$file|cut -d'.' -f1`-$(VERSION).yaml; done
 
 upload:
 	aws s3 sync content/ s3://aws-web-stacks/ --acl public-read
