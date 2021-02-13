@@ -164,6 +164,3 @@ texinfo_documents = [
      author, 'AWSWebStacks', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-
-

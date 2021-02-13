@@ -12,8 +12,9 @@ Setup
 
 .. code-block:: bash
 
-    mkvirtualenv -p python3.5 aws-web-stacks
+    mkvirtualenv -p python3.8 aws-web-stacks
     pip install -r requirements.txt
+    pip install -U pre-commit
 
 Check Code Formatting
 ---------------------

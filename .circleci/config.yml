@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/python:3.5
+      - image: circleci/python:3.8
     steps:
       - restore_cache:
           keys:
@@ -32,7 +32,6 @@ jobs:
           command: |
             . env/bin/activate
             make templates
-            make check
       - deploy:
           command: |
             if [ "${CIRCLE_BRANCH}" == "master" ]; then

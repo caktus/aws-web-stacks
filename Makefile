@@ -1,8 +1,7 @@
 .DEFAULT_GOAL := templates
 
 check:
-	flake8 stack/
-	isort --recursive --check-only --diff stack/
+	pre-commit run --all-files
 
 templates:
 	mkdir -p content

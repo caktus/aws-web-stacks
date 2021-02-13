@@ -1,5 +1,5 @@
-from troposphere import elasticloadbalancing as elb
 from troposphere import GetAtt, If, Join, Output, Ref
+from troposphere import elasticloadbalancing as elb
 
 from . import USE_ECS, USE_GOVCLOUD
 from .security_groups import load_balancer_security_group
