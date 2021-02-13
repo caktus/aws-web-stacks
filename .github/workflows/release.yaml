@@ -13,8 +13,10 @@ jobs:
     name: Create and upload release
     runs-on: ubuntu-latest
     steps:
-      - name: Output Release tag
-        run: echo ${{ github.ref }}
+      - name: Set version output variable
+        id: vars
+        # Set version as an output, stripping the leading 'refs/tags/v' (start on 12th char)
+        run: echo ::set-output name=version::$(echo ${{ github.ref }} | cut -c12-)
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -43,17 +45,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install awscli
-          # FIXME: Clean up how version is set
-          pwd
-          # strip leading 'refs/tags/v' (start on 12th char)
-          echo "${{ github.ref }}" | cut -c12- > version.txt
-          cat version.txt
+      - name: Build templates
+        run: |
+          echo ${{ steps.vars.outputs.version }} > version.txt
           make
-          make upload
+      - name: Upload to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: make upload
       - name: Zip stacks
         run: |
-          mv content/${{ github.ref }}/ aws-web-stacks-${{ github.ref }}/
-          zip -r aws-web-stacks-${{ github.ref }}.zip aws-web-stacks-${{ github.ref }}/
+          mv content/${{ steps.vars.outputs.version }}/ aws-web-stacks-${{ steps.vars.outputs.version }}/
+          zip -r aws-web-stacks-${{ steps.vars.outputs.version }}.zip aws-web-stacks-${{ steps.vars.outputs.version }}/
       - name: Load Release URL File from release job
         uses: actions/download-artifact@v1
         with:
@@ -68,6 +72,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.get_release_info.outputs.upload_url }}
-          asset_path: aws-web-stacks-${{ github.ref }}.zip
-          asset_name: aws-web-stacks-${{ github.ref }}.zip
+          asset_path: aws-web-stacks-${{ steps.vars.outputs.version }}.zip
+          asset_name: aws-web-stacks-${{ steps.vars.outputs.version }}.zip
           asset_content_type: application/zip
