@@ -17,4 +17,4 @@ templates:
 	cd content/; mkdir -p `cat ../version.txt`; for file in `ls *nat.yaml`; do cp $$file `cat ../version.txt`/`echo $$file|cut -d'.' -f1`-`cat ../version.txt`.yaml; done
 
 upload:
-	aws s3 sync content/ s3://aws-web-stacks/testing/ --acl public-read
+	aws s3 sync content/ s3://aws-web-stacks/ --acl public-read
