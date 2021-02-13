@@ -14,10 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     environment: releases
     steps:
-      - name: Set version output variable
+      - name: Set output variables
         id: vars
-        # Set version as an output, stripping the leading 'refs/tags/v' (start on 12th char)
-        run: echo ::set-output name=version::$(echo ${{ github.ref }} | cut -c12-)
+        # Set version and asset_name as an outputs
+        run: |
+          # strip the leading 'refs/tags/v' (start on 12th char)
+          VERSION=$(echo ${{ github.ref }} | cut -c12-)
+          echo ::set-output name=version::$VERSION
+          echo ::set-output name=asset_name::aws-web-stacks-cf-templates-$VERSION
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -28,14 +32,6 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
-      # Save release_url for package-deps job
-      - name: Output Release URL File
-        run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
-      - name: Save Release URL File for publish
-        uses: actions/upload-artifact@v1
-        with:
-          name: release_url
-          path: release_url.txt
       - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -58,22 +54,14 @@ jobs:
         run: make upload
       - name: Zip stacks
         run: |
-          mv content/${{ steps.vars.outputs.version }}/ aws-web-stacks-${{ steps.vars.outputs.version }}/
-          zip -r aws-web-stacks-${{ steps.vars.outputs.version }}.zip aws-web-stacks-${{ steps.vars.outputs.version }}/
-      - name: Load Release URL File from release job
-        uses: actions/download-artifact@v1
-        with:
-          name: release_url
-      - name: Get Upload URL
-        id: get_release_info
-        run: |
-          echo "::set-output name=upload_url::$(cat release_url/release_url.txt)"
+          mv content/${{ steps.vars.outputs.version }}/ ${{ steps.vars.outputs.asset_name }}/
+          zip -r ${{ steps.vars.outputs.asset_name }}.zip ${{ steps.vars.outputs.asset_name }}/
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.get_release_info.outputs.upload_url }}
-          asset_path: aws-web-stacks-${{ steps.vars.outputs.version }}.zip
-          asset_name: aws-web-stacks-${{ steps.vars.outputs.version }}.zip
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.vars.outputs.asset_name }}.zip
+          asset_name: ${{ steps.vars.outputs.asset_name }}.zip
           asset_content_type: application/zip
