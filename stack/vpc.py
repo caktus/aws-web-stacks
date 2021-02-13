@@ -1,4 +1,14 @@
-from troposphere import GetAtt, Join, Ref, Sub, Tag, Tags
+from troposphere import (
+    Cidr,
+    FindInMap,
+    GetAtt,
+    Join,
+    Ref,
+    Select,
+    Sub,
+    Tag,
+    Tags
+)
 from troposphere.ec2 import (
     EIP,
     VPC,
@@ -8,6 +18,7 @@ from troposphere.ec2 import (
     RouteTable,
     Subnet,
     SubnetRouteTableAssociation,
+    VPCCidrBlock,
     VPCEndpoint,
     VPCGatewayAttachment
 )
@@ -45,7 +56,8 @@ secondary_az = template.add_parameter(
 vpc_cidr = template.add_parameter(
     Parameter(
         "VpcCidr",
-        Description="The primary IPv4 CIDR block for the VPC. "
+        Description="The primary IPv4 CIDR block for the VPC. Must contain at least "
+                    "four (4) of the block size specified in IPv4 Subnet Size. "
                     "[Possibly not modifiable after stack creation]",
         Type="String",
         Default="10.0.0.0/20",
@@ -56,60 +68,25 @@ vpc_cidr = template.add_parameter(
     label="VPC IPv4 CIDR Block",
 )
 
-public_subnet_a_cidr = template.add_parameter(
-    Parameter(
-        "PublicSubnetACidr",
-        Description="IPv4 CIDR block for the public subnet in the primary AZ. "
-                    "[Possibly not modifiable after stack creation]",
-        Type="String",
-        Default="10.0.0.0/22",
-        AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
-        ConstraintDescription=PRIVATE_IPV4_CONSTRAINT,
-    ),
-    group="Global",
-    label="Public Subnet A CIDR Block",
-)
+subnet_size_map_name = "SubnetSizeMap"
+subnet_size_map = {
+    # Allow for creation of /29 -> /16 (including everything in between)
+    f"slash-{32-bits}": {"Bits": str(bits)} for bits in range(3, 17)
+}
+template.add_mapping(subnet_size_map_name, subnet_size_map)
 
-public_subnet_b_cidr = template.add_parameter(
+subnet_size = template.add_parameter(
     Parameter(
-        "PublicSubnetBCidr",
-        Description="IPv4 CIDR block for the public subnet in the secondary AZ. "
-                    "[Possibly not modifiable after stack creation]",
+        "VpcSubnetSize",
+        Description="IPv4 CIDR block size for all subnets. "
+                    "Forward slashes (/) aren't supported in CloudFormation mappings, "
+                    "so these are described as \"slash-N\" instead.",
         Type="String",
-        Default="10.0.4.0/22",
-        AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
-        ConstraintDescription=PRIVATE_IPV4_CONSTRAINT,
+        AllowedValues=list(subnet_size_map.keys()),
+        Default="slash-22",
     ),
     group="Global",
-    label="Public Subnet B CIDR Block",
-)
-
-private_subnet_a_cidr = template.add_parameter(
-    Parameter(
-        "PrivateSubnetACidr",
-        Description="IPv4 CIDR block for the private subnet in the primary AZ. "
-                    "[Possibly not modifiable after stack creation]",
-        Type="String",
-        Default="10.0.8.0/22",
-        AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
-        ConstraintDescription=PRIVATE_IPV4_CONSTRAINT,
-    ),
-    group="Global",
-    label="Private Subnet A CIDR Block",
-)
-
-private_subnet_b_cidr = template.add_parameter(
-    Parameter(
-        "PrivateSubnetBCidr",
-        Description="IPv4 CIDR block for the private subnet in the secondary AZ. "
-                    "[Possibly not modifiable after stack creation]",
-        Type="String",
-        Default="10.0.12.0/22",
-        AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
-        ConstraintDescription=PRIVATE_IPV4_CONSTRAINT,
-    ),
-    group="Global",
-    label="Private Subnet B CIDR Block",
+    label="IPv4 Subnet Size",
 )
 
 
@@ -143,6 +120,13 @@ VPCGatewayAttachment(
     InternetGatewayId=Ref(internet_gateway),
 )
 
+# Attach Amazon-provided IPv6 block
+ipv6_block = VPCCidrBlock(
+    "IPv6CidrBlock",
+    template=template,
+    AmazonProvidedIpv6CidrBlock=True,
+    VpcId=Ref(vpc),
+)
 
 # Public route table
 public_route_table = RouteTable(
@@ -163,6 +147,16 @@ public_route = Route(
     RouteTableId=Ref(public_route_table),
 )
 
+
+ipv6_public_route = Route(
+    "Ipv6PublicRoute",
+    template=template,
+    GatewayId=Ref(internet_gateway),
+    DestinationIpv6CidrBlock="::/0",
+    RouteTableId=Ref(public_route_table),
+)
+
+
 public_subnet_eks_tags = []
 private_subnet_eks_tags = []
 if USE_EKS:
@@ -170,13 +164,29 @@ if USE_EKS:
     # Tag your private subnets so that Kubernetes knows that it can use them for internal load balancers.
     private_subnet_eks_tags.append(Tag("kubernetes.io/role/internal-elb", "1"))
 
+
+ipv4_subnets = Cidr(Ref(vpc_cidr), 4, FindInMap(subnet_size_map_name, Ref(subnet_size), "Bits"))
+
+# Per the docs, AmazonProvidedIpv6CidrBlock gives us a /56, which contains 256 /64 subnets
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpccidrblock.html
+# ipv6_subnets = Cidr(Select(0, GetAtt(vpc, "Ipv6CidrBlocks")), 256, "64")
+
+PUBLIC_SUBNET_A_CIDR_IDX = 0
+PUBLIC_SUBNET_B_CIDR_IDX = 1
+PRIVATE_SUBNET_A_CIDR_IDX = 2
+PRIVATE_SUBNET_B_CIDR_IDX = 3
+
 # Holds load balancer, NAT gateway, and bastion (if specified)
 public_subnet_a = Subnet(
     "PublicSubnetA",
     template=template,
     VpcId=Ref(vpc),
-    CidrBlock=Ref(public_subnet_a_cidr),
+    CidrBlock=Select(PUBLIC_SUBNET_A_CIDR_IDX, ipv4_subnets),
+    # Ipv6CidrBlock=Select(PUBLIC_SUBNET_A_CIDR_IDX, ipv6_subnets),
+    # AssignIpv6AddressOnCreation=True,
     AvailabilityZone=Ref(primary_az),
+    # Ensure IPv6 /56 is assigned before attempting to use it
+    DependsOn=ipv6_block,
     Tags=Tags(
         Tag("Name", Join("-", [Ref("AWS::StackName"), "public-a"])),
         *public_subnet_eks_tags,
@@ -194,8 +204,12 @@ public_subnet_b = Subnet(
     "PublicSubnetB",
     template=template,
     VpcId=Ref(vpc),
-    CidrBlock=Ref(public_subnet_b_cidr),
+    CidrBlock=Select(PUBLIC_SUBNET_B_CIDR_IDX, ipv4_subnets),
+    # Ipv6CidrBlock=Select(PUBLIC_SUBNET_B_CIDR_IDX, ipv6_subnets),
+    # AssignIpv6AddressOnCreation=True,
     AvailabilityZone=Ref(secondary_az),
+    # Ensure IPv6 /56 is assigned before attempting to use it
+    DependsOn=ipv6_block,
     Tags=Tags(
         Tag("Name", Join("-", [Ref("AWS::StackName"), "public-b"])),
         *public_subnet_eks_tags,
@@ -262,11 +276,12 @@ else:
 
 
 # Holds backend instances
+private_subnet_a_cidr = Select(PRIVATE_SUBNET_A_CIDR_IDX, ipv4_subnets)
 private_subnet_a = Subnet(
     "PrivateSubnetA",
     template=template,
     VpcId=Ref(vpc),
-    CidrBlock=Ref(private_subnet_a_cidr),
+    CidrBlock=private_subnet_a_cidr,
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Ref(primary_az),
     Tags=Tags(
@@ -284,11 +299,12 @@ SubnetRouteTableAssociation(
 )
 
 
+private_subnet_b_cidr = Select(PRIVATE_SUBNET_B_CIDR_IDX, ipv4_subnets)
 private_subnet_b = Subnet(
     "PrivateSubnetB",
     template=template,
     VpcId=Ref(vpc),
-    CidrBlock=Ref(private_subnet_b_cidr),
+    CidrBlock=private_subnet_b_cidr,
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Ref(secondary_az),
     Tags=Tags(
