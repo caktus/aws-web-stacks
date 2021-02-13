@@ -10,32 +10,29 @@ jobs:
   # Split release/upload workflow adapted from:
   # https://github.com/actions/create-release/issues/14#issuecomment-555379810
   release:
-    name: Create GitHub Release
+    name: Create and upload release
     runs-on: ubuntu-latest
     steps:
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: false
-        prerelease: false
-    # Save release_url for package-deps job
-    - name: Output Release URL File
-      run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
-    - name: Save Release URL File for publish
-      uses: actions/upload-artifact@v1
-      with:
-        name: release_url
-        path: release_url.txt
-  package-deps:
-    name: Package and upload dependencies
-    needs: [release]
-    runs-on: ubuntu-latest
-    steps:
+      - name: Output Release tag
+        run: echo ${{ github.ref }}
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      # Save release_url for package-deps job
+      - name: Output Release URL File
+        run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
+      - name: Save Release URL File for publish
+        uses: actions/upload-artifact@v1
+        with:
+          name: release_url
+          path: release_url.txt
       - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v2
