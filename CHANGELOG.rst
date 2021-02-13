@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+`X.Y.Z`_ (TBD-DD-DD)
+
+* TBD
 
 `2.1.0`_ (2021-02-13)
 ---------------------
@@ -194,6 +197,7 @@ Backwards-incompatible changes:
 * Initial public release
 
 
+.. _2.1.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.1.0/
 .. _2.0.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.0.0/
 .. _1.4.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.4.0/
 .. _1.3.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.3.0/
