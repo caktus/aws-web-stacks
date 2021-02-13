@@ -1,7 +1,7 @@
 from troposphere import Join, Ref, Sub, Tag, Tags
 from troposphere.ec2 import SecurityGroup, SecurityGroupRule
 
-from . import USE_EB, USE_EC2, USE_ECS, USE_EKS, USE_GOVCLOUD, USE_NAT_GATEWAY
+from . import USE_DOKKU, USE_EB, USE_EC2, USE_ECS, USE_EKS, USE_GOVCLOUD, USE_NAT_GATEWAY
 from .common import administrator_ip_address
 from .template import template
 from .vpc import vpc
@@ -50,7 +50,7 @@ if not USE_EKS:
     ) for port in web_worker_ports]
 
     # Health check
-    if not USE_EB:
+    if not USE_EB and not USE_DOKKU:
         ingress_rules.append(SecurityGroupRule(
             IpProtocol="tcp",
             FromPort=Ref("WebWorkerHealthCheckPort"),
