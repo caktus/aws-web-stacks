@@ -1,8 +1,5 @@
 .DEFAULT_GOAL := templates
 
-check:
-	pre-commit run --all-files
-
 templates:
 	mkdir -p content
 	USE_EC2=on python -c 'import stack' > content/ec2-no-nat.yaml

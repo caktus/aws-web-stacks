@@ -15,13 +15,18 @@ Setup
     mkvirtualenv -p python3.8 aws-web-stacks
     pip install -r requirements.txt
     pip install -U pre-commit
+    # Optionally install git pre-commit hook:
+    pre-commit install
 
 Check Code Formatting
 ---------------------
 
+If you have the pre-commit hook installed per the above, code formatting will be checked
+automatically with each commit. You can optionally run all checks manually as well::
+
 .. code-block:: bash
 
-    make check
+    pre-commit run --all-files
 
 Compile YAML Templates
 ----------------------
@@ -48,7 +53,7 @@ Submitting Pull Requests
 **Please follow these basic steps to simplify pull request reviews.**
 
 * Please rebase your branch against the current ``develop`` branch
-* Please ensure ``make check`` and ``make`` (see above) succeed before submitting a PR
+* Please ensure pre-commit checks and ``make`` (see above) succeed before submitting a PR
 * Make reference to possible `issues <https://github.com/caktus/aws-web-stacks/issues>`_ on PR comment
 
 Submitting bug reports
