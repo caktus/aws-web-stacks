@@ -69,7 +69,7 @@ Features:
 
 * Allow overriding parameter defaults at template creation time without having to change the
   Python code.  See `the README
-  <https://github.com/caktus/aws-web-stacks/blob/master/README.rst#dokku>`_.
+  <https://github.com/caktus/aws-web-stacks/blob/main/README.rst#dokku>`_.
 * Add a parameter to control whether certificates are validated by DNS or email, and default
   to DNS since GDPR has made email validation less likely to work.
 * The database type of the RDS instance can now be configured (previously, only Postgres could
@@ -94,7 +94,7 @@ Features:
   with the options selected via CloudFormation parameters, and provided the environment variables
   needed to access the related resources (such as the database, cache, or Elasticsearch instance)
   created with this stack. For more information, please see `the README
-  <https://github.com/caktus/aws-web-stacks/blob/master/README.rst#dokku>`_.
+  <https://github.com/caktus/aws-web-stacks/blob/main/README.rst#dokku>`_.
 
 `1.1.2`_ (2017-09-26)
 ---------------------

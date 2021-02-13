@@ -52,7 +52,7 @@ Submitting Pull Requests
 
 **Please follow these basic steps to simplify pull request reviews.**
 
-* Please rebase your branch against the current ``develop`` branch
+* Please rebase your branch against the current ``main`` branch
 * Please ensure pre-commit checks and ``make`` (see above) succeed before submitting a PR
 * Make reference to possible `issues <https://github.com/caktus/aws-web-stacks/issues>`_ on PR comment
 
@@ -65,27 +65,34 @@ Submitting bug reports
 Release Process
 ---------------
 
-* Merge any PRs targeted for the release into the ``develop`` branch
-* Write release notes in the `changelog <https://github.com/caktus/aws-web-stacks/blob/develop/CHANGELOG.rst>`_
+* Merge any PRs targeted for the release into the ``main`` branch.
+
+* Write release notes in the `changelog <https://github.com/caktus/aws-web-stacks/blob/main/CHANGELOG.rst>`_,
   including:
 
   * links to PRs as appropriate
   * credit for outside contributors
   * a link (at the bottom of the file) to the listing page in the ``aws-web-stacks`` bucket
 
-* Edit the version number in `version.txt <https://github.com/caktus/aws-web-stacks/blob/develop/version.txt>`_
-  and push that to the ``develop`` branch
-* Create, review, and merge a PR from the ``develop`` branch to the ``master`` branch, titled with
-  the release number e.g., "Release 1.2.0"
-* After merging, Circle CI will build the templates and upload them to S3. The current, stable (unversioned)
-  releases will be overwritten, and a copy of the release will be archived to a folder named for the version
-  in the S3 bucket. **For this reason, it is very important that no commits with new code be made to master
-  before incrementing the version number, or the YAML for the previous release may be overwritten.**
+  It may help to view the changes since the last release::
+
+      git diff -r v2.0.0
+
 * Tag the release in Git and push it to GitHub, e.g.::
 
-    git checkout master
-    git tag -a v1.2.0 -m "v1.2.0"
-    git push origin v1.2.0
+      git checkout main && git pull
+      git tag -a v2.1.0 -m "v2.1.0"
+      git push origin v2.1.0
 
-* Navigate to the Releases tab in GitHub and edit the release for the tag just pushed, including a copy of
-  the release notes
+* After pushing a version tag, Actions will:
+
+  * create a release on GitHub
+  * build the template YAML files
+  * add the templates as an asset to the release
+  * upload the templates to S3
+
+  The current, stable (unversioned) releases will be overwritten, and a copy of the release will
+  be archived to a folder named for the version in the S3 bucket.
+
+* Navigate to the Releases tab in GitHub and edit the release for the tag just pushed to include
+  a copy of the release notes.
