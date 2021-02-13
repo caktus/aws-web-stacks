@@ -21,6 +21,7 @@ jobs:
           # strip the leading 'refs/tags/v' (start on 12th char)
           VERSION=$(echo ${{ github.ref }} | cut -c12-)
           echo ::set-output name=version::$VERSION
+          echo ::set-output name=release_date::$(date +'%Y-%m-%d')
           echo ::set-output name=asset_name::aws-web-stacks-cf-templates-$VERSION
       - name: Create Release
         id: create_release
@@ -29,7 +30,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          release_name: ${{ github.ref }} (${{ steps.vars.outputs.release_date}})
           draft: false
           prerelease: false
       - uses: actions/checkout@v2
