@@ -2,7 +2,7 @@ from troposphere import AWS_STACK_NAME, Ref, Tags, autoscaling
 
 from .template import template
 
-common_tags = Tags({"aws-web-stacks:stack-name": Ref(AWS_STACK_NAME)})
+common_tags = {"aws-web-stacks:stack-name": Ref(AWS_STACK_NAME)}
 
 
 def tags_types_of_resource(resource):
@@ -41,23 +41,21 @@ def add_common_tags(template):
         # tags from the first and second objects, in that order.
 
         if not hasattr(resource, "Tags"):
-            # resource.Tags = common_tags
-            # return
             add_empty_tags(resource)
 
-        if isinstance(resource.Tags, (Tags, autoscaling.Tags)):
-            resource.Tags = common_tags + resource.Tags
-
+        if isinstance(resource.Tags, Tags):
+            resource.Tags = Tags(**common_tags) + resource.Tags
+        elif isinstance(resource.Tags, autoscaling.Tags):
+            resource.Tags = autoscaling.Tags(**common_tags) + resource.Tags
         elif isinstance(resource.Tags, dict):
-            tags = common_tags.to_dict()  # actually returns a list. Sigh.
-            tags = dict(tags)  # convert to a dict.
+            tags = common_tags.copy()
             tags.update(**resource.Tags)  # override with any tags from this resource.
-            resource.Tags = tags  # and set the result on the resource again.
+            resource.Tags = Tags(**tags)  # and set the result on the resource again.
 
         elif isinstance(resource.Tags, list):
             tags = tags_type_of_resource(resource)()
             tags.tags = resource.Tags
-            resource.Tags = common_tags + tags
+            resource.Tags = Tags(**common_tags) + tags
         else:
             raise TypeError("Unknown type %s for Tags on %s" % (type(resource.Tags), resource))
 
