@@ -5,7 +5,7 @@ Change Log
 
 * TBD
 
-`2.1.0`_ (2021-02-13)
+`2.1.0`_ (2021-02-17)
 ---------------------
 
 * Optionally create RDS, Redis, memcached, elasticsearch services when creating
@@ -15,6 +15,8 @@ Change Log
 * Make SFTPUserRole and SFTPUserScopeDownPolicy key off use_sftp_condition
 * Add support for new EC2 and RDS instance types
 * Add support for RDS for PostgreSQL version 12
+* Add a missing ``PropagateAtLaunch`` property to ELB tags (#105)
+* Remove a broken reference in the Dokku stack (#98)
 * Other minor bug fixes
 
 
