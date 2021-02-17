@@ -22,7 +22,7 @@ Check Code Formatting
 ---------------------
 
 If you have the pre-commit hook installed per the above, code formatting will be checked
-automatically with each commit. You can optionally run all checks manually as well::
+automatically with each commit. You can optionally run all checks manually as well:
 
 .. code-block:: bash
 
