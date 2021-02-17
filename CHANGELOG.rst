@@ -1,8 +1,11 @@
 Change Log
 ==========
 
-
 `X.Y.Z`_ (TBD-DD-DD)
+
+* TBD
+
+`2.1.0`_ (2021-02-17)
 ---------------------
 
 * Optionally create RDS, Redis, memcached, elasticsearch services when creating
@@ -10,7 +13,11 @@ Change Log
 * Include standard aws-web-stacks public and private asset buckets when using EKS.
 * Make AssetsCloudFrontCertArn empty by default so it's optional
 * Make SFTPUserRole and SFTPUserScopeDownPolicy key off use_sftp_condition
-* TBD
+* Add support for new EC2 and RDS instance types
+* Add support for RDS for PostgreSQL version 12
+* Add a missing ``PropagateAtLaunch`` property to ELB tags (#105)
+* Remove a broken reference in the Dokku stack (#98)
+* Other minor bug fixes
 
 
 `2.0.0`_ (2020-03-04)
@@ -67,7 +74,7 @@ Features:
 
 * Allow overriding parameter defaults at template creation time without having to change the
   Python code.  See `the README
-  <https://github.com/caktus/aws-web-stacks/blob/master/README.rst#dokku>`_.
+  <https://github.com/caktus/aws-web-stacks/blob/main/README.rst#dokku>`_.
 * Add a parameter to control whether certificates are validated by DNS or email, and default
   to DNS since GDPR has made email validation less likely to work.
 * The database type of the RDS instance can now be configured (previously, only Postgres could
@@ -92,7 +99,7 @@ Features:
   with the options selected via CloudFormation parameters, and provided the environment variables
   needed to access the related resources (such as the database, cache, or Elasticsearch instance)
   created with this stack. For more information, please see `the README
-  <https://github.com/caktus/aws-web-stacks/blob/master/README.rst#dokku>`_.
+  <https://github.com/caktus/aws-web-stacks/blob/main/README.rst#dokku>`_.
 
 `1.1.2`_ (2017-09-26)
 ---------------------
@@ -192,6 +199,7 @@ Backwards-incompatible changes:
 * Initial public release
 
 
+.. _2.1.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.1.0/
 .. _2.0.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.0.0/
 .. _1.4.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.4.0/
 .. _1.3.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.3.0/
