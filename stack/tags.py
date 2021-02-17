@@ -50,8 +50,7 @@ def add_common_tags(template):
         elif isinstance(resource.Tags, dict):
             tags = common_tags.copy()
             tags.update(**resource.Tags)  # override with any tags from this resource.
-            resource.Tags = Tags(**tags)  # and set the result on the resource again.
-
+            resource.Tags = tags  # and set the result on the resource again.
         elif isinstance(resource.Tags, list):
             tags = tags_type_of_resource(resource)()
             tags.tags = resource.Tags

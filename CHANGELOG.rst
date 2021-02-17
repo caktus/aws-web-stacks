@@ -5,6 +5,12 @@ Change Log
 
 * TBD
 
+`2.1.1`_ (2021-02-17)
+---------------------
+
+* Fix an error in the format of ``Nodegroup`` tags
+
+
 `2.1.0`_ (2021-02-17)
 ---------------------
 
@@ -199,6 +205,7 @@ Backwards-incompatible changes:
 * Initial public release
 
 
+.. _2.1.1: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.1.1/
 .. _2.1.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.1.0/
 .. _2.0.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.0.0/
 .. _1.4.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.4.0/
