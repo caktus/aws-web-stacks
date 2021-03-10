@@ -5,6 +5,13 @@ Change Log
 
 * TBD
 
+
+`2.1.2`_ (2022-03-10)
+
+* Automatically enable ECR image scanning in stacks with an ECR Repository
+* Automatically enable Redis MultiAZ if failover is enabled
+
+
 `2.1.1`_ (2021-02-17)
 ---------------------
 
@@ -205,6 +212,7 @@ Backwards-incompatible changes:
 * Initial public release
 
 
+.. _2.1.2: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.1.2/
 .. _2.1.1: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.1.1/
 .. _2.1.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.1.0/
 .. _2.0.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.0.0/
