@@ -247,6 +247,7 @@ redis_replication_group = elasticache.ReplicationGroup(
     CacheNodeType=Ref(redis_node_type),
     CacheSubnetGroupName=Ref(cache_subnet_group),
     Condition=using_redis_condition,
+    MultiAZEnabled=Ref(redis_automatic_failover),
     NumCacheClusters=redis_num_cache_clusters,
     Port=constants.REDIS_PORT,
     PreferredCacheClusterAZs=If(redis_uses_automatic_failover,
