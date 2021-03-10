@@ -22,13 +22,14 @@ from .common import (
     use_aes256_encryption_cond,
     use_cmk_arn
 )
-from .security_groups import container_security_group
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
     primary_az,
     private_subnet_a,
+    private_subnet_a_cidr,
     private_subnet_b,
+    private_subnet_b_cidr,
     secondary_az,
     vpc
 )
@@ -201,7 +202,17 @@ cache_security_group = ec2.SecurityGroup(
                 IpProtocol="tcp",
                 FromPort=constants.MEMCACHED_PORT,
                 ToPort=constants.MEMCACHED_PORT,
-                SourceSecurityGroupId=Ref(container_security_group),
+                CidrIp=Ref(private_subnet_a_cidr),
+            ),
+            Ref("AWS::NoValue"),
+        ),
+        If(
+            using_memcached_condition,
+            ec2.SecurityGroupRule(
+                IpProtocol="tcp",
+                FromPort=constants.MEMCACHED_PORT,
+                ToPort=constants.MEMCACHED_PORT,
+                CidrIp=Ref(private_subnet_b_cidr),
             ),
             Ref("AWS::NoValue"),
         ),
@@ -211,7 +222,17 @@ cache_security_group = ec2.SecurityGroup(
                 IpProtocol="tcp",
                 FromPort=constants.REDIS_PORT,
                 ToPort=constants.REDIS_PORT,
-                SourceSecurityGroupId=Ref(container_security_group),
+                CidrIp=Ref(private_subnet_a_cidr),
+            ),
+            Ref("AWS::NoValue"),
+        ),
+        If(
+            using_redis_condition,
+            ec2.SecurityGroupRule(
+                IpProtocol="tcp",
+                FromPort=constants.REDIS_PORT,
+                ToPort=constants.REDIS_PORT,
+                CidrIp=Ref(private_subnet_b_cidr),
             ),
             Ref("AWS::NoValue"),
         ),
