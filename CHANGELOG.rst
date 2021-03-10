@@ -2,11 +2,13 @@ Change Log
 ==========
 
 `X.Y.Z`_ (TBD-DD-DD)
+---------------------
 
 * TBD
 
 
 `2.1.2`_ (2022-03-10)
+---------------------
 
 * Automatically enable ECR image scanning in stacks with an ECR Repository
 * Automatically enable Redis MultiAZ if failover is enabled
