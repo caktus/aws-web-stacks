@@ -14,6 +14,7 @@ from troposphere import (
     Tags
 )
 
+from . import USE_EKS
 from .common import (
     cmk_arn,
     dont_create_value,
@@ -234,11 +235,18 @@ bastion_security_group_ingress_openvpn = ec2.SecurityGroupIngress(
     Condition=bastion_type_is_openvpn_set,
 )
 
+if USE_EKS:
+    from .eks import cluster
+    backend_server_id = GetAtt(cluster, "ClusterSecurityGroupId")
+else:
+    from .security_groups import container_security_group
+    backend_server_id = Ref(container_security_group)
+
 # Allow OpenVPN server full access to backend servers.
 container_security_group_bastion_ingress = ec2.SecurityGroupIngress(
     'ContainerSecurityGroupOpenVPNIngress',
     template=template,
-    GroupId=Ref("ContainerSecurityGroup"),
+    GroupId=backend_server_id,
     IpProtocol='-1',
     SourceSecurityGroupId=Ref(bastion_security_group),
     Condition=bastion_type_is_openvpn_set,
@@ -248,7 +256,7 @@ container_security_group_bastion_ingress = ec2.SecurityGroupIngress(
 container_security_group_bastion_ingress = ec2.SecurityGroupIngress(
     'ContainerSecurityGroupSSHBastionIngress',
     template=template,
-    GroupId=Ref("ContainerSecurityGroup"),
+    GroupId=backend_server_id,
     IpProtocol='tcp',
     FromPort=22,
     ToPort=22,
