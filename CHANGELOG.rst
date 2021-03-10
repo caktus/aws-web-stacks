@@ -12,6 +12,7 @@ Change Log
 
 * Automatically enable ECR image scanning in stacks with an ECR Repository
 * Automatically enable Redis MultiAZ if failover is enabled
+* Fix bug where EKS instances could not reach cache clusters
 
 
 `2.1.1`_ (2021-02-17)
