@@ -36,7 +36,7 @@ repository = Repository(
             ),
         ],
     ),
-    ImageScanningConfiguration={"scanOnPush": True},
+    ImageScanningConfiguration={"ScanOnPush": "true"},
 )
 
 
