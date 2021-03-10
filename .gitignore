@@ -2,3 +2,6 @@
 content/
 _build/
 .DS_Store
+.envrc
+.direnv
+.vscode
