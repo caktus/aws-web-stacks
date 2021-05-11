@@ -19,6 +19,9 @@ logging_policy = iam.Policy(
             Action=[
                 "logs:Create*",
                 "logs:PutLogEvents",
+                # Needed by aws-for-fluent-bit:
+                "logs:DescribeLogGroups",
+                "logs:DescribeLogStreams",
             ],
             Resource=Join("", [
                 arn_prefix,
