@@ -4,7 +4,8 @@ Change Log
 `X.Y.Z`_ (TBD-DD-DD)
 ---------------------
 
-* TBD
+* Add support for PostgreSQL 13 and 14 RDS parameter groups
+* Drop support for RDS PostgreSQL 9.x
 
 
 `2.1.2`_ (2022-03-10)
