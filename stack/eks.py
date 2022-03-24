@@ -1,6 +1,4 @@
 from troposphere import (
-    And,
-    Condition,
     GetAtt,
     If,
     Join,
@@ -14,7 +12,7 @@ from troposphere import (
     iam
 )
 
-from .common import cmk_arn, use_aes256_encryption_cond, use_cmk_arn
+from .common import cmk_arn, use_cmk_arn
 from .containers import (
     container_instance_role,
     container_instance_type,
@@ -79,7 +77,7 @@ cluster = eks.Cluster(
         SecurityGroupIds=[Ref(eks_security_group)],
     ),
     EncryptionConfig=If(
-        And(Condition(use_aes256_encryption_cond), Condition(use_cmk_arn)),
+        use_cmk_arn,
         eks.EncryptionConfig(Provider=eks.Provider(KeyArn=Ref(cmk_arn)), Resources=['secrets']),
         NoValue
     ),
