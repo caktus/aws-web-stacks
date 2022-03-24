@@ -78,7 +78,7 @@ cluster = eks.Cluster(
     ),
     EncryptionConfig=If(
         use_cmk_arn,
-        eks.EncryptionConfig(Provider=eks.Provider(KeyArn=Ref(cmk_arn)), Resources=['secrets']),
+        [eks.EncryptionConfig(Provider=eks.Provider(KeyArn=Ref(cmk_arn)), Resources=['secrets'])],
         NoValue
     ),
     RoleArn=GetAtt(eks_service_role, "Arn"),
