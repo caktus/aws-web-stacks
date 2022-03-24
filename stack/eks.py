@@ -1,5 +1,6 @@
 from troposphere import (
     And,
+    Condition,
     GetAtt,
     If,
     Join,
@@ -78,7 +79,7 @@ cluster = eks.Cluster(
         SecurityGroupIds=[Ref(eks_security_group)],
     ),
     EncryptionConfig=If(
-        And([use_aes256_encryption_cond, use_cmk_arn]),
+        And(Condition(use_aes256_encryption_cond), Condition(use_cmk_arn)),
         eks.EncryptionConfig(Provider=eks.Provider(KeyArn=Ref(cmk_arn)), Resources=['secrets']),
         NoValue
     ),
