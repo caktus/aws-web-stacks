@@ -1,5 +1,19 @@
-from troposphere import GetAtt, Join, Output, Ref, Sub, Tags, ec2, eks, iam
+from troposphere import (
+    And,
+    GetAtt,
+    If,
+    Join,
+    NoValue,
+    Output,
+    Ref,
+    Sub,
+    Tags,
+    ec2,
+    eks,
+    iam
+)
 
+from .common import cmk_arn, use_aes256_encryption_cond, use_cmk_arn
 from .containers import (
     container_instance_role,
     container_instance_type,
@@ -62,6 +76,11 @@ cluster = eks.Cluster(
             Ref(private_subnet_b),
         ],
         SecurityGroupIds=[Ref(eks_security_group)],
+    ),
+    EncryptionConfig=If(
+        And(use_aes256_encryption_cond, use_cmk_arn),
+        eks.EncryptionConfig(Provider=eks.Provider(KeyArn=Ref(cmk_arn)), Resources=['secrets']),
+        NoValue
     ),
     RoleArn=GetAtt(eks_service_role, "Arn"),
 )
