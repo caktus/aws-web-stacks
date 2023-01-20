@@ -1,2 +1,2 @@
-troposphere[policy]==3.2.2
+troposphere[policy]==4.2.0
 sphinx==1.6.7
