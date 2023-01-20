@@ -9,6 +9,7 @@ Change Log
 * Add support for `EKS EncryptionConfig <https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-eks-cluster.html#cfn-eks-cluster-encryptionconfig>`_. Set with ``EnableEksEncryptionConfig=true``.
 * Add ``EksClusterName`` parameter to control name of EKS cluster. If upgrading, set this to STACK_NAME-cluster to match existing name.
 * Drop support for RDS PostgreSQL 9.x
+* Upgrade to troposphere v4.2.0
 
 
 `2.1.2`_ (2022-03-10)
