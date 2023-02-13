@@ -1,7 +1,10 @@
 from troposphere import (
+    And,
+    Equals,
     GetAtt,
     If,
     Join,
+    Not,
     NoValue,
     Output,
     Ref,
@@ -28,6 +31,7 @@ from .vpc import (
     public_subnet_b,
     vpc
 )
+from .utils import ParameterWithDefaults as Parameter
 
 eks_service_role = iam.Role(
     # an IAM role that Kubernetes can assume to create AWS resources
@@ -58,6 +62,23 @@ eks_security_group = ec2.SecurityGroup(
     Tags=Tags(Name=Join("-", [Ref("AWS::StackName"), "eks-cluster"]),),
 )
 
+use_eks_encryption_config = Ref(template.add_parameter(
+    Parameter(
+        "EnableEKSEncryptionConfig",
+        Description="Use AWS Key Management Service (KMS) keys to provide envelope encryption of Kubernetes secrets. Depends on Customer managed key ARN.",
+        Type="String",
+        AllowedValues=["true", "false"],
+        Default="false",
+    ),
+    group="Global",
+    label="Enable EKS EncryptionConfig",
+))
+use_eks_encryption_config_cond = "EnableEKSEncryptionConfigCond"
+template.add_condition(use_eks_encryption_config_cond, And(
+    Equals(use_eks_encryption_config, "true"),
+    Not(Equals(Ref(cmk_arn), ""))
+))
+
 cluster = eks.Cluster(
     "EksCluster",
     template=template,
@@ -77,7 +98,7 @@ cluster = eks.Cluster(
         SecurityGroupIds=[Ref(eks_security_group)],
     ),
     EncryptionConfig=If(
-        use_cmk_arn,
+        use_eks_encryption_config_cond,
         [eks.EncryptionConfig(Provider=eks.Provider(KeyArn=Ref(cmk_arn)), Resources=['secrets'])],
         NoValue
     ),
