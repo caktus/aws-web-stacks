@@ -15,7 +15,7 @@ from troposphere import (
     iam
 )
 
-from .common import cmk_arn, use_cmk_arn
+from .common import cmk_arn
 from .containers import (
     container_instance_role,
     container_instance_type,
@@ -24,6 +24,7 @@ from .containers import (
     max_container_instances
 )
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
     private_subnet_a,
     private_subnet_b,
@@ -31,7 +32,6 @@ from .vpc import (
     public_subnet_b,
     vpc
 )
-from .utils import ParameterWithDefaults as Parameter
 
 eks_service_role = iam.Role(
     # an IAM role that Kubernetes can assume to create AWS resources
@@ -65,7 +65,7 @@ eks_security_group = ec2.SecurityGroup(
 use_eks_encryption_config = Ref(template.add_parameter(
     Parameter(
         "EnableEKSEncryptionConfig",
-        Description="Use AWS Key Management Service (KMS) keys to provide envelope encryption of Kubernetes secrets. Depends on Customer managed key ARN.",
+        Description="Use AWS Key Management Service (KMS) keys to provide envelope encryption of Kubernetes secrets. Depends on Customer managed key ARN.",  # noqa
         Type="String",
         AllowedValues=["true", "false"],
         Default="false",
