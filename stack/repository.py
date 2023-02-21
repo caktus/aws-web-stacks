@@ -1,7 +1,7 @@
 import awacs.ecr as ecr
 from awacs.aws import Allow, AWSPrincipal, Policy, Statement
 from troposphere import AWS_ACCOUNT_ID, AWS_REGION, Join, Output, Ref
-from troposphere.ecr import Repository
+from troposphere.ecr import ImageScanningConfiguration, Repository
 
 from .common import arn_prefix
 from .template import template
@@ -36,7 +36,7 @@ repository = Repository(
             ),
         ],
     ),
-    ImageScanningConfiguration={"ScanOnPush": "true"},
+    ImageScanningConfiguration=ImageScanningConfiguration(ScanOnPush=True),
 )
 
 

@@ -13,6 +13,12 @@ def tags_types_of_resource(resource):
     tags_type = resource.props["Tags"][0]
     if isinstance(tags_type, tuple):
         return tags_type
+    if tags_type.__name__ == "validate_tags_or_list":
+        # In v3.2, auto-generated troposphere classes moved to class-specific
+        # validate_tags_or_list() functions rather than (Tags, list). Since it
+        # can be either option, we just default to Tags.
+        # Example: https://github.com/cloudtools/troposphere/commit/fdc9d0960a31cf2d903e4eeecf1012fe5ab16ced#diff-69b792424cfc3e822fcfb40d663731910b63d55cd0f6d5cd1166d55794be60b7L47-R62  # noqa
+        tags_type = Tags
     return [tags_type]
 
 
