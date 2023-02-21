@@ -64,7 +64,7 @@ eks_security_group = ec2.SecurityGroup(
 
 use_eks_encryption_config = Ref(template.add_parameter(
     Parameter(
-        "EnableEKSEncryptionConfig",
+        "EnableEksEncryptionConfig",
         Description="Use AWS Key Management Service (KMS) keys to provide envelope encryption of Kubernetes secrets. Depends on Customer managed key ARN.",  # noqa
         Type="String",
         AllowedValues=["true", "false"],
@@ -73,19 +73,29 @@ use_eks_encryption_config = Ref(template.add_parameter(
     group="Global",
     label="Enable EKS EncryptionConfig",
 ))
-use_eks_encryption_config_cond = "EnableEKSEncryptionConfigCond"
+use_eks_encryption_config_cond = "EnableEksEncryptionConfigCond"
 template.add_condition(use_eks_encryption_config_cond, And(
     Equals(use_eks_encryption_config, "true"),
     Not(Equals(Ref(cmk_arn), ""))
 ))
 
+# Unlike most other resources in the stack, we specify the cluster name
+# via a stack parameter so it's easy to find and so it cannot be accidentally
+# recreated (for example if the ResourcesVpcConfig is changed).
+cluster_name = Ref(template.add_parameter(
+    Parameter(
+        "EksClusterName",
+        Description="The unique name to give to your cluster.",  # noqa
+        Type="String",
+    ),
+    group="Global",
+    label="Cluster name",
+))
+
 cluster = eks.Cluster(
     "EksCluster",
     template=template,
-    # Unlike most other resources in the stack, we hard-code the cluster name
-    # both so it's easy to find and so it cannot be accidentally recreated
-    # (for example if the ResourcesVpcConfig is changed).
-    Name=Sub("${AWS::StackName}-cluster"),
+    Name=cluster_name,
     ResourcesVpcConfig=eks.ResourcesVpcConfig(
         SubnetIds=[
             # For load balancers
