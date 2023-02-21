@@ -180,6 +180,7 @@ parameter, on the following AWS resources:
 * ElastiCache Redis (ReplicationGroup)
 * RDS
 * S3
+* EKS Envelope Encryption (via ``EnableEksEncryptionConfig``)
 
 By default, when enabled, an `AWS managed CMK`_ (customer master key) will be
 created the first time you try to create an encrypted resource within that

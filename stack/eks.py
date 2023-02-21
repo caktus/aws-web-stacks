@@ -1,5 +1,20 @@
-from troposphere import GetAtt, Join, Output, Ref, Sub, Tags, ec2, eks, iam
+from troposphere import (
+    And,
+    Equals,
+    GetAtt,
+    If,
+    Join,
+    Not,
+    NoValue,
+    Output,
+    Ref,
+    Tags,
+    ec2,
+    eks,
+    iam
+)
 
+from .common import cmk_arn
 from .containers import (
     container_instance_role,
     container_instance_type,
@@ -8,6 +23,7 @@ from .containers import (
     max_container_instances
 )
 from .template import template
+from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
     private_subnet_a,
     private_subnet_b,
@@ -45,13 +61,40 @@ eks_security_group = ec2.SecurityGroup(
     Tags=Tags(Name=Join("-", [Ref("AWS::StackName"), "eks-cluster"]),),
 )
 
+use_eks_encryption_config = Ref(template.add_parameter(
+    Parameter(
+        "EnableEksEncryptionConfig",
+        Description="Use AWS Key Management Service (KMS) keys to provide envelope encryption of Kubernetes secrets. Depends on Customer managed key ARN.",  # noqa
+        Type="String",
+        AllowedValues=["true", "false"],
+        Default="false",
+    ),
+    group="Global",
+    label="Enable EKS EncryptionConfig",
+))
+use_eks_encryption_config_cond = "EnableEksEncryptionConfigCond"
+template.add_condition(use_eks_encryption_config_cond, And(
+    Equals(use_eks_encryption_config, "true"),
+    Not(Equals(Ref(cmk_arn), ""))
+))
+
+# Unlike most other resources in the stack, we specify the cluster name
+# via a stack parameter so it's easy to find and so it cannot be accidentally
+# recreated (for example if the ResourcesVpcConfig is changed).
+cluster_name = Ref(template.add_parameter(
+    Parameter(
+        "EksClusterName",
+        Description="The unique name to give to your cluster.",  # noqa
+        Type="String",
+    ),
+    group="Global",
+    label="Cluster name",
+))
+
 cluster = eks.Cluster(
     "EksCluster",
     template=template,
-    # Unlike most other resources in the stack, we hard-code the cluster name
-    # both so it's easy to find and so it cannot be accidentally recreated
-    # (for example if the ResourcesVpcConfig is changed).
-    Name=Sub("${AWS::StackName}-cluster"),
+    Name=cluster_name,
     ResourcesVpcConfig=eks.ResourcesVpcConfig(
         SubnetIds=[
             # For load balancers
@@ -62,6 +105,11 @@ cluster = eks.Cluster(
             Ref(private_subnet_b),
         ],
         SecurityGroupIds=[Ref(eks_security_group)],
+    ),
+    EncryptionConfig=If(
+        use_eks_encryption_config_cond,
+        [eks.EncryptionConfig(Provider=eks.Provider(KeyArn=Ref(cmk_arn)), Resources=['secrets'])],
+        NoValue
     ),
     RoleArn=GetAtt(eks_service_role, "Arn"),
 )
