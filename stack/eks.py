@@ -8,7 +8,6 @@ from troposphere import (
     NoValue,
     Output,
     Ref,
-    Sub,
     Tags,
     ec2,
     eks,
