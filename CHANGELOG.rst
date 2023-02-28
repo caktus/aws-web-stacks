@@ -10,6 +10,8 @@ Change Log
 * Add ``EksClusterName`` parameter to control name of EKS cluster. If upgrading, set this to STACK_NAME-cluster to match existing name.
 * Drop support for RDS PostgreSQL 9.x
 * Upgrade to troposphere v4.2.0
+* Add ``EksPublicAccessCidrs`` parameter to optionally restrict access to your public Kubernetes API endpoint using CIDR blocks. If defined, both public and private endpoint access enabled as detailed in `API server endpoint access options <https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html#modify-endpoint-access>`_.
+* Enable ``api``, ``audit``, and ``authenticator`` log types for `EKS control plane logging <https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html>`_.
 
 
 `2.1.2`_ (2022-03-10)
