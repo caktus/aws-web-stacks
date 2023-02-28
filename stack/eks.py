@@ -109,6 +109,15 @@ cluster = eks.Cluster(
     "EksCluster",
     template=template,
     Name=cluster_name,
+    Logging=eks.Logging(
+        ClusterLogging=eks.ClusterLogging(
+            EnabledTypes=[
+                eks.LoggingTypeConfig(Type="api"),
+                eks.LoggingTypeConfig(Type="audit"),
+                eks.LoggingTypeConfig(Type="authenticator"),
+            ]
+        )
+    ),
     ResourcesVpcConfig=eks.ResourcesVpcConfig(
         SubnetIds=[
             # For load balancers
