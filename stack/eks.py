@@ -69,7 +69,7 @@ use_eks_encryption_config = Ref(template.add_parameter(
         AllowedValues=["true", "false"],
         Default="false",
     ),
-    group="Global",
+    group="Elastic Kubernetes Service (EKS)",
     label="Enable EKS EncryptionConfig",
 ))
 use_eks_encryption_config_cond = "EnableEksEncryptionConfigCond"
@@ -77,6 +77,20 @@ template.add_condition(use_eks_encryption_config_cond, And(
     Equals(use_eks_encryption_config, "true"),
     Not(Equals(Ref(cmk_arn), ""))
 ))
+
+# https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html#modify-endpoint-access
+public_access_cidrs = Ref(template.add_parameter(
+    Parameter(
+        "EksPublicAccessCidrs",
+        Description="The CIDR blocks that are allowed access to your cluster's public Kubernetes API server endpoint.",  # noqa
+        Type="CommaDelimitedList",
+        Default="",
+    ),
+    group="Elastic Kubernetes Service (EKS)",
+    label="Kubernetes API public access CIDRs",
+))
+restrict_eks_api_access_cond = "RestrictEksApiAccessCond"
+template.add_condition(restrict_eks_api_access_cond, Not(Equals(Join("", public_access_cidrs), "")))
 
 # Unlike most other resources in the stack, we specify the cluster name
 # via a stack parameter so it's easy to find and so it cannot be accidentally
@@ -87,7 +101,7 @@ cluster_name = Ref(template.add_parameter(
         Description="The unique name to give to your cluster.",  # noqa
         Type="String",
     ),
-    group="Global",
+    group="Elastic Kubernetes Service (EKS)",
     label="Cluster name",
 ))
 
@@ -105,6 +119,9 @@ cluster = eks.Cluster(
             Ref(private_subnet_b),
         ],
         SecurityGroupIds=[Ref(eks_security_group)],
+        EndpointPrivateAccess=If(restrict_eks_api_access_cond, True, False),
+        EndpointPublicAccess=True,
+        PublicAccessCidrs=If(restrict_eks_api_access_cond, public_access_cidrs, NoValue),
     ),
     EncryptionConfig=If(
         use_eks_encryption_config_cond,
