@@ -238,6 +238,18 @@ bastion_security_group_ingress_openvpn = ec2.SecurityGroupIngress(
 if USE_EKS:
     from .eks import cluster
     backend_server_id = GetAtt(cluster, "ClusterSecurityGroupId")
+    # Allow bastion access to Kubernetes API endpoint
+    container_security_group_k8s_ingress = ec2.SecurityGroupIngress(
+        'ContainerSecurityGroupKubernetesBastionIngress',
+        template=template,
+        GroupId=backend_server_id,
+        IpProtocol='tcp',
+        FromPort=443,
+        ToPort=443,
+        SourceSecurityGroupId=Ref(bastion_security_group),
+        Condition=bastion_type_set,
+        Description="Kubernetes API endpoint",
+    )
 else:
     from .security_groups import container_security_group
     backend_server_id = Ref(container_security_group)
