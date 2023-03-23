@@ -14,7 +14,7 @@ from troposphere import (
     iam
 )
 
-from .common import cmk_arn
+from .common import cmk_arn, use_aes256_encryption, use_cmk_arn
 from .containers import (
     container_instance_role,
     container_instance_type,
@@ -140,6 +140,30 @@ cluster = eks.Cluster(
     RoleArn=GetAtt(eks_service_role, "Arn"),
 )
 
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-launchtemplate.html
+nodegroup_launch_template = ec2.LaunchTemplate(
+    "NodegroupLaunchTemplate",
+    template=template,
+    LaunchTemplateData=ec2.LaunchTemplateData(
+        BlockDeviceMappings=[
+            ec2.LaunchTemplateBlockDeviceMapping(
+                DeviceName="/dev/xvda",
+                Ebs=ec2.EBSBlockDevice(
+                    DeleteOnTermination=True,
+                    Encrypted=use_aes256_encryption,
+                    KmsKeyId=If(use_cmk_arn, Ref(cmk_arn), Ref("AWS::NoValue")),
+                    VolumeType="gp2",
+                    VolumeSize=container_volume_size,
+                ),
+            ),
+        ],
+        InstanceType=container_instance_type,
+        MetadataOptions=ec2.MetadataOptions(
+            HttpTokens="required",
+        ),
+    )
+)
+
 eks.Nodegroup(
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-eks-nodegroup.html
     "Nodegroup",
@@ -151,9 +175,10 @@ eks.Nodegroup(
     ClusterName=Ref(cluster),
     # The NodeRole must be specified as an ARN.
     NodeRole=GetAtt(container_instance_role, "Arn"),
+    LaunchTemplate=eks.LaunchTemplateSpecification(
+        Id=Ref(nodegroup_launch_template),
+    ),
     # The rest are optional.
-    DiskSize=container_volume_size,
-    InstanceTypes=[container_instance_type],
     ScalingConfig=eks.ScalingConfig(
         DesiredSize=desired_container_instances,
         MaxSize=max_container_instances,
