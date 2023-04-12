@@ -160,6 +160,8 @@ nodegroup_launch_template = ec2.LaunchTemplate(
         InstanceType=container_instance_type,
         MetadataOptions=ec2.MetadataOptions(
             HttpTokens="required",
+            # Why 3? See note: https://github.com/adamchainz/ec2-metadata#instance-metadata-service-version-2
+            HttpPutResponseHopLimit=3,
         ),
     )
 )
