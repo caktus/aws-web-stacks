@@ -14,7 +14,7 @@ from troposphere import (
     iam
 )
 
-from .common import cmk_arn
+from .common import cmk_arn, use_aes256_encryption, use_cmk_arn
 from .containers import (
     container_instance_role,
     container_instance_type,
@@ -69,7 +69,7 @@ use_eks_encryption_config = Ref(template.add_parameter(
         AllowedValues=["true", "false"],
         Default="false",
     ),
-    group="Global",
+    group="Elastic Kubernetes Service (EKS)",
     label="Enable EKS EncryptionConfig",
 ))
 use_eks_encryption_config_cond = "EnableEksEncryptionConfigCond"
@@ -77,6 +77,20 @@ template.add_condition(use_eks_encryption_config_cond, And(
     Equals(use_eks_encryption_config, "true"),
     Not(Equals(Ref(cmk_arn), ""))
 ))
+
+# https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html#modify-endpoint-access
+public_access_cidrs = Ref(template.add_parameter(
+    Parameter(
+        "EksPublicAccessCidrs",
+        Description="The CIDR blocks that are allowed access to your cluster's public Kubernetes API server endpoint.",  # noqa
+        Type="CommaDelimitedList",
+        Default="",
+    ),
+    group="Elastic Kubernetes Service (EKS)",
+    label="Kubernetes API public access CIDRs",
+))
+restrict_eks_api_access_cond = "RestrictEksApiAccessCond"
+template.add_condition(restrict_eks_api_access_cond, Not(Equals(Join("", public_access_cidrs), "")))
 
 # Unlike most other resources in the stack, we specify the cluster name
 # via a stack parameter so it's easy to find and so it cannot be accidentally
@@ -87,7 +101,7 @@ cluster_name = Ref(template.add_parameter(
         Description="The unique name to give to your cluster.",  # noqa
         Type="String",
     ),
-    group="Global",
+    group="Elastic Kubernetes Service (EKS)",
     label="Cluster name",
 ))
 
@@ -95,6 +109,15 @@ cluster = eks.Cluster(
     "EksCluster",
     template=template,
     Name=cluster_name,
+    Logging=eks.Logging(
+        ClusterLogging=eks.ClusterLogging(
+            EnabledTypes=[
+                eks.LoggingTypeConfig(Type="api"),
+                eks.LoggingTypeConfig(Type="audit"),
+                eks.LoggingTypeConfig(Type="authenticator"),
+            ]
+        )
+    ),
     ResourcesVpcConfig=eks.ResourcesVpcConfig(
         SubnetIds=[
             # For load balancers
@@ -105,6 +128,9 @@ cluster = eks.Cluster(
             Ref(private_subnet_b),
         ],
         SecurityGroupIds=[Ref(eks_security_group)],
+        EndpointPrivateAccess=If(restrict_eks_api_access_cond, True, False),
+        EndpointPublicAccess=True,
+        PublicAccessCidrs=If(restrict_eks_api_access_cond, public_access_cidrs, NoValue),
     ),
     EncryptionConfig=If(
         use_eks_encryption_config_cond,
@@ -112,6 +138,32 @@ cluster = eks.Cluster(
         NoValue
     ),
     RoleArn=GetAtt(eks_service_role, "Arn"),
+)
+
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-launchtemplate.html
+nodegroup_launch_template = ec2.LaunchTemplate(
+    "NodegroupLaunchTemplate",
+    template=template,
+    LaunchTemplateData=ec2.LaunchTemplateData(
+        BlockDeviceMappings=[
+            ec2.LaunchTemplateBlockDeviceMapping(
+                DeviceName="/dev/xvda",
+                Ebs=ec2.EBSBlockDevice(
+                    DeleteOnTermination=True,
+                    Encrypted=use_aes256_encryption,
+                    KmsKeyId=If(use_cmk_arn, Ref(cmk_arn), Ref("AWS::NoValue")),
+                    VolumeType="gp2",
+                    VolumeSize=container_volume_size,
+                ),
+            ),
+        ],
+        InstanceType=container_instance_type,
+        MetadataOptions=ec2.MetadataOptions(
+            HttpTokens="required",
+            # Why 3? See note: https://github.com/adamchainz/ec2-metadata#instance-metadata-service-version-2
+            HttpPutResponseHopLimit=3,
+        ),
+    )
 )
 
 eks.Nodegroup(
@@ -125,9 +177,10 @@ eks.Nodegroup(
     ClusterName=Ref(cluster),
     # The NodeRole must be specified as an ARN.
     NodeRole=GetAtt(container_instance_role, "Arn"),
+    LaunchTemplate=eks.LaunchTemplateSpecification(
+        Id=Ref(nodegroup_launch_template),
+    ),
     # The rest are optional.
-    DiskSize=container_volume_size,
-    InstanceTypes=[container_instance_type],
     ScalingConfig=eks.ScalingConfig(
         DesiredSize=desired_container_instances,
         MaxSize=max_container_instances,
