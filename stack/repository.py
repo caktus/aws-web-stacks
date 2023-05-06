@@ -1,14 +1,7 @@
 import awacs.ecr as ecr
 from awacs.aws import Allow, AWSPrincipal, Policy, Statement
-from troposphere import (
-    AWS_ACCOUNT_ID,
-    AWS_REGION,
-    AWS_STACK_NAME,
-    Join,
-    Output,
-    Ref
-)
-from troposphere.ecr import Repository
+from troposphere import AWS_ACCOUNT_ID, AWS_REGION, Join, Output, Ref
+from troposphere.ecr import ImageScanningConfiguration, Repository
 
 from .common import arn_prefix
 from .template import template
@@ -17,7 +10,10 @@ from .template import template
 repository = Repository(
     "ApplicationRepository",
     template=template,
-    RepositoryName=Ref(AWS_STACK_NAME),
+    # Do we need to specify a repository name? The stack name might not be
+    # a valid repository name, and if we just leave it out, AWS will make one
+    # up for us.
+    # RepositoryName=Ref(AWS_STACK_NAME),
     # Allow all account users to manage images.
     RepositoryPolicyText=Policy(
         Version="2008-10-17",
@@ -25,14 +21,9 @@ repository = Repository(
             Statement(
                 Sid="AllowPushPull",
                 Effect=Allow,
-                Principal=AWSPrincipal([
-                    Join("", [
-                        arn_prefix,
-                        ":iam::",
-                        Ref(AWS_ACCOUNT_ID),
-                        ":root",
-                    ]),
-                ]),
+                Principal=AWSPrincipal(
+                    [Join("", [arn_prefix, ":iam::", Ref(AWS_ACCOUNT_ID), ":root"])]
+                ),
                 Action=[
                     ecr.GetDownloadUrlForLayer,
                     ecr.BatchGetImage,
@@ -43,20 +34,26 @@ repository = Repository(
                     ecr.CompleteLayerUpload,
                 ],
             ),
-        ]
+        ],
     ),
+    ImageScanningConfiguration=ImageScanningConfiguration(ScanOnPush=True),
 )
 
 
 # Output ECR repository URL
-template.add_output(Output(
-    "RepositoryURL",
-    Description="The docker repository URL",
-    Value=Join("", [
-        Ref(AWS_ACCOUNT_ID),
-        ".dkr.ecr.",
-        Ref(AWS_REGION),
-        ".amazonaws.com/",
-        Ref(repository),
-    ]),
-))
+template.add_output(
+    Output(
+        "RepositoryURL",
+        Description="The docker repository URL",
+        Value=Join(
+            "",
+            [
+                Ref(AWS_ACCOUNT_ID),
+                ".dkr.ecr.",
+                Ref(AWS_REGION),
+                ".amazonaws.com/",
+                Ref(repository),
+            ],
+        ),
+    )
+)

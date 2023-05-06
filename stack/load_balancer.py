@@ -1,8 +1,7 @@
-import os
-
-from troposphere import elasticloadbalancing as elb
 from troposphere import GetAtt, If, Join, Output, Ref
+from troposphere import elasticloadbalancing as elb
 
+from . import USE_ECS, USE_GOVCLOUD
 from .security_groups import load_balancer_security_group
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
@@ -10,7 +9,7 @@ from .vpc import public_subnet_a, public_subnet_b
 
 # Web worker
 
-if os.environ.get('USE_ECS') == 'on':
+if USE_ECS:
     web_worker_port = Ref(template.add_parameter(
         Parameter(
             "WebWorkerPort",
@@ -94,7 +93,7 @@ listeners = [
     )
 ]
 
-if os.environ.get('USE_GOVCLOUD') == 'on':
+if USE_GOVCLOUD:
     # configure the default HTTPS listener to pass TCP traffic directly,
     # since GovCloud doesn't support the Certificate Manager (this can be
     # modified to enable SSL termination at the load balancer via the AWS

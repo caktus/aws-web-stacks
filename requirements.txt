@@ -1,5 +1,2 @@
-awacs==0.9.6
-troposphere==2.5.2
-flake8==3.4.1
-isort==4.2.15
+troposphere[policy]==4.2.0
 sphinx==1.6.7

@@ -22,13 +22,14 @@ from .common import (
     use_aes256_encryption_cond,
     use_cmk_arn
 )
-from .security_groups import container_security_group
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
     primary_az,
     private_subnet_a,
+    private_subnet_a_cidr,
     private_subnet_b,
+    private_subnet_b_cidr,
     secondary_az,
     vpc
 )
@@ -38,6 +39,9 @@ NODE_TYPES = [
     'cache.t2.micro',
     'cache.t2.small',
     'cache.t2.medium',
+    'cache.t3.micro',
+    'cache.t3.small',
+    'cache.t3.medium',
     'cache.m3.medium',
     'cache.m3.large',
     'cache.m3.xlarge',
@@ -198,7 +202,17 @@ cache_security_group = ec2.SecurityGroup(
                 IpProtocol="tcp",
                 FromPort=constants.MEMCACHED_PORT,
                 ToPort=constants.MEMCACHED_PORT,
-                SourceSecurityGroupId=Ref(container_security_group),
+                CidrIp=Ref(private_subnet_a_cidr),
+            ),
+            Ref("AWS::NoValue"),
+        ),
+        If(
+            using_memcached_condition,
+            ec2.SecurityGroupRule(
+                IpProtocol="tcp",
+                FromPort=constants.MEMCACHED_PORT,
+                ToPort=constants.MEMCACHED_PORT,
+                CidrIp=Ref(private_subnet_b_cidr),
             ),
             Ref("AWS::NoValue"),
         ),
@@ -208,7 +222,17 @@ cache_security_group = ec2.SecurityGroup(
                 IpProtocol="tcp",
                 FromPort=constants.REDIS_PORT,
                 ToPort=constants.REDIS_PORT,
-                SourceSecurityGroupId=Ref(container_security_group),
+                CidrIp=Ref(private_subnet_a_cidr),
+            ),
+            Ref("AWS::NoValue"),
+        ),
+        If(
+            using_redis_condition,
+            ec2.SecurityGroupRule(
+                IpProtocol="tcp",
+                FromPort=constants.REDIS_PORT,
+                ToPort=constants.REDIS_PORT,
+                CidrIp=Ref(private_subnet_b_cidr),
             ),
             Ref("AWS::NoValue"),
         ),
@@ -244,6 +268,7 @@ redis_replication_group = elasticache.ReplicationGroup(
     CacheNodeType=Ref(redis_node_type),
     CacheSubnetGroupName=Ref(cache_subnet_group),
     Condition=using_redis_condition,
+    MultiAZEnabled=Ref(redis_automatic_failover),
     NumCacheClusters=redis_num_cache_clusters,
     Port=constants.REDIS_PORT,
     PreferredCacheClusterAZs=If(redis_uses_automatic_failover,

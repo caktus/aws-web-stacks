@@ -4,6 +4,7 @@ from troposphere import (
     Condition,
     Equals,
     FindInMap,
+    GetAtt,
     If,
     Join,
     Not,
@@ -13,6 +14,7 @@ from troposphere import (
     Tags
 )
 
+from . import USE_EKS
 from .common import (
     cmk_arn,
     dont_create_value,
@@ -43,8 +45,8 @@ bastion_ami = template.add_parameter(
     Parameter(
         "BastionAMI",
         Description="(Optional) Bastion or VPN server AMI in the same region as this stack.",
-        Type="AWS::EC2::Image::Id",
-        Default=dont_create_value,
+        Type="String",
+        Default="",
     ),
     group="Bastion Server",
     label="AMI",
@@ -181,7 +183,7 @@ bastion_type_is_ssh_set = "BastionTypeIsSSHSet"
 template.add_condition(bastion_type_is_ssh_set, Equals("SSH", Ref(bastion_type)))
 
 bastion_ami_set = "BastionAMISet"
-template.add_condition(bastion_ami_set, Not(Equals(dont_create_value, Ref(bastion_ami))))
+template.add_condition(bastion_ami_set, Not(Equals("", Ref(bastion_ami))))
 
 bastion_type_and_ami_set = "BastionTypeAndAMISet"
 template.add_condition(bastion_type_and_ami_set, And(Condition(bastion_type_set), Condition(bastion_ami_set)))
@@ -233,11 +235,30 @@ bastion_security_group_ingress_openvpn = ec2.SecurityGroupIngress(
     Condition=bastion_type_is_openvpn_set,
 )
 
+if USE_EKS:
+    from .eks import cluster
+    backend_server_id = GetAtt(cluster, "ClusterSecurityGroupId")
+    # Allow bastion access to Kubernetes API endpoint
+    container_security_group_k8s_ingress = ec2.SecurityGroupIngress(
+        'ContainerSecurityGroupKubernetesBastionIngress',
+        template=template,
+        GroupId=backend_server_id,
+        IpProtocol='tcp',
+        FromPort=443,
+        ToPort=443,
+        SourceSecurityGroupId=Ref(bastion_security_group),
+        Condition=bastion_type_set,
+        Description="Kubernetes API endpoint",
+    )
+else:
+    from .security_groups import container_security_group
+    backend_server_id = Ref(container_security_group)
+
 # Allow OpenVPN server full access to backend servers.
 container_security_group_bastion_ingress = ec2.SecurityGroupIngress(
     'ContainerSecurityGroupOpenVPNIngress',
     template=template,
-    GroupId=Ref("ContainerSecurityGroup"),
+    GroupId=backend_server_id,
     IpProtocol='-1',
     SourceSecurityGroupId=Ref(bastion_security_group),
     Condition=bastion_type_is_openvpn_set,
@@ -247,7 +268,7 @@ container_security_group_bastion_ingress = ec2.SecurityGroupIngress(
 container_security_group_bastion_ingress = ec2.SecurityGroupIngress(
     'ContainerSecurityGroupSSHBastionIngress',
     template=template,
-    GroupId=Ref("ContainerSecurityGroup"),
+    GroupId=backend_server_id,
     IpProtocol='tcp',
     FromPort=22,
     ToPort=22,
@@ -279,6 +300,7 @@ bastion_eip = ec2.EIP(
     "BastionEIP",
     template=template,
     Condition=bastion_type_set,
+    Domain="vpc",
 )
 
 bastion_instance = ec2.Instance(
@@ -318,7 +340,7 @@ eip_assoc = ec2.EIPAssociation(
     "BastionEIPAssociation",
     template=template,
     InstanceId=Ref(bastion_instance),
-    EIP=Ref(bastion_eip),
+    AllocationId=GetAtt(bastion_eip, "AllocationId"),
     Condition=bastion_type_and_ami_set,
 )
 

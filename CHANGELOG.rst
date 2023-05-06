@@ -1,14 +1,50 @@
 Change Log
 ==========
 
-
 `X.Y.Z`_ (TBD-DD-DD)
 ---------------------
 
-* TBD
+* Add support for T4g instance types
+* Add support for PostgreSQL 13 and 14 RDS parameter groups
+* Add support for `EKS EncryptionConfig <https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-eks-cluster.html#cfn-eks-cluster-encryptionconfig>`_. Set with ``EnableEksEncryptionConfig=true``.
+* Add ``EksClusterName`` parameter to control name of EKS cluster. If upgrading, set this to STACK_NAME-cluster to match existing name.
+* Drop support for RDS PostgreSQL 9.x
+* Upgrade to troposphere v4.2.0
+* Add ``EksPublicAccessCidrs`` parameter to optionally restrict access to your public Kubernetes API endpoint using CIDR blocks. If defined, both public and private endpoint access enabled as detailed in `API server endpoint access options <https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html#modify-endpoint-access>`_.
+* Enable ``api``, ``audit``, and ``authenticator`` log types for `EKS control plane logging <https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html>`_.
+* Allow bastion access to Kubernetes API endpoint
+* Add ``eks.LaunchTemplateSpecification`` to enforce `HttpTokens-based metadata <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html>`_
+
+`2.1.2`_ (2022-03-10)
+---------------------
+
+* Automatically enable ECR image scanning in stacks with an ECR Repository
+* Automatically enable Redis MultiAZ if failover is enabled
+* Fix bug where EKS instances could not reach cache clusters
 
 
-`2.0.0`_ (TBD)
+`2.1.1`_ (2021-02-17)
+---------------------
+
+* Fix an error in the format of ``Nodegroup`` tags
+
+
+`2.1.0`_ (2021-02-17)
+---------------------
+
+* Optionally create RDS, Redis, memcached, elasticsearch services when creating
+  an EKS cluster.
+* Include standard aws-web-stacks public and private asset buckets when using EKS.
+* Make AssetsCloudFrontCertArn empty by default so it's optional
+* Make SFTPUserRole and SFTPUserScopeDownPolicy key off use_sftp_condition
+* Add support for new EC2 and RDS instance types
+* Add support for RDS for PostgreSQL version 12
+* Add a missing ``PropagateAtLaunch`` property to ELB tags (#105)
+* Remove a broken reference in the Dokku stack (#98)
+* Other minor bug fixes
+
+
+`2.0.0`_ (2020-03-04)
 ---------------------
 
 **Backwards-incompatible changes:**
@@ -19,10 +55,12 @@ Change Log
 
 What's new in 2.0.0:
 
+* Add support for Elastic Kubernetes Service (EKS).
 * Re-purpose use_aes256_encryption flag to support encryption across S3, RDS, Elasticache (Redis only), and RDS (thanks @dsummersl)
-* Add support for Customer Managed CMKs with ``CustomerManagedCmkArn`` parameter
+* Add support for Customer Managed CMKs with ``CustomerManagedCmkArn`` parameter (not applied to public buckets)
 * Add configurable ContainerVolumeSize to change root volume size of EC2 instances (thanks @dsummersl)
 * Change generated template output from JSON to YAML (thanks @cchurch)
+* The stack no longer prompts for a ``SECRET_KEY`` if it won't be used for the stack type in question.
 * Add required DBParameterGroup by default, which allows configuring database specific parameters. This avoids having to reboot a production database instance to add a DBParameterGroup in the future. (thanks @cchurch)
 * Add tags to all resources, including a common ``aws-web-stacks:stack-name`` tag with the stack's name
 * Add a ``aws-web-stacks:role`` tag to EC2 instances to identify as bastion vs. worker.
@@ -33,6 +71,10 @@ What's new in 2.0.0:
 * Add parameters to customize VPC and subnet IPv4 CIDR blocks (**It is generally not possible to change the CIDR blocks for an existing stack.**).
 * Add RDS and ElastiCache endpoint outputs.
 * Add CustomAppCertificateArn parameter to allow association with an existing ACM certificate.
+* Add VPC Endpoint for S3.
+* Add DatabaseReplication parameter to add a database replica (** this will fail if DatabaseBackupRetentionDays is 0.**).
+* Add optional SFTP server, including S3 bucket, transfer server, and user role and scopedown policy to use when creating
+  users in the transfer server.
 
 
 `1.4.0`_ (2019-08-05)
@@ -56,7 +98,7 @@ Features:
 
 * Allow overriding parameter defaults at template creation time without having to change the
   Python code.  See `the README
-  <https://github.com/caktus/aws-web-stacks/blob/master/README.rst#dokku>`_.
+  <https://github.com/caktus/aws-web-stacks/blob/main/README.rst#dokku>`_.
 * Add a parameter to control whether certificates are validated by DNS or email, and default
   to DNS since GDPR has made email validation less likely to work.
 * The database type of the RDS instance can now be configured (previously, only Postgres could
@@ -81,7 +123,7 @@ Features:
   with the options selected via CloudFormation parameters, and provided the environment variables
   needed to access the related resources (such as the database, cache, or Elasticsearch instance)
   created with this stack. For more information, please see `the README
-  <https://github.com/caktus/aws-web-stacks/blob/master/README.rst#dokku>`_.
+  <https://github.com/caktus/aws-web-stacks/blob/main/README.rst#dokku>`_.
 
 `1.1.2`_ (2017-09-26)
 ---------------------
@@ -181,6 +223,9 @@ Backwards-incompatible changes:
 * Initial public release
 
 
+.. _2.1.2: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.1.2/
+.. _2.1.1: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.1.1/
+.. _2.1.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.1.0/
 .. _2.0.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.0.0/
 .. _1.4.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.4.0/
 .. _1.3.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=1.3.0/

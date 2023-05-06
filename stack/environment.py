@@ -2,6 +2,7 @@ import os
 
 from troposphere import AWS_REGION, GetAtt, If, Join, Ref
 
+from . import USE_GOVCLOUD
 from .assets import (
     assets_bucket,
     assets_cloudfront_domain,
@@ -18,11 +19,13 @@ from .database import (
     db_instance,
     db_name,
     db_password,
+    db_replica,
+    db_replication_condition,
     db_user
 )
 from .domain import domain_name, domain_name_alternates
 
-if os.environ.get('USE_GOVCLOUD') != 'on':
+if not USE_GOVCLOUD:
     # not supported by GovCloud, so add it only if it was created (and in this
     # case we want to avoid importing if it's not needed)
     from .search import es_condition, es_domain
@@ -58,6 +61,23 @@ environment_variables = [
             GetAtt(db_instance, 'Endpoint.Address'),
             ":",
             GetAtt(db_instance, 'Endpoint.Port'),
+            "/",
+            Ref(db_name),
+        ]),
+        "",  # defaults to empty string if no DB was created
+    )),
+    ("DATABASE_REPLICA_URL", If(
+        db_replication_condition,
+        Join("", [
+            Ref(db_engine),
+            "://",
+            Ref(db_user),
+            ":",
+            Ref(db_password),
+            "@",
+            GetAtt(db_replica, 'Endpoint.Address'),
+            ":",
+            GetAtt(db_replica, 'Endpoint.Port'),
             "/",
             Ref(db_name),
         ]),

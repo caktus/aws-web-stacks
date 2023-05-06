@@ -5,13 +5,14 @@ from troposphere import FindInMap, GetAtt, Join, Output, Ref, iam
 from troposphere.elasticbeanstalk import (
     Application,
     Environment,
-    OptionSettings
+    OptionSetting
 )
 from troposphere.iam import InstanceProfile, Role
 
+from . import USE_NAT_GATEWAY
 from .assets import assets_management_policy
 from .certificates import application as application_certificate
-from .common import container_instance_type
+from .containers import container_instance_type
 from .environment import environment_variables
 from .logs import logging_policy
 from .security_groups import (
@@ -21,7 +22,6 @@ from .security_groups import (
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 from .vpc import (
-    USE_NAT_GATEWAY,
     private_subnet_a,
     private_subnet_b,
     public_subnet_a,
@@ -216,18 +216,18 @@ template.add_resource(Environment(
 
     OptionSettings=[
         # VPC settings
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:ec2:vpc",
             OptionName="VPCId",
             Value=Ref(vpc),
         ),
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:ec2:vpc",
             OptionName="AssociatePublicIpAddress",
             # instances need a public IP if we're not using a NAT gateway
             Value=str(not USE_NAT_GATEWAY).lower(),
         ),
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:ec2:vpc",
             OptionName="Subnets",
             Value=Join(",", [
@@ -235,7 +235,7 @@ template.add_resource(Environment(
                 Ref(private_subnet_b),
             ]),
         ),
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:ec2:vpc",
             OptionName="ELBSubnets",
             Value=Join(",", [
@@ -244,22 +244,22 @@ template.add_resource(Environment(
             ]),
         ),
         # Launch config settings
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:autoscaling:launchconfiguration",
             OptionName="InstanceType",
             Value=container_instance_type,
         ),
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:autoscaling:launchconfiguration",
             OptionName="EC2KeyName",
             Value=Ref(key_name),
         ),
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:autoscaling:launchconfiguration",
             OptionName="IamInstanceProfile",
             Value=Ref(web_server_instance_profile),
         ),
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:autoscaling:launchconfiguration",
             OptionName="SecurityGroups",
             Value=Join(",", [
@@ -267,7 +267,7 @@ template.add_resource(Environment(
             ]),
         ),
         # Load balancer settings
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:elb:loadbalancer",
             OptionName="SecurityGroups",
             Value=Join(",", [
@@ -276,84 +276,84 @@ template.add_resource(Environment(
         ),
         # HTTPS Listener (note, these will not appear in the console -- only
         # the deprecated options which we are not using will appear there).
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:elb:listener:443",
             OptionName="ListenerProtocol",
             Value="HTTPS",
         ),
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:elb:listener:443",
             OptionName="SSLCertificateId",
             Value=application_certificate,
         ),
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:elb:listener:443",
             OptionName="InstanceProtocol",
             Value="HTTP",
         ),
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:elb:listener:443",
             OptionName="InstancePort",
             Value="80",
         ),
         # OS management options
-        # OptionSettings(
+        # OptionSetting(
         #     Namespace="aws:elasticbeanstalk:environment",
         # # allows AWS to reboot our instances with security updates
         #     OptionName="ServiceRole",
         # # should be created by EB by default
         #     Value="${aws_iam_role.eb_service_role.name),",
         # ),
-        # OptionSettings(
+        # OptionSetting(
         #     Namespace="aws:elasticbeanstalk:healthreporting:system",
         #     OptionName="SystemType", # required for managed updates
         #     Value="enhanced",
         # ),
-        # OptionSettings(
+        # OptionSetting(
         #     Namespace="aws:elasticbeanstalk:managedactions",
         # # required for managed updates
         #     OptionName="ManagedActionsEnabled",
         #     Value="true",
         # ),
-        # OptionSettings(
+        # OptionSetting(
         #     Namespace="aws:elasticbeanstalk:managedactions",
         #     OptionName="PreferredStartTime",
         #     Value="Sun:02:00",
         # ),
-        # OptionSettings(
+        # OptionSetting(
         #     Namespace="aws:elasticbeanstalk:managedactions:platformupdate",
         #     OptionName="UpdateLevel",
         #     Value="minor", # or "patch", ("minor", provides more updates)
         # ),
-        # OptionSettings(
+        # OptionSetting(
         #     Namespace="aws:elasticbeanstalk:managedactions:platformupdate",
         #     OptionName="InstanceRefreshEnabled",
         #     Value="true", # refresh instances weekly
         # ),
         # Logging configuration
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:elasticbeanstalk:cloudwatch:logs",
             OptionName="StreamLogs",
             Value="true",
         ),
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:elasticbeanstalk:cloudwatch:logs",
             OptionName="DeleteOnTerminate",
             Value="false",
         ),
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:elasticbeanstalk:cloudwatch:logs",
             OptionName="RetentionInDays",
             Value="365",
         ),
         # Environment variables
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:elb:listener:443",
             OptionName="InstancePort",
             Value="80",
         ),
     ] + [
-        OptionSettings(
+        OptionSetting(
             Namespace="aws:elasticbeanstalk:application:environment",
             OptionName=k,
             Value=v,

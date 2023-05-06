@@ -1,6 +1,8 @@
 from collections import OrderedDict
 
 from troposphere import (
+    And,
+    Condition,
     Equals,
     FindInMap,
     GetAtt,
@@ -46,40 +48,50 @@ rds_engine_map = OrderedDict([
 ])
 template.add_mapping('RdsEngineMap', rds_engine_map)
 
+# https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html
 db_class = template.add_parameter(
     Parameter(
         "DatabaseClass",
-        Default="db.t2.micro",
+        Default="db.t3.micro",
         Description="Database instance class",
         Type="String",
         AllowedValues=[
             dont_create_value,
-            'db.t1.micro',
-            'db.m1.small',
-            'db.m4.large',
-            'db.m4.xlarge',
-            'db.m4.2xlarge',
-            'db.m4.4xlarge',
-            'db.m4.10xlarge',
+            'db.r3.large',
+            'db.r3.xlarge',
+            'db.r3.2xlarge',
+            'db.r3.4xlarge',
+            'db.r3.8xlarge',
             'db.r4.large',
             'db.r4.xlarge',
             'db.r4.2xlarge',
             'db.r4.4xlarge',
             'db.r4.8xlarge',
             'db.r4.16xlarge',
-            'db.r3.large',
-            'db.r3.xlarge',
-            'db.r3.2xlarge',
-            'db.r3.4xlarge',
-            'db.r3.8xlarge',
+            'db.r5.large',
+            'db.r5.xlarge',
+            'db.r5.2xlarge',
+            'db.r5.4xlarge',
+            'db.r5.8xlarge',
+            'db.r5.12xlarge',
+            'db.r5.16xlarge',
+            'db.r5.24xlarge',
             'db.t2.micro',
             'db.t2.small',
             'db.t2.medium',
             'db.t2.large',
-            'db.m3.medium',
-            'db.m3.large',
-            'db.m3.xlarge',
-            'db.m3.2xlarge',
+            'db.t4g.micro',
+            'db.t4g.small',
+            'db.t4g.medium',
+            'db.t4g.large',
+            'db.t4g.xlarge',
+            'db.t4g.2xlarge',
+            'db.t3.micro',
+            'db.t3.small',
+            'db.t3.medium',
+            'db.t3.large',
+            'db.t3.xlarge',
+            'db.t3.2xlarge',
             'db.m1.small',
             'db.m1.medium',
             'db.m1.large',
@@ -87,6 +99,24 @@ db_class = template.add_parameter(
             'db.m2.xlarge',
             'db.m2.2xlarge',
             'db.m2.4xlarge',
+            'db.m3.medium',
+            'db.m3.large',
+            'db.m3.xlarge',
+            'db.m3.2xlarge',
+            'db.m4.large',
+            'db.m4.xlarge',
+            'db.m4.2xlarge',
+            'db.m4.4xlarge',
+            'db.m4.10xlarge',
+            'db.m4.16xlarge',
+            'db.m5.large',
+            'db.m5.xlarge',
+            'db.m5.2xlarge',
+            'db.m5.4xlarge',
+            'db.m5.8xlarge',
+            'db.m5.12xlarge',
+            'db.m5.16xlarge',
+            'db.m5.24xlarge',
         ],
         ConstraintDescription="must select a valid database instance type.",
     ),
@@ -96,6 +126,27 @@ db_class = template.add_parameter(
 
 db_condition = "DatabaseCondition"
 template.add_condition(db_condition, Not(Equals(Ref(db_class), dont_create_value)))
+
+db_replication = template.add_parameter(
+    Parameter(
+        "DatabaseReplication",
+        Type="String",
+        AllowedValues=["true", "false"],
+        Default="false",
+        Description="Whether to create a database server replica - "
+        "WARNING this will fail if DatabaseBackupRetentionDays is 0.",
+    ),
+    group="Database",
+    label="Database replication"
+)
+db_replication_condition = "DatabaseReplicationCondition"
+template.add_condition(
+    db_replication_condition,
+    And(
+        Condition(db_condition),
+        Equals(Ref(db_replication), "true")
+    )
+)
 
 db_engine = template.add_parameter(
     Parameter(
@@ -147,12 +198,11 @@ db_parameter_group_family = template.add_parameter(
             "oracle-se2-12.1",
             "oracle-se2-12.2",
             "aurora5.6",
-            "postgres9.3",
-            "postgres9.4",
-            "postgres9.5",
-            "postgres9.6",
             "postgres10",
             "postgres11",
+            "postgres12",
+            "postgres13",
+            "postgres14",
             "sqlserver-ee-11.0",
             "sqlserver-ee-12.0",
             "sqlserver-ee-13.0",
@@ -361,6 +411,16 @@ db_instance = rds.DBInstance(
     KmsKeyId=If(use_cmk_arn, Ref(cmk_arn), Ref("AWS::NoValue")),
 )
 
+db_replica = rds.DBInstance(
+    "DatabaseReplica",
+    template=template,
+    Condition=db_replication_condition,
+    SourceDBInstanceIdentifier=Ref(db_instance),
+    DBInstanceClass=Ref(db_class),
+    Engine=Ref(db_engine),
+    VPCSecurityGroups=[Ref(db_security_group)],
+)
+
 db_url = If(
     db_condition,
     Join("", [
@@ -377,12 +437,37 @@ db_url = If(
     "",  # defaults to empty string if no DB was created
 )
 
+db_replica_url = If(
+    db_replication_condition,
+    Join("", [
+        Ref(db_engine),
+        "://",
+        Ref(db_user),
+        ":_PASSWORD_@",
+        GetAtt(db_replica, 'Endpoint.Address'),
+        ":",
+        GetAtt(db_replica, 'Endpoint.Port'),
+        "/",
+        Ref(db_name),
+    ]),
+    "",  # defaults to empty string if no DB was created
+)
+
 template.add_output([
     Output(
         "DatabaseURL",
         Description="URL to connect (without the password) to the database.",
         Value=db_url,
         Condition=db_condition,
+    ),
+])
+
+template.add_output([
+    Output(
+        "DatabaseReplicaURL",
+        Description="URL to connect (without the password) to the database replica.",
+        Value=db_replica_url,
+        Condition=db_replication_condition,
     ),
 ])
 
@@ -401,5 +486,14 @@ template.add_output([
         Description="The connection endpoint for the database.",
         Value=GetAtt(db_instance, 'Endpoint.Address'),
         Condition=db_condition,
+    ),
+])
+
+template.add_output([
+    Output(
+        "DatabaseReplicaAddress",
+        Description="The connection endpoint for the database replica.",
+        Value=GetAtt(db_replica, "Endpoint.Address"),
+        Condition=db_replication_condition
     ),
 ])
