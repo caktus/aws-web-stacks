@@ -5,6 +5,7 @@ from troposphere import (
     Equals,
     GetAtt,
     If,
+    Join,
     Not,
     Output,
     Parameter,
@@ -32,6 +33,19 @@ from .template import template
 # in the case of EB)
 if os.getenv('USE_EB') == 'on':
     origin_domain_name = GetAtt("EBEnvironment", "EndpointURL")
+elif os.getenv('USE_EKS') == 'on':
+    origin_domain_name = Ref(
+        template.add_parameter(
+            Parameter(
+                "AppDistributionOriginDomainName",
+                Description="Domain name of the origin server",
+                Type="String",
+                Default="",
+            ),
+            group="Application Server",
+            label="CloudFront Origin Domain Name",
+        )
+    )
 else:
     origin_domain_name = GetAtt("LoadBalancer", "DNSName")
 
@@ -63,6 +77,23 @@ if origin_domain_name:
         label="CloudFront Protocol Policy",
     )
 
+    app_forwarded_headers = template.add_parameter(
+        Parameter(
+            "AppCloudFrontForwardedHeaders",
+            Description=(
+                "The headers that will be forwarded to the origin and used in the cache key. "
+                "The 'Host' header is required for SSL on an Elastic Load Balancer, but it "
+                "should NOT be passed to a Lambda Function URL."
+            ),
+            Type="CommaDelimitedList",
+            Default="",
+        ),
+        group="Application Server",
+        label="CloudFront Forwarded Headers",
+    )
+    app_forwarded_headers_condition = "AppCloudFrontForwardedHeadersCondition"
+    template.add_condition(app_forwarded_headers_condition, Not(Equals(Join("", Ref(app_forwarded_headers)), "")))
+
     # Currently, you can specify only certificates that are in the US East (N. Virginia) region.
     # http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distributionconfig-viewercertificate.html
     us_east_1_condition = "UsEast1Condition"
@@ -91,6 +122,7 @@ if origin_domain_name:
             Condition=app_uses_cloudfront_condition,
             DistributionConfig=DistributionConfig(
                 Aliases=all_domains_list,
+                HttpVersion="http2",
                 # If we're in us-east-1, use the application certificate tied to the load balancer, otherwise,
                 # use the manually-created cert
                 ViewerCertificate=If(
@@ -98,12 +130,15 @@ if origin_domain_name:
                     ViewerCertificate(
                         AcmCertificateArn=app_certificate,
                         SslSupportMethod='sni-only',
+                        # Default/recommended on the AWS console, as of May, 2023
+                        MinimumProtocolVersion='TLSv1.2_2021',
                     ),
                     If(
                         app_certificate_arn_condition,
                         ViewerCertificate(
                             AcmCertificateArn=Ref(app_certificate_arn),
                             SslSupportMethod='sni-only',
+                            MinimumProtocolVersion='TLSv1.2_2021',
                         ),
                         Ref("AWS::NoValue"),
                     ),
@@ -112,11 +147,12 @@ if origin_domain_name:
                     Id="ApplicationServer",
                     DomainName=origin_domain_name,
                     CustomOriginConfig=CustomOriginConfig(
-                        OriginProtocolPolicy="match-viewer",
+                        OriginProtocolPolicy="https-only",
                     ),
                 )],
                 DefaultCacheBehavior=DefaultCacheBehavior(
                     TargetOriginId="ApplicationServer",
+                    Compress="true",
                     AllowedMethods=["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"],
                     CachedMethods=["HEAD", "GET"],
                     ForwardedValues=ForwardedValues(
@@ -126,9 +162,11 @@ if origin_domain_name:
                         Cookies=Cookies(
                             Forward='all',
                         ),
-                        Headers=[
-                            'Host',  # required for SSL on an Elastic Load Balancer
-                        ],
+                        Headers=If(
+                            app_forwarded_headers_condition,
+                            Ref(app_forwarded_headers),
+                            Ref("AWS::NoValue"),
+                        ),
                     ),
                     ViewerProtocolPolicy=Ref(app_protocol_policy),
                 ),
