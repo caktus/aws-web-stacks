@@ -4,7 +4,7 @@
 from troposphere import Equals, If, Not, Or, Ref
 from troposphere.certificatemanager import Certificate, DomainValidationOption
 
-from .common import dont_create_value
+from .constants import dont_create_value
 from .domain import domain_name, domain_name_alternates, no_alt_domains
 from .template import template
 from .utils import ParameterWithDefaults as Parameter

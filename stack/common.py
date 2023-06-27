@@ -1,3 +1,5 @@
+import os
+
 from troposphere import AWS_REGION, Equals, If, Not, Ref
 
 from . import USE_DOKKU, USE_EB, USE_EC2, USE_ECS, USE_GOVCLOUD
@@ -5,6 +7,12 @@ from .template import template
 from .utils import ParameterWithDefaults as Parameter
 
 dont_create_value = "(none)"
+
+# TODO: clean up naming for this role so it's the same for all configurations
+if os.environ.get('USE_EB') == 'on':
+    instance_role = "WebServerRole"
+else:
+    instance_role = "ContainerInstanceRole"
 
 in_govcloud_region = "InGovCloudRegion"
 template.add_condition(in_govcloud_region, Equals(Ref(AWS_REGION), "us-gov-west-1"))

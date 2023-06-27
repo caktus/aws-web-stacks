@@ -15,12 +15,8 @@ from troposphere import (
 )
 
 from . import USE_EKS
-from .common import (
-    cmk_arn,
-    dont_create_value,
-    use_aes256_encryption,
-    use_cmk_arn
-)
+from .common import cmk_arn, use_aes256_encryption, use_cmk_arn
+from .constants import dont_create_value
 from .template import template
 from .vpc import public_subnet_a, vpc
 

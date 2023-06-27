@@ -14,6 +14,7 @@ templates:
 	# USE_DOKKU=on USE_NAT_GATEWAY=on python -c 'import stack' > content/dokku-nat.yaml (disabled; need to SSH to instance to deploy)
 	USE_GOVCLOUD=on python -c 'import stack' > content/gc-no-nat.yaml
 	USE_GOVCLOUD=on USE_NAT_GATEWAY=on python -c 'import stack' > content/gc-nat.yaml
+	USE_CLOUDFRONT=on python -c 'import stack' > content/cloudfront.yaml
 
 versioned_templates: templates
 	# version must be passed via the command-line, e.g., make VERSION=x.y.z versioned_templates
