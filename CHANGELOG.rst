@@ -14,7 +14,7 @@ Change Log
 * Enable ``api``, ``audit``, and ``authenticator`` log types for `EKS control plane logging <https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html>`_.
 * Allow bastion access to Kubernetes API endpoint
 * Add ``eks.LaunchTemplateSpecification`` to enforce `HttpTokens-based metadata <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html>`_
-* Add support for CloudFront Distribution in front of the application server
+* Add support for CloudFront Distribution in front of the application server via a separate CloudFormation stack (must be deployed on its own, after the main stack creation)
 
 `2.1.2`_ (2022-03-10)
 ---------------------
