@@ -17,11 +17,11 @@ from troposphere import (
 
 from .common import (
     cmk_arn,
-    dont_create_value,
     use_aes256_encryption,
     use_aes256_encryption_cond,
     use_cmk_arn
 )
+from .constants import dont_create_value
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 from .vpc import (

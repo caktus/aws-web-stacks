@@ -6,7 +6,8 @@ from troposphere.elasticsearch import (
     ElasticsearchClusterConfig
 )
 
-from .common import dont_create_value, instance_role
+from .common import instance_role
+from .constants import dont_create_value
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 
