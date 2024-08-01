@@ -4,16 +4,23 @@ Change Log
 `X.Y.Z`_ (TBD-DD-DD)
 ---------------------
 
-* Add support for T4g instance types
-* Add support for PostgreSQL 13 and 14 RDS parameter groups
-* Add support for `EKS EncryptionConfig <https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-eks-cluster.html#cfn-eks-cluster-encryptionconfig>`_. Set with ``EnableEksEncryptionConfig=true``.
-* Add ``EksClusterName`` parameter to control name of EKS cluster. If upgrading, set this to STACK_NAME-cluster to match existing name.
-* Drop support for RDS PostgreSQL 9.x
-* Upgrade to troposphere v4.2.0
-* Add ``EksPublicAccessCidrs`` parameter to optionally restrict access to your public Kubernetes API endpoint using CIDR blocks. If defined, both public and private endpoint access enabled as detailed in `API server endpoint access options <https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html#modify-endpoint-access>`_.
-* Enable ``api``, ``audit``, and ``authenticator`` log types for `EKS control plane logging <https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html>`_.
-* Allow bastion access to Kubernetes API endpoint
-* Add ``eks.LaunchTemplateSpecification`` to enforce `HttpTokens-based metadata <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html>`_
+* TBD
+
+
+`2.2.0`_ (2024-08-01)
+---------------------
+
+* Add support for T4g instance types. (#114)
+* Add support for PostgreSQL 13 and 14 RDS parameter groups. (#114)
+* Drop support for RDS PostgreSQL 9.x. (#114)
+* Add support for `EKS EncryptionConfig <https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-eks-cluster.html#cfn-eks-cluster-encryptionconfig>`_. Set with ``EnableEksEncryptionConfig=true``. (#115)
+* Add ``EksClusterName`` parameter to control name of EKS cluster. If upgrading, set this to STACK_NAME-cluster to match existing name. (#115)
+* Upgrade to troposphere v4.2.0. (#116)
+* Add ``EksPublicAccessCidrs`` parameter to optionally restrict access to your public Kubernetes API endpoint using CIDR blocks. If defined, both public and private endpoint access enabled as detailed in `API server endpoint access options <https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html#modify-endpoint-access>`_. (#117)
+* Enable ``api``, ``audit``, and ``authenticator`` log types for `EKS control plane logging <https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html>`_. (#117)
+* Allow bastion access to Kubernetes API endpoint. (#117)
+* Add ``eks.LaunchTemplateSpecification`` to enforce `HttpTokens-based metadata <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html>`_. (#117)
+
 
 `2.1.2`_ (2022-03-10)
 ---------------------
@@ -223,6 +230,7 @@ Backwards-incompatible changes:
 * Initial public release
 
 
+.. _2.2.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.2.0/
 .. _2.1.2: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.1.2/
 .. _2.1.1: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.1.1/
 .. _2.1.0: https://aws-web-stacks.s3.amazonaws.com/index.html?prefix=2.1.0/
