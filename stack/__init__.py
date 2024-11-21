@@ -8,8 +8,11 @@ USE_ECS = os.environ.get("USE_ECS") == "on"
 USE_EKS = os.environ.get("USE_EKS") == "on"
 USE_GOVCLOUD = os.environ.get("USE_GOVCLOUD") == "on"
 USE_NAT_GATEWAY = os.environ.get("USE_NAT_GATEWAY") == "on"
+USE_CLOUDFRONT = os.environ.get("USE_CLOUDFRONT") == "on"
 
-if USE_EKS:
+if USE_CLOUDFRONT:
+    from . import cdn  # noqa: F401
+elif USE_EKS:
     from . import assets  # noqa: F401
     from . import cache  # noqa: F401
     from . import database  # noqa: F401

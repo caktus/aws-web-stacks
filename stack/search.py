@@ -6,16 +6,10 @@ from troposphere.elasticsearch import (
     ElasticsearchClusterConfig
 )
 
-from . import USE_EB
-from .common import dont_create_value
+from .common import instance_role
+from .constants import dont_create_value
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
-
-# TODO: clean up naming for this role so it's the same for all configurations
-if USE_EB:
-    instance_role = "WebServerRole"
-else:
-    instance_role = "ContainerInstanceRole"
 
 es_instance_type = template.add_parameter(
     Parameter(

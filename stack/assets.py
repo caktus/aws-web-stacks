@@ -41,7 +41,7 @@ from .common import (
     use_aes256_encryption_cond,
     use_cmk_arn
 )
-from .domain import domain_name, domain_name_alternates, no_alt_domains
+from .domain import all_domains_list
 from .sftp import use_sftp_condition, use_sftp_with_kms_condition
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
@@ -71,18 +71,9 @@ common_bucket_conf = dict(
     DeletionPolicy="Retain",
     CorsConfiguration=CorsConfiguration(
         CorsRules=[CorsRules(
-            AllowedOrigins=Split(";", Join("", [
-                "https://", domain_name,
-                If(
-                    no_alt_domains,
-                    # if we don't have any alternate domains, return an empty string
-                    "",
-                    # otherwise, return the ';https://' that will be needed by the first domain
-                    ";https://",
-                ),
-                # then, add all the alternate domains, joined together with ';https://'
-                Join(";https://", domain_name_alternates),
-                # now that we have a string of origins separated by ';', Split() is used to make it into a list again
+            AllowedOrigins=Split(';', Join('', [
+                'https://',
+                Join(';https://', all_domains_list)
             ])),
             AllowedMethods=[
                 "POST",
@@ -283,7 +274,7 @@ if not USE_GOVCLOUD:
         Parameter(
             "AssetsCloudFrontDomain",
             Description="A custom domain name (CNAME) for your CloudFront distribution, e.g., "
-                        "\"static.example.com\".",
+                        "\"static.example.com\" (optional).",
             Type="String",
             Default="",
         ),
