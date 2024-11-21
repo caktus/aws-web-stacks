@@ -4,6 +4,10 @@ Change Log
 `X.Y.Z`_ (TBD-DD-DD)
 ---------------------
 
+
+`2.3.0`_ (2024-11-21)
+---------------------
+
 * Add support for CloudFront Distribution in front of the application server via a separate CloudFormation stack (must be deployed on its own, after the main stack creation)
 
 
