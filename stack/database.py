@@ -20,13 +20,7 @@ from .common import cmk_arn, use_aes256_encryption, use_cmk_arn
 from .constants import dont_create_value
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
-from .vpc import (
-    private_subnet_a,
-    private_subnet_a_cidr,
-    private_subnet_b,
-    private_subnet_b_cidr,
-    vpc
-)
+from .vpc import private_subnet_a, private_subnet_b, private_subnet_a_cidr, private_subnet_b_cidr, vpc
 
 rds_engine_map = OrderedDict([
     ("aurora", {"Port": "3306"}),
@@ -362,13 +356,13 @@ db_security_group = ec2.SecurityGroup(
             IpProtocol="tcp",
             FromPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
             ToPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
-            CidrIp=Ref(private_subnet_a_cidr),
+            CidrIp=private_subnet_a_cidr,
         ),
         ec2.SecurityGroupRule(
             IpProtocol="tcp",
             FromPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
             ToPort=FindInMap("RdsEngineMap", Ref(db_engine), "Port"),
-            CidrIp=Ref(private_subnet_b_cidr),
+            CidrIp=private_subnet_b_cidr,
         ),
     ],
     Tags=Tags(
