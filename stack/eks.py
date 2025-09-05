@@ -105,6 +105,34 @@ cluster_name = Ref(template.add_parameter(
     label="Cluster name",
 ))
 
+custom_eks_ami = Ref(template.add_parameter(
+    Parameter(
+        "CustomEKSAMI",
+        Description="Custom AMI ID for EKS node group",
+        Type="String",
+        Default="",
+    ),
+    group="Elastic Kubernetes Service (EKS)",
+    label="Custom EKS AMI",
+))
+
+custom_ami_image_type = Ref(template.add_parameter(
+    Parameter(
+        "CustomAMIImageType",
+        Description="The image type to match the custom AMI. E.g., EKS_AL2023, AL2_x86_64",
+        Type="String",
+        Default="",
+    ),
+    group="Elastic Kubernetes Service (EKS)",
+    label="Custom AMI Image Type",
+))
+
+use_custom_ami= "UseCustomAMI"
+template.add_condition(
+    use_custom_ami,
+    Not(Equals(custom_eks_ami, ""))
+)
+
 cluster = eks.Cluster(
     "EksCluster",
     template=template,
@@ -145,6 +173,7 @@ nodegroup_launch_template = ec2.LaunchTemplate(
     "NodegroupLaunchTemplate",
     template=template,
     LaunchTemplateData=ec2.LaunchTemplateData(
+        ImageId=If(use_custom_ami, custom_eks_ami, Ref("AWS::NoValue")),
         BlockDeviceMappings=[
             ec2.LaunchTemplateBlockDeviceMapping(
                 DeviceName="/dev/xvda",
@@ -179,6 +208,7 @@ eks.Nodegroup(
     NodeRole=GetAtt(container_instance_role, "Arn"),
     LaunchTemplate=eks.LaunchTemplateSpecification(
         Id=Ref(nodegroup_launch_template),
+        Version=GetAtt(nodegroup_launch_template, "LatestVersionNumber"),
     ),
     # The rest are optional.
     ScalingConfig=eks.ScalingConfig(
@@ -187,6 +217,7 @@ eks.Nodegroup(
         MinSize=2,
     ),
     Subnets=[Ref(private_subnet_a), Ref(private_subnet_b)],
+    AmiType=If(use_custom_ami, custom_ami_image_type, Ref("AWS::NoValue"))
 )
 
 # OUTPUTS
