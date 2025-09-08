@@ -1,7 +1,35 @@
 Change Log
 ==========
 
-`X.Y.Z`_ (TBD-DD-DD)
+`2.4.0`_ (2025-09-08)
+---------------------
+
+**Backwards-incompatible changes:**
+
+* EBS volume type for worker nodes has been changed from ``gp2`` to ``gp3``. This will result in node replacement. Workload migration should still be managed by AWS.
+
+**What's new in 2.4.0:**
+
+* **Custom AMI Support**:
+  * Added support for conditionally specifying custom AMIs for EKS node groups.
+  * New parameters:
+    - ``CustomAMIImageType``: Corresponding image type (e.g., ``AL2023_x86_64_STANDARD``, ``AL2_x86_64``).
+    - ``CustomEKSAMI``: AMI ID to use for worker nodes. If ``CustomAMIImageType`` is set, one isn't required to set ``CustomEKSAMI``.
+  * Conditional logic ensures that these settings are only applied when explicitly provided.
+
+* **Cluster Version Parameterization**:
+  * Introduced ``EksClusterVersion`` parameter to allow template users to control the Kubernetes version.
+  * If this parameter is not set, AWS will default to the version already in place.
+
+* **Launch Template Enhancements**:
+  * Node group now uses a versioned launch template reference. This will support inplace changes rather than entire nodegroup replacement where possible.
+  * Custom AMI ID is injected into the launch template conditionally, based on user input.
+
+* **EBS Improvements**:
+  * Changed block storage type from ``gp2`` to ``gp3`` in the launch template for better performance and cost optimization.
+
+
+`2.3.0`_ (2024-11-21)
 ---------------------
 
 * Add support for CloudFront Distribution in front of the application server via a separate CloudFormation stack (must be deployed on its own, after the main stack creation)
