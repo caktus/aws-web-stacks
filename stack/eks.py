@@ -116,22 +116,22 @@ custom_eks_ami = Ref(template.add_parameter(
     label="Custom EKS AMI",
 ))
 
+use_custom_ami= "UseCustomAMI"
+template.add_condition(
+    use_custom_ami,
+    Not(Equals(custom_eks_ami, ""))
+)
+
 custom_ami_image_type = Ref(template.add_parameter(
     Parameter(
         "CustomAMIImageType",
-        Description="The image type to match the custom AMI. E.g., EKS_AL2023, AL2_x86_64",
+        Description="The image type to match the custom AMI. E.g., AL2023_x86_64_STANDARD, AL2_x86_64",
         Type="String",
         Default="",
     ),
     group="Elastic Kubernetes Service (EKS)",
     label="Custom AMI Image Type",
 ))
-
-use_custom_ami= "UseCustomAMI"
-template.add_condition(
-    use_custom_ami,
-    Not(Equals(custom_eks_ami, ""))
-)
 
 use_custom_ami_type = "UseCustomAMIType"
 template.add_condition(
@@ -144,17 +144,23 @@ cluster_version = Ref(template.add_parameter(
         "EksClusterVersion",
         Description="The version of Kubernetes to use for the EKS cluster",
         Type="String",
-        Default="1.32"
+        Default="",
     ),
     group="Elastic Kubernetes Service (EKS)",
     label="Kubernetes Cluster Version",
 ))
 
+use_cluster_version = "UseEksClusterVersion"
+template.add_condition(
+    use_cluster_version,
+    Not(Equals(cluster_version, ""))
+)
+
 cluster = eks.Cluster(
     "EksCluster",
     template=template,
     Name=cluster_name,
-    Version=cluster_version,
+    Version=If(use_cluster_version, cluster_version, Ref("AWS::NoValue")),
     Logging=eks.Logging(
         ClusterLogging=eks.ClusterLogging(
             EnabledTypes=[
@@ -235,7 +241,7 @@ eks.Nodegroup(
         MinSize=2,
     ),
     Subnets=[Ref(private_subnet_a), Ref(private_subnet_b)],
-    AmiType=If(use_custom_ami_type, custom_ami_image_type, "EKS_AL2023")
+    AmiType=If(use_custom_ami_type, custom_ami_image_type, Ref("AWS::NoValue"))
 )
 
 # OUTPUTS
