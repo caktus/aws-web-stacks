@@ -133,10 +133,28 @@ template.add_condition(
     Not(Equals(custom_eks_ami, ""))
 )
 
+use_custom_ami_type = "UseCustomAMIType"
+template.add_condition(
+    use_custom_ami_type,
+    Not(Equals(custom_ami_image_type, ""))
+)
+
+cluster_version = Ref(template.add_parameter(
+    Parameter(
+        "EksClusterVersion",
+        Description="The version of Kubernetes to use for the EKS cluster",
+        Type="String",
+        Default="1.32"
+    ),
+    group="Elastic Kubernetes Service (EKS)",
+    label="Kubernetes Cluster Version",
+))
+
 cluster = eks.Cluster(
     "EksCluster",
     template=template,
     Name=cluster_name,
+    Version=cluster_version,
     Logging=eks.Logging(
         ClusterLogging=eks.ClusterLogging(
             EnabledTypes=[
@@ -181,7 +199,7 @@ nodegroup_launch_template = ec2.LaunchTemplate(
                     DeleteOnTermination=True,
                     Encrypted=use_aes256_encryption,
                     KmsKeyId=If(use_cmk_arn, Ref(cmk_arn), Ref("AWS::NoValue")),
-                    VolumeType="gp2",
+                    VolumeType="gp3",
                     VolumeSize=container_volume_size,
                 ),
             ),
@@ -217,7 +235,7 @@ eks.Nodegroup(
         MinSize=2,
     ),
     Subnets=[Ref(private_subnet_a), Ref(private_subnet_b)],
-    AmiType=If(use_custom_ami, custom_ami_image_type, Ref("AWS::NoValue"))
+    AmiType=If(use_custom_ami_type, custom_ami_image_type, "EKS_AL2023")
 )
 
 # OUTPUTS
