@@ -116,7 +116,7 @@ custom_eks_ami = Ref(template.add_parameter(
     label="Custom EKS AMI",
 ))
 
-use_custom_ami= "UseCustomAMI"
+use_custom_ami = "UseCustomAMI"
 template.add_condition(
     use_custom_ami,
     Not(Equals(custom_eks_ami, ""))
