@@ -108,7 +108,7 @@ cluster_name = Ref(template.add_parameter(
 custom_eks_ami = Ref(template.add_parameter(
     Parameter(
         "CustomEKSAMI",
-        Description="Custom AMI ID for EKS node group",
+        Description="Custom AMI ID for EKS node group. Preferably do not set as AWS will select best optimized image if CustomAMIImageType is set.",
         Type="String",
         Default="",
     ),
