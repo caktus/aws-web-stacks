@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+`2.5.0`_ (2025-05-18)
+---------------------
+
+* Adds version mapping to the EKS nodegroup resource in eks.py. This will explicitly bind the EKS nodegroup version to the EKSClusterVersion parameter, eliminating manual post-upgrade nodegroup management.
+
 `2.4.0`_ (2025-09-08)
 ---------------------
 
