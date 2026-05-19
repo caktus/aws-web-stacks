@@ -230,6 +230,7 @@ eks.Nodegroup(
     ClusterName=Ref(cluster),
     # The NodeRole must be specified as an ARN.
     NodeRole=GetAtt(container_instance_role, "Arn"),
+    Version=If(use_cluster_version, cluster_version, Ref("AWS::NoValue")),
     LaunchTemplate=eks.LaunchTemplateSpecification(
         Id=Ref(nodegroup_launch_template),
         Version=GetAtt(nodegroup_launch_template, "LatestVersionNumber"),
