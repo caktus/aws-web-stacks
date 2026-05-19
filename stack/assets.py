@@ -25,8 +25,11 @@ from troposphere.cloudfront import (
 from troposphere.s3 import (
     Bucket,
     BucketEncryption,
+    BucketPolicy,
     CorsConfiguration,
     CorsRules,
+    OwnershipControls,
+    OwnershipControlsRule,
     Private,
     PublicAccessBlockConfiguration,
     ServerSideEncryptionByDefault,
@@ -88,12 +91,21 @@ common_bucket_conf = dict(
     ),
 )
 
-# Create an S3 bucket that holds statics and media. Default to private to prevent
-# public list permissions, but still allow objects to be made publicly readable.
+# Create an S3 bucket that holds static assets. All assets in this bucket
+# are publicly readable; the private assets bucket should be used for non-public files.
 assets_bucket = template.add_resource(
     Bucket(
         "AssetsBucket",
         AccessControl=Ref(assets_bucket_access_control),
+        OwnershipControls=OwnershipControls(
+            Rules=[OwnershipControlsRule(ObjectOwnership="BucketOwnerEnforced")]
+        ),
+        PublicAccessBlockConfiguration=PublicAccessBlockConfiguration(
+            BlockPublicAcls=False,
+            BlockPublicPolicy=False,
+            IgnorePublicAcls=False,
+            RestrictPublicBuckets=False,
+        ),
         BucketEncryption=If(
             use_aes256_encryption_cond,
             BucketEncryption(
@@ -118,6 +130,25 @@ template.add_output(
         "AssetsBucketDomainName",
         Description="Assets bucket domain name",
         Value=GetAtt(assets_bucket, "DomainName"),
+    )
+)
+
+# Bucket policy to allow public read access to assets
+template.add_resource(
+    BucketPolicy(
+        "AssetsBucketPolicy",
+        Bucket=Ref(assets_bucket),
+        PolicyDocument=dict(
+            Version="2012-10-17",
+            Statement=[
+                dict(
+                    Effect="Allow",
+                    Principal="*",
+                    Action="s3:GetObject",
+                    Resource=Join("", [arn_prefix, ":s3:::", Ref(assets_bucket), "/*"]),
+                )
+            ],
+        ),
     )
 )
 
