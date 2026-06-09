@@ -8,6 +8,7 @@ container_log_group = logs.LogGroup(
     template=template,
     RetentionInDays=365,
     DeletionPolicy="Retain",
+    UpdateReplacePolicy="Retain",
 )
 
 

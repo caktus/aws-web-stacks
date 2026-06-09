@@ -16,7 +16,7 @@ repository = Repository(
     # RepositoryName=Ref(AWS_STACK_NAME),
     # Allow all account users to manage images.
     RepositoryPolicyText=Policy(
-        Version="2008-10-17",
+        Version="2012-10-17",
         Statement=[
             Statement(
                 Sid="AllowPushPull",

@@ -1,4 +1,4 @@
-from troposphere import GetAtt, Join, Ref, Sub, Tag, Tags
+from troposphere import GetAtt, Join, Output, Ref, Sub, Tag, Tags
 from troposphere.ec2 import (
     EIP,
     VPC,
@@ -12,7 +12,7 @@ from troposphere.ec2 import (
     VPCGatewayAttachment
 )
 
-from . import USE_EKS, USE_NAT_GATEWAY
+from . import USE_NAT_GATEWAY
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 
@@ -163,12 +163,9 @@ public_route = Route(
     RouteTableId=Ref(public_route_table),
 )
 
-public_subnet_eks_tags = []
-private_subnet_eks_tags = []
-if USE_EKS:
-    public_subnet_eks_tags.append(Tag("kubernetes.io/role/elb", "1"))
-    # Tag your private subnets so that Kubernetes knows that it can use them for internal load balancers.
-    private_subnet_eks_tags.append(Tag("kubernetes.io/role/internal-elb", "1"))
+# EKS subnet tags (always added since EKS is the only deployment mode)
+public_subnet_eks_tags = [Tag("kubernetes.io/role/elb", "1")]
+private_subnet_eks_tags = [Tag("kubernetes.io/role/internal-elb", "1")]
 
 # Holds load balancer, NAT gateway, and bastion (if specified)
 public_subnet_a = Subnet(
@@ -304,3 +301,23 @@ SubnetRouteTableAssociation(
     SubnetId=Ref(private_subnet_b),
     RouteTableId=private_route_table,
 )
+
+# ---------------------------------------------------------------------------
+# Outputs
+# ---------------------------------------------------------------------------
+
+template.add_output(Output(
+    "VpcId",
+    Description="VPC ID.",
+    Value=Ref(vpc),
+))
+template.add_output(Output(
+    "PublicSubnetIds",
+    Description="Comma-separated list of public subnet IDs.",
+    Value=Join(",", [Ref(public_subnet_a), Ref(public_subnet_b)]),
+))
+template.add_output(Output(
+    "PrivateSubnetIds",
+    Description="Comma-separated list of private subnet IDs.",
+    Value=Join(",", [Ref(private_subnet_a), Ref(private_subnet_b)]),
+))

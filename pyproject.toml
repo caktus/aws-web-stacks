@@ -1,0 +1,17 @@
+[project]
+name = "aws-web-stacks"
+version = "0.1.0"
+description = "CloudFormation template generator for EKS deployments"
+requires-python = ">=3.8"
+dependencies = [
+    "boto3>=1.37.38",
+    "cfn-lint[full]>=1.26.1",
+    "sphinx==1.6.7",
+    "troposphere[policy]>=4.10.2",
+]
+
+[dependency-groups]
+dev = [
+    "awscli>=1.38.38",
+    "pre-commit>=3.5.0",
+]

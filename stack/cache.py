@@ -34,44 +34,14 @@ from .vpc import (
     vpc
 )
 
-NODE_TYPES = [
-    dont_create_value,
-    'cache.t2.micro',
-    'cache.t2.small',
-    'cache.t2.medium',
-    'cache.t3.micro',
-    'cache.t3.small',
-    'cache.t3.medium',
-    'cache.m3.medium',
-    'cache.m3.large',
-    'cache.m3.xlarge',
-    'cache.m3.2xlarge',
-    'cache.m4.large',
-    'cache.m4.xlarge',
-    'cache.m4.2xlarge',
-    'cache.m4.4xlarge',
-    'cache.m4.10xlarge',
-    'cache.r4.large',
-    'cache.r4.xlarge',
-    'cache.r4.2xlarge',
-    'cache.r4.4xlarge',
-    'cache.r4.8xlarge',
-    'cache.r4.16xlarge',
-    'cache.r3.large',
-    'cache.r3.xlarge',
-    'cache.r3.2xlarge',
-    'cache.r3.4xlarge',
-    'cache.r3.8xlarge',
-]
-
+# No AllowedValues - users can specify any ElastiCache node type directly.
+# This avoids the need to update the template when new node types are released.
 cache_node_type = template.add_parameter(
     Parameter(
         "CacheNodeType",
         Default=dont_create_value,
-        Description="Cache instance type",
+        Description="Cache instance type (e.g. cache.t3.micro, cache.m5.large). Use '(none)' to skip.",
         Type="String",
-        AllowedValues=NODE_TYPES,
-        ConstraintDescription="must select a valid cache node type.",
     ),
     group="Memcached",
     label="Instance Type",
@@ -80,14 +50,14 @@ cache_node_type = template.add_parameter(
 using_memcached_condition = "UsingMemcached"
 template.add_condition(using_memcached_condition, Not(Equals(Ref(cache_node_type), dont_create_value)))
 
+# No AllowedValues - users can specify any ElastiCache node type directly.
+# This avoids the need to update the template when new node types are released.
 redis_node_type = template.add_parameter(
     Parameter(
         "RedisNodeType",
         Default=dont_create_value,
-        Description="Redis instance type",
+        Description="Redis instance type (e.g. cache.t3.micro, cache.m5.large). Use '(none)' to skip.",
         Type="String",
-        AllowedValues=NODE_TYPES,
-        ConstraintDescription="must select a valid cache node type.",
     ),
     group="Redis",
     label="Instance Type",
