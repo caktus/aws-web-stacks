@@ -130,7 +130,7 @@ cache_policy = template.add_resource(
     CachePolicy(
         "AppCloudFrontCachePolicy",
         CachePolicyConfig=CachePolicyConfig(
-            Name="AppCachePolicy",
+            Name=Join("-", ["AppCachePolicy", Ref("AWS::StackName")]),
             DefaultTTL=86400,  # 1 day
             MaxTTL=31536000,  # 1 year
             MinTTL=0,
