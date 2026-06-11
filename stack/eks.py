@@ -12,7 +12,7 @@ from troposphere import (
     Tags,
     ec2,
     eks,
-    iam,
+    iam
 )
 
 from .common import arn_prefix, cmk_arn, use_aes256_encryption, use_cmk_arn
