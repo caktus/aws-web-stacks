@@ -1,6 +1,7 @@
 from troposphere import (
     AWS_ACCOUNT_ID,
     AWS_REGION,
+    And,
     Equals,
     GetAtt,
     If,
@@ -79,11 +80,58 @@ public_access_cidrs = Ref(template.add_parameter(
 restrict_eks_api_access_cond = "RestrictEksApiAccessCond"
 template.add_condition(restrict_eks_api_access_cond, Not(Equals(Join("", public_access_cidrs), "")))
 
+# Encryption config for Kubernetes secrets
+use_eks_encryption_config = Ref(template.add_parameter(
+    Parameter(
+        "EnableEksEncryptionConfig",
+        Description="Use AWS Key Management Service (KMS) keys to provide envelope encryption of Kubernetes secrets. Depends on Customer managed key ARN.",  # noqa
+        Type="String",
+        AllowedValues=["true", "false"],
+        Default="false",
+    ),
+    group="Elastic Kubernetes Service (EKS)",
+    label="Enable EKS EncryptionConfig",
+))
+use_eks_encryption_config_cond = "EnableEksEncryptionConfigCond"
+template.add_condition(use_eks_encryption_config_cond, And(
+    Equals(use_eks_encryption_config, "true"),
+    Not(Equals(Ref(cmk_arn), ""))
+))
+
 cluster_name = Ref(template.add_parameter(
     Parameter("EksClusterName", Description="The unique name to give to your cluster.", Type="String"),
     group="Elastic Kubernetes Service (EKS)",
     label="Cluster name",
 ))
+
+# Custom AMI support for the nodegroup
+custom_eks_ami = Ref(template.add_parameter(
+    Parameter(
+        "CustomEKSAMI",
+        Description="Custom AMI ID for the EKS node group. It is recommended not to set this value, as AWS will automatically select the most optimized image when CustomAMIImageType is specified.",  # noqa
+        Type="String",
+        Default="",
+    ),
+    group="Elastic Kubernetes Service (EKS)",
+    label="Custom EKS AMI",
+))
+
+use_custom_ami = "UseCustomAMI"
+template.add_condition(use_custom_ami, Not(Equals(custom_eks_ami, "")))
+
+custom_ami_image_type = Ref(template.add_parameter(
+    Parameter(
+        "CustomAMIImageType",
+        Description="The image type to match the custom AMI. E.g., AL2023_x86_64_STANDARD, AL2_x86_64",
+        Type="String",
+        Default="",
+    ),
+    group="Elastic Kubernetes Service (EKS)",
+    label="Custom AMI Image Type",
+))
+
+use_custom_ami_type = "UseCustomAMIType"
+template.add_condition(use_custom_ami_type, Not(Equals(custom_ami_image_type, "")))
 
 cluster_version = Ref(template.add_parameter(
     Parameter("EksClusterVersion", Description="Kubernetes version for the EKS cluster.", Type="String", Default=""),
@@ -120,6 +168,11 @@ cluster = eks.Cluster(
         PublicAccessCidrs=If(restrict_eks_api_access_cond, public_access_cidrs, NoValue),
     ),
     RoleArn=GetAtt(eks_service_role, "Arn"),
+    EncryptionConfig=If(
+        use_eks_encryption_config_cond,
+        [eks.EncryptionConfig(Provider=eks.Provider(KeyArn=Ref(cmk_arn)), Resources=["secrets"])],
+        NoValue,
+    ),
 )
 
 # ---------------------------------------------------------------------------
@@ -194,7 +247,7 @@ nodegroup_launch_template = ec2.LaunchTemplate(
     template=template,
     LaunchTemplateName=Join("-", [Ref("AWS::StackName"), "nodegroup-lt"]),
     LaunchTemplateData=ec2.LaunchTemplateData(
-        ImageId=Ref("AWS::NoValue"),
+        ImageId=If(use_custom_ami, custom_eks_ami, Ref("AWS::NoValue")),
         BlockDeviceMappings=[
             ec2.LaunchTemplateBlockDeviceMapping(
                 DeviceName="/dev/xvda",
@@ -245,6 +298,7 @@ eks.Nodegroup(
     Tags={
         "Name": Join("-", [Ref("AWS::StackName"), "nodegroup"]),
     },
+    AmiType=If(use_custom_ami_type, custom_ami_image_type, Ref("AWS::NoValue")),
 )
 
 # ---------------------------------------------------------------------------
