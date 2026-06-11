@@ -132,7 +132,6 @@ pod_identity_addon = eks.Addon(
     template=template,
     AddonName="eks-pod-identity-agent",
     ClusterName=Ref(cluster),
-    DependsOn=["EksCluster"],
     ResolveConflicts="OVERWRITE",
 )
 
@@ -142,7 +141,6 @@ ebs_csi_addon = eks.Addon(
     template=template,
     AddonName="aws-ebs-csi-driver",
     ClusterName=Ref(cluster),
-    DependsOn=["EksCluster"],
     ResolveConflicts="OVERWRITE",
 )
 
