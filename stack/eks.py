@@ -1,4 +1,6 @@
 from troposphere import (
+    AWS_ACCOUNT_ID,
+    AWS_REGION,
     Equals,
     GetAtt,
     If,
@@ -10,7 +12,7 @@ from troposphere import (
     Tags,
     ec2,
     eks,
-    iam
+    iam,
 )
 
 from .common import arn_prefix, cmk_arn, use_aes256_encryption, use_cmk_arn
@@ -83,12 +85,6 @@ cluster_name = Ref(template.add_parameter(
     label="Cluster name",
 ))
 
-# Construct cluster ARN manually (GetAtt(cluster, "Arn") unreliable in trust policies)
-cluster_arn = Join(
-    ":",
-    [arn_prefix, "eks", Ref("AWS::Region"), Ref("AWS::AccountId"), "cluster", cluster_name],
-)
-
 cluster_version = Ref(template.add_parameter(
     Parameter("EksClusterVersion", Description="Kubernetes version for the EKS cluster.", Type="String", Default=""),
     group="Elastic Kubernetes Service (EKS)",
@@ -106,6 +102,11 @@ cluster = eks.Cluster(
     template=template,
     Name=cluster_name,
     Version=If(use_cluster_version, cluster_version, Ref("AWS::NoValue")),
+    # Use modern API authentication instead of the deprecated `aws-auth` ConfigMap
+    AccessConfig=eks.AccessConfig(
+        AuthenticationMode="API",
+        BootstrapClusterCreatorAdminPermissions=True,
+    ),
     Logging=eks.Logging(ClusterLogging=eks.ClusterLogging(EnabledTypes=[
         eks.LoggingTypeConfig(Type="api"),
         eks.LoggingTypeConfig(Type="audit"),
@@ -125,41 +126,46 @@ cluster = eks.Cluster(
 # EKS add-ons: EBS CSI driver and Pod Identity Agent
 # ---------------------------------------------------------------------------
 
+# Pod Identity Agent add-on (must be installed before any associations)
+pod_identity_addon = eks.Addon(
+    "PodIdentityAddon",
+    template=template,
+    AddonName="eks-pod-identity-agent",
+    ClusterName=Ref(cluster),
+    DependsOn=["EksCluster"],
+    ResolveConflicts="OVERWRITE",
+)
+
 # EBS CSI driver add-on for persistent volume support
 ebs_csi_addon = eks.Addon(
     "EBSCSIAddon",
     template=template,
     AddonName="aws-ebs-csi-driver",
     ClusterName=Ref(cluster),
+    DependsOn=["EksCluster"],
     ResolveConflicts="OVERWRITE",
 )
 
-# Pod Identity Agent add-on for workload identity (replaces IRSA)
-pod_identity_addon = eks.Addon(
-    "PodIdentityAddon",
-    template=template,
-    AddonName="eks-pod-identity-agent",
-    ClusterName=Ref(cluster),
-    ResolveConflicts="OVERWRITE",
-)
-
-# ---------------------------------------------------------------------------
 # EBS CSI driver IAM role (Pod Identity)
-# ---------------------------------------------------------------------------
-
+# Trust policy must use StringEquals with a manually-constructed cluster ARN
+# (GetAtt is unreliable in IAM trust policy documents)
 ebs_csi_driver_role = iam.Role(
     "EBSCSIDriverRole",
     template=template,
-    DependsOn=["EksCluster"],
     AssumeRolePolicyDocument=dict(
         Version="2012-10-17",
         Statement=[
             dict(
                 Effect="Allow",
                 Principal=dict(Service="pods.eks.amazonaws.com"),
-                Action="sts:AssumeRole",
+                Action=["sts:AssumeRole", "sts:TagSession"],
                 Condition=dict(
-                    ArnEquals={"aws:PrincipalArn": cluster_arn},
+                    StringEquals={
+                        "aws:SourceArn": Join("", [
+                            arn_prefix, ":eks:", Ref(AWS_REGION), ":",
+                            Ref(AWS_ACCOUNT_ID), ":cluster/", cluster_name,
+                        ]),
+                    },
                 ),
             ),
         ],
@@ -170,13 +176,11 @@ ebs_csi_driver_role = iam.Role(
     ],
 )
 
-# ---------------------------------------------------------------------------
 # EBS CSI driver pod identity association
-# ---------------------------------------------------------------------------
-
 ebs_csi_pod_identity = eks.PodIdentityAssociation(
     "EBSCSIPodIdentity",
     template=template,
+    DependsOn=["PodIdentityAddon", "EBSCSIAddon"],
     ClusterName=Ref(cluster),
     Namespace="kube-system",
     RoleArn=GetAtt(ebs_csi_driver_role, "Arn"),
