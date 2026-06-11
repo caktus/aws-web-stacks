@@ -95,6 +95,26 @@ db_engine_version = template.add_parameter(
     label="Engine Version",
 )
 
+db_parameter_group_family = template.add_parameter(
+    Parameter(
+        "DatabaseParameterGroupFamily",
+        Description="Database parameter group family name; must match the engine and version of "
+                    "the RDS instance.",
+        Type="String",
+    ),
+    group="Database",
+    label="Parameter Group Family",
+)
+
+db_parameter_group = rds.DBParameterGroup(
+    "DatabaseParameterGroup",
+    template=template,
+    Condition=db_condition,
+    Description="Database parameter group.",
+    Family=Ref(db_parameter_group_family),
+    Parameters={},
+)
+
 db_name = template.add_parameter(
     Parameter(
         "DatabaseName",
@@ -245,6 +265,7 @@ db_instance = rds.DBInstance(
     StorageType="gp2",
     MasterUsername=Ref(db_user),
     MasterUserPassword=Ref(db_password),
+    DBParameterGroupName=Ref(db_parameter_group),
     DBSubnetGroupName=Ref(db_subnet_group),
     BackupRetentionPeriod=Ref(db_backup_retention_days),
     EnableCloudwatchLogsExports=If(db_logging_condition, Ref(db_logging), Ref("AWS::NoValue")),
