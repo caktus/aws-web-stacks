@@ -82,5 +82,4 @@ template.set_group_order([
     'Static Media',
     'Database',
     'Cache',
-    'Elasticsearch',
 ])
