@@ -208,9 +208,11 @@ pod_identity_addon = eks.Addon(
 )
 
 # EBS CSI driver add-on for persistent volume support
+# Requires AccessConfig (AuthenticationMode: API) for pod identity auth
 ebs_csi_addon = eks.Addon(
     "EBSCSIAddon",
     template=template,
+    Condition=use_access_config_cond,
     AddonName="aws-ebs-csi-driver",
     ClusterName=Ref(cluster),
     ResolveConflicts="OVERWRITE",
