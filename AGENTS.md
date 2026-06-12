@@ -10,7 +10,7 @@ template size limits when combined with other stacks.
 
 ### 1. Verify AWS Sandbox Access (FIRST STEP)
 
-Before doing any work, verify you have access to a sandbox AWS account:
+Sandbox setup is documented in :doc:`sandbox/README`. In short:
 
 ```bash
 source ~/.sandbox-aws-env
@@ -117,6 +117,8 @@ end to verify a clean deployment works.
 cannot fit the EBS CSI controller, CoreDNS, VPC CNI, kube-proxy, and pod identity agent
 simultaneously — you'll get "Too many pods" scheduling failures. Use `t3.medium` (2 vCPU,
 4 GB) or larger to avoid this.
+
+For sandbox setup (role deployment, credentials), see ``sandbox/readme.md``.
 
 #### Initial stack creation
 
@@ -256,9 +258,9 @@ DEGRADED addons have `health.issues` with codes like `InsufficientNumberOfReplic
 .venv/bin/aws cloudformation delete-stack --stack-name pi-sandbox-test
 ```
 
-### Common Pitfalls
+### Sandbox Pitfalls
 
-#### Sandbox node sizing
+#### Node sizing
 
 - Default `t3a.micro` (1 vCPU, 1 GB) cannot fit all system pods (EBS CSI controller,
   CoreDNS, VPC CNI, kube-proxy, pod identity agent). Use `t3.medium` or larger.
