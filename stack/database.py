@@ -267,6 +267,7 @@ db_instance = rds.DBInstance(
     MasterUserPassword=Ref(db_password),
     DBParameterGroupName=Ref(db_parameter_group),
     DBSubnetGroupName=Ref(db_subnet_group),
+    VPCSecurityGroups=[Ref(db_security_group)],
     BackupRetentionPeriod=Ref(db_backup_retention_days),
     EnableCloudwatchLogsExports=If(db_logging_condition, Ref(db_logging), Ref("AWS::NoValue")),
     DeletionPolicy="Snapshot",
