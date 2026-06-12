@@ -92,24 +92,6 @@ Each stack creates:
 - **ElastiCache** (optional): Memcached or Redis (with optional cluster mode)
 - **CloudFront** (optional): CDN for static assets with custom domain support
 
-Environment Variables
----------------------
-
-Your application can access these environment variables (injected by the stack):
-
-- ``AWS_REGION``: The AWS region
-- ``AWS_STORAGE_BUCKET_NAME``: Name of the public assets S3 bucket
-- ``AWS_PRIVATE_STORAGE_BUCKET_NAME``: Name of the private assets S3 bucket
-- ``CDN_DOMAIN_NAME``: CloudFront distribution domain (if enabled)
-- ``DATABASE_URL``: Connection string for the RDS instance (if enabled)
-- ``DATABASE_HOST``: RDS hostname
-- ``DATABASE_NAME``: Database name
-- ``DATABASE_USER``: Database username
-- ``DATABASE_PASSWORD``: Database password
-- ``CACHE_URL``: Connection string for ElastiCache (if enabled)
-- ``CACHE_HOST``: ElastiCache hostname
-- ``CACHE_PORT``: ElastiCache port
-
 EKS Cluster Access
 ------------------
 
@@ -138,13 +120,7 @@ for fine-grained IAM permissions to pods. This requires:
 - ``eks-pod-identity-agent`` add-on: Installed automatically
 - IAM roles with pod identity trust policies: Created for EBS CSI driver
 
-For existing clusters, migrate in three steps:
-
-1. Update stack with ``EksUseAccessConfig=false``
-2. Enable API auth via CLI: ``aws eks update-cluster-config --name <cluster> --access-config authenticationMode=API``
-3. Update stack with ``EksUseAccessConfig=true``
-
-See :doc:`README` "Upgrading from v2" section for full migration instructions.
+See "Upgrading from v2" below for full migration instructions.
 
 Building
 --------
@@ -158,30 +134,6 @@ Build all templates:
     make templates
 
 This generates four YAML templates in the ``content/`` directory.
-
-Parameters
-----------
-
-Key parameters include:
-
-- **DomainName**: Your application's domain name
-- **EksClusterName**: Name for the EKS cluster
-- **EksClusterVersion**: Kubernetes version (optional)
-- **EksUseAccessConfig**: Enable API authentication mode and Pod Identity (required)
-- **ContainerInstanceType**: EC2 instance type for worker nodes
-- **ContainerVolumeSize**: EBS volume size for worker nodes (GB)
-- **DatabaseClass**: RDS instance class (or "(none)" to skip)
-- **DatabaseEngine**: RDS engine (``mysql`` or ``postgres``)
-- **DatabaseEngineVersion**: Engine version (e.g., ``8.4`` for MySQL)
-- **CacheNodeType**: Memcached node type (or "(none)" to skip)
-- **RedisNodeType**: Redis node type (or "(none)" to skip)
-- **DesiredScale**: Desired number of worker nodes
-- **MaxScale**: Maximum number of worker nodes
-- **VpcCidr**: VPC CIDR block
-- **UseAES256Encryption**: Enable AES-256 encryption (default: true)
-- **CustomerManagedCmkArn**: KMS key ARN for customer-managed encryption
-- **EnableEksEncryptionConfig**: Enable EKS control plane encryption
-- **EksPublicAccessCidrs**: CIDR blocks allowed to access the public API endpoint
 
 Building Templates
 ------------------
@@ -260,4 +212,4 @@ See :doc:`CONTRIBUTING` for development setup, testing, and release process.
 Copyright
 ---------
 
-Copyright 2017, 2018 Jean-Phillipe Serafin, Tobias McNulty
+Copyright 2017, 2018, 2026 Jean-Phillipe Serafin, Caktus Consulting Group, LLC
