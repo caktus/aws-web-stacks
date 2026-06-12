@@ -204,7 +204,7 @@ assets_management_policy = iam.Policy(
 assets_use_cloudfront = template.add_parameter(
     Parameter(
         "AssetsUseCloudFront",
-        Description="Create a CloudFront distribution for the assets bucket.",
+        Description="Create CloudFront for the assets bucket.",
         Type="String",
         AllowedValues=["true", "false"],
         Default="true",
@@ -218,7 +218,7 @@ template.add_condition(assets_use_cloudfront_condition, Equals(Ref(assets_use_cl
 assets_cloudfront_domain = template.add_parameter(
     Parameter(
         "AssetsCloudFrontDomain",
-        Description="Custom CloudFront domain name (optional).",
+        Description="CloudFront domain (optional).",
         Type="String",
         Default="",
     ),
@@ -231,7 +231,7 @@ template.add_condition(assets_custom_domain_condition, Not(Equals(Ref(assets_clo
 assets_certificate_arn = template.add_parameter(
     Parameter(
         "AssetsCloudFrontCertArn",
-        Description="ACM certificate ARN for CloudFront HTTPS (outside us-east-1).",
+        Description="ACM cert ARN for CloudFront HTTPS (outside us-east-1).",
         Type="String",
         Default="",
     ),
@@ -322,7 +322,7 @@ distribution = template.add_resource(
 template.add_output(
     Output(
         "AssetsDistributionDomainName",
-        Description="Assets CDN domain name",
+        Description="Assets CDN domain",
         Value=GetAtt(distribution, "DomainName"),
         Condition=assets_use_cloudfront_condition,
     )

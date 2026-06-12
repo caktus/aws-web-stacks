@@ -40,7 +40,7 @@ db_class = template.add_parameter(
     Parameter(
         "DatabaseClass",
         Default="db.t3.micro",
-        Description="Database instance class. Use '(none)' to skip.",
+        Description="Instance class. Use '(none)' to skip.",
         Type="String",
     ),
     group="Database",
@@ -56,7 +56,7 @@ db_replication = template.add_parameter(
         Type="String",
         AllowedValues=["true", "false"],
         Default="false",
-        Description="Create a DB replica (fails if backup retention is 0).",
+        Description="DB replica (fails if backup retention is 0).",
     ),
     group="Database",
     label="Database replication"
@@ -74,7 +74,7 @@ db_engine = template.add_parameter(
     Parameter(
         "DatabaseEngine",
         Default="postgres",
-        Description="Database engine.",
+        Description="DB engine",
         Type="String",
         AllowedValues=list(rds_engine_map.keys()),
         ConstraintDescription="must select a valid database engine.",
@@ -87,7 +87,7 @@ db_engine_version = template.add_parameter(
     Parameter(
         "DatabaseEngineVersion",
         Default="",
-        Description="Database version.",
+        Description="DB version",
         Type="String",
     ),
     group="Database",
@@ -97,7 +97,7 @@ db_engine_version = template.add_parameter(
 db_parameter_group_family = template.add_parameter(
     Parameter(
         "DatabaseParameterGroupFamily",
-        Description="Parameter group family matching engine and version.",
+        Description="Parameter group family.",
         Type="String",
     ),
     group="Database",
@@ -117,7 +117,7 @@ db_name = template.add_parameter(
     Parameter(
         "DatabaseName",
         Default="app",
-        Description="Database name.",
+        Description="DB name.",
         Type="String",
         MinLength="1",
         MaxLength="64",
@@ -132,7 +132,7 @@ db_user = template.add_parameter(
     Parameter(
         "DatabaseUser",
         Default="app",
-        Description="DB admin username.",
+        Description="Admin username.",
         Type="String",
         MinLength="1",
         MaxLength="63",
@@ -162,11 +162,11 @@ db_allocated_storage = template.add_parameter(
     Parameter(
         "DatabaseAllocatedStorage",
         Default="20",
-        Description="Storage size (Gb).",
+        Description="Storage (Gb).",
         Type="Number",
         MinValue="5",
         MaxValue="1024",
-        ConstraintDescription="must be between 5 and 1024 Gb.",
+        ConstraintDescription="must be 5-1024 Gb.",
     ),
     group="Database",
     label="Storage (GB)",
@@ -176,10 +176,10 @@ db_multi_az = template.add_parameter(
     Parameter(
         "DatabaseMultiAZ",
         Default="false",
-        Description="Enable MultiAZ.",
+        Description="MultiAZ",
         Type="String",
         AllowedValues=["true", "false"],
-        ConstraintDescription="must be true or false.",
+        ConstraintDescription="must be true or false",
     ),
     group="Database",
     label="Enable MultiAZ"
@@ -202,7 +202,7 @@ db_logging = template.add_parameter(
     Parameter(
         "DatabaseCloudWatchLogTypes",
         Default="",
-        Description="RDS log types for CloudWatch.",
+        Description="RDS log types for CloudWatch",
         Type="CommaDelimitedList",
     ),
     group="Database",
@@ -317,7 +317,7 @@ db_replica_url = If(
 template.add_output([
     Output(
         "DatabaseURL",
-        Description="DB connection URL (no password).",
+        Description="DB URL (no password).",
         Value=db_url,
         Condition=db_condition,
     ),
@@ -335,7 +335,7 @@ template.add_output([
 template.add_output([
     Output(
         "DatabasePort",
-        Description="DB port.",
+        Description="DB port",
         Value=GetAtt(db_instance, 'Endpoint.Port'),
         Condition=db_condition,
     ),
@@ -344,7 +344,7 @@ template.add_output([
 template.add_output([
     Output(
         "DatabaseAddress",
-        Description="DB endpoint.",
+        Description="DB endpoint",
         Value=GetAtt(db_instance, 'Endpoint.Address'),
         Condition=db_condition,
     ),
@@ -353,7 +353,7 @@ template.add_output([
 template.add_output([
     Output(
         "DatabaseReplicaAddress",
-        Description="DB replica endpoint.",
+        Description="DB replica endpoint",
         Value=GetAtt(db_replica, "Endpoint.Address"),
         Condition=db_replication_condition
     ),

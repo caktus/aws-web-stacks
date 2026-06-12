@@ -70,7 +70,7 @@ eks_security_group = ec2.SecurityGroup(
 public_access_cidrs = Ref(template.add_parameter(
     Parameter(
         "EksPublicAccessCidrs",
-        Description="CIDR blocks for public Kubernetes API access.",
+        Description="Public API CIDR blocks.",
         Type="CommaDelimitedList",
         Default="",
     ),
@@ -84,7 +84,7 @@ template.add_condition(restrict_eks_api_access_cond, Not(Equals(Join("", public_
 use_eks_encryption_config = Ref(template.add_parameter(
     Parameter(
         "EnableEksEncryptionConfig",
-        Description="Encrypt Kubernetes secrets with KMS. Requires CMK ARN.",
+        Description="Encrypt K8s secrets with KMS. Requires CMK ARN.",
         Type="String",
         AllowedValues=["true", "false"],
         Default="false",
@@ -99,7 +99,7 @@ template.add_condition(use_eks_encryption_config_cond, And(
 ))
 
 cluster_name = Ref(template.add_parameter(
-    Parameter("EksClusterName", Description="Unique cluster name.", Type="String"),
+    Parameter("EksClusterName", Description="Cluster name.", Type="String"),
     group="Elastic Kubernetes Service (EKS)",
     label="Cluster name",
 ))
@@ -108,7 +108,7 @@ cluster_name = Ref(template.add_parameter(
 custom_eks_ami = Ref(template.add_parameter(
     Parameter(
         "CustomEKSAMI",
-        Description="Custom AMI for the nodegroup. Leave blank for AWS default.",
+        Description="Custom AMI for the nodegroup.",
         Type="String",
         Default="",
     ),
@@ -122,7 +122,7 @@ template.add_condition(use_custom_ami, Not(Equals(custom_eks_ami, "")))
 custom_ami_image_type = Ref(template.add_parameter(
     Parameter(
         "CustomAMIImageType",
-        Description="AMI image type (e.g. AL2023_x86_64_STANDARD).",
+        Description="AMI type (e.g. AL2023_x86_64_STANDARD).",
         Type="String",
         Default="",
     ),
@@ -134,12 +134,28 @@ use_custom_ami_type = "UseCustomAMIType"
 template.add_condition(use_custom_ami_type, Not(Equals(custom_ami_image_type, "")))
 
 cluster_version = Ref(template.add_parameter(
-    Parameter("EksClusterVersion", Description="Kubernetes version.", Type="String", Default=""),
+    Parameter("EksClusterVersion", Description="K8s version.", Type="String", Default=""),
     group="Elastic Kubernetes Service (EKS)",
     label="Kubernetes Cluster Version",
 ))
 use_cluster_version = "UseEksClusterVersion"
 template.add_condition(use_cluster_version, Not(Equals(cluster_version, "")))
+
+# AccessConfig (AuthenticationMode: API) required for Pod Identity.
+# Existing stacks: set to "false" first, update, then enable.
+use_access_config = Ref(template.add_parameter(
+    Parameter(
+        "UseAccessConfig",
+        Description="Enable AccessConfig (API auth).",
+        Type="String",
+        AllowedValues=["true", "false"],
+        Default="true",
+    ),
+    group="Elastic Kubernetes Service (EKS)",
+    label="Enable AccessConfig",
+))
+use_access_config_cond = "UseAccessConfigCond"
+template.add_condition(use_access_config_cond, Equals(use_access_config, "true"))
 
 # ---------------------------------------------------------------------------
 # EKS cluster
@@ -150,10 +166,13 @@ cluster = eks.Cluster(
     template=template,
     Name=cluster_name,
     Version=If(use_cluster_version, cluster_version, Ref("AWS::NoValue")),
-    # Use modern API authentication instead of the deprecated `aws-auth` ConfigMap
-    AccessConfig=eks.AccessConfig(
-        AuthenticationMode="API",
-        BootstrapClusterCreatorAdminPermissions=True,
+    AccessConfig=If(
+        use_access_config_cond,
+        eks.AccessConfig(
+            AuthenticationMode="API",
+            BootstrapClusterCreatorAdminPermissions=True,
+        ),
+        Ref("AWS::NoValue"),
     ),
     Logging=eks.Logging(ClusterLogging=eks.ClusterLogging(EnabledTypes=[
         eks.LoggingTypeConfig(Type="api"),
@@ -176,13 +195,14 @@ cluster = eks.Cluster(
 )
 
 # ---------------------------------------------------------------------------
-# EKS add-ons: EBS CSI driver and Pod Identity Agent
+# EKS add-ons
 # ---------------------------------------------------------------------------
 
 # Pod Identity Agent add-on (must be installed before any associations)
 pod_identity_addon = eks.Addon(
     "PodIdentityAddon",
     template=template,
+    Condition=use_access_config_cond,
     AddonName="eks-pod-identity-agent",
     ClusterName=Ref(cluster),
     ResolveConflicts="OVERWRITE",
@@ -197,12 +217,11 @@ ebs_csi_addon = eks.Addon(
     ResolveConflicts="OVERWRITE",
 )
 
-# EBS CSI driver IAM role (Pod Identity)
-# Trust policy must use StringEquals with a manually-constructed cluster ARN
-# (GetAtt is unreliable in IAM trust policy documents)
+# EBS CSI IAM role for Pod Identity
 ebs_csi_driver_role = iam.Role(
     "EBSCSIDriverRole",
     template=template,
+    Condition=use_access_config_cond,
     AssumeRolePolicyDocument=dict(
         Version="2012-10-17",
         Statement=[
@@ -227,11 +246,12 @@ ebs_csi_driver_role = iam.Role(
     ],
 )
 
-# EBS CSI driver pod identity association
+# EBS CSI pod identity association
 ebs_csi_pod_identity = eks.PodIdentityAssociation(
     "EBSCSIPodIdentity",
     template=template,
     DependsOn=["PodIdentityAddon", "EBSCSIAddon"],
+    Condition=use_access_config_cond,
     ClusterName=Ref(cluster),
     Namespace="kube-system",
     RoleArn=GetAtt(ebs_csi_driver_role, "Arn"),
@@ -307,7 +327,7 @@ eks.Nodegroup(
 
 template.add_output(Output(
     "ClusterEndpoint",
-    Description="Cluster API endpoint.",
+    Description="Cluster endpoint.",
     Value=GetAtt(cluster, "Endpoint"),
 ))
 template.add_output(Output(
@@ -317,11 +337,11 @@ template.add_output(Output(
 ))
 template.add_output(Output(
     "NodegroupName",
-    Description="Nodegroup name.",
+    Description="Nodegroup.",
     Value=Join("-", [Ref("AWS::StackName"), "nodegroup"]),
 ))
 template.add_output(Output(
     "ContainerInstanceRoleArn",
-    Description="Worker node IAM role ARN.",
+    Description="Worker node role ARN.",
     Value=GetAtt(container_instance_role, "Arn"),
 ))

@@ -6,7 +6,7 @@ from .utils import ParameterWithDefaults as Parameter
 domain_name = Ref(template.add_parameter(
     Parameter(
         "DomainName",
-        Description="Application domain name.",
+        Description="Domain name.",
         Type="String",
     ),
     group="Global",
@@ -16,7 +16,7 @@ domain_name = Ref(template.add_parameter(
 domain_name_alternates = Ref(template.add_parameter(
     Parameter(
         "DomainNameAlternates",
-        Description="Comma-separated alternate FQDNs for the SSL certificate.",
+        Description="Alternate FQDNs for the SSL certificate.",
         Type="CommaDelimitedList",
     ),
     group="Global",

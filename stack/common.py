@@ -17,7 +17,7 @@ arn_prefix = If(in_govcloud_region, "arn:aws-us-gov", "arn:aws")
 use_aes256_encryption = Ref(template.add_parameter(
     Parameter(
         "UseAES256Encryption",
-        Description="Enable encryption for S3, EBS, and RDS.",
+        Description="Enable encryption (S3, EBS, RDS).",
         Type="String",
         AllowedValues=["true", "false"],
         Default="false",
@@ -31,7 +31,7 @@ template.add_condition(use_aes256_encryption_cond, Equals(use_aes256_encryption,
 cmk_arn = template.add_parameter(
     Parameter(
         "CustomerManagedCmkArn",
-        Description="KMS CMK ARN for resource encryption (excludes public buckets).",
+        Description="KMS CMK ARN for encryption (excludes public buckets).",
         Type="String",
         Default="",
     ),

@@ -45,7 +45,7 @@ secondary_az = template.add_parameter(
 vpc_cidr = template.add_parameter(
     Parameter(
         "VpcCidr",
-        Description="Primary IPv4 CIDR block for the VPC.",
+        Description="VPC CIDR block.",
         Type="String",
         Default="10.0.0.0/20",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -58,7 +58,7 @@ vpc_cidr = template.add_parameter(
 public_subnet_a_cidr = template.add_parameter(
     Parameter(
         "PublicSubnetACidr",
-        Description="IPv4 CIDR for the public subnet in the primary AZ.",
+        Description="Public subnet A CIDR.",
         Type="String",
         Default="10.0.0.0/22",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -71,7 +71,7 @@ public_subnet_a_cidr = template.add_parameter(
 public_subnet_b_cidr = template.add_parameter(
     Parameter(
         "PublicSubnetBCidr",
-        Description="IPv4 CIDR for the public subnet in the secondary AZ.",
+        Description="Public subnet B CIDR.",
         Type="String",
         Default="10.0.4.0/22",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -84,7 +84,7 @@ public_subnet_b_cidr = template.add_parameter(
 private_subnet_a_cidr = template.add_parameter(
     Parameter(
         "PrivateSubnetACidr",
-        Description="IPv4 CIDR for the private subnet in the primary AZ.",
+        Description="Private subnet A CIDR.",
         Type="String",
         Default="10.0.8.0/22",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -97,7 +97,7 @@ private_subnet_a_cidr = template.add_parameter(
 private_subnet_b_cidr = template.add_parameter(
     Parameter(
         "PrivateSubnetBCidr",
-        Description="IPv4 CIDR for the private subnet in the secondary AZ.",
+        Description="Private subnet B CIDR.",
         Type="String",
         Default="10.0.12.0/22",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -308,11 +308,11 @@ template.add_output(Output(
 ))
 template.add_output(Output(
     "PublicSubnetIds",
-    Description="Public subnet IDs.",
+    Description="Public subnets.",
     Value=Join(",", [Ref(public_subnet_a), Ref(public_subnet_b)]),
 ))
 template.add_output(Output(
     "PrivateSubnetIds",
-    Description="Private subnet IDs.",
+    Description="Private subnets.",
     Value=Join(",", [Ref(private_subnet_a), Ref(private_subnet_b)]),
 ))

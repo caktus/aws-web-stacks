@@ -40,7 +40,7 @@ cache_node_type = template.add_parameter(
     Parameter(
         "CacheNodeType",
         Default=dont_create_value,
-        Description="Cache node type. Use '(none)' to skip.",
+        Description="Cache type. Use '(none)' to skip.",
         Type="String",
     ),
     group="Memcached",
@@ -56,7 +56,7 @@ redis_node_type = template.add_parameter(
     Parameter(
         "RedisNodeType",
         Default=dont_create_value,
-        Description="Redis node type. Use '(none)' to skip.",
+        Description="Redis type. Use '(none)' to skip.",
         Type="String",
     ),
     group="Redis",
@@ -75,7 +75,7 @@ redis_auth_token = template.add_parameter(
         "RedisAuthToken",
         NoEcho=True,
         Default=auth_token_dont_create_value,
-        Description="Redis auth token (required for HIPAA).",
+        Description="Redis auth token (HIPAA required).",
         Type="String",
         MinLength="16",
         MaxLength="128",
@@ -95,7 +95,7 @@ redis_version = template.add_parameter(
     Parameter(
         "RedisVersion",
         Default="",
-        Description="Redis version.",
+        Description="Redis version",
         Type="String",
     ),
     group="Redis",
@@ -105,7 +105,7 @@ redis_version = template.add_parameter(
 redis_num_cache_clusters = Ref(template.add_parameter(
     Parameter(
         "RedisNumCacheClusters",
-        Description="Initial number of node groups.",
+        Description="Initial node groups.",
         Type="Number",
         Default="1",
     ),
@@ -117,7 +117,7 @@ redis_snapshot_retention_limit = Ref(template.add_parameter(
     Parameter(
         "RedisSnapshotRetentionLimit",
         Default="0",
-        Description="Days to retain snapshots. 0 = disabled.",
+        Description="Snapshot retention days. 0 = disabled.",
         Type="Number",
     ),
     group="Redis",
@@ -127,7 +127,7 @@ redis_snapshot_retention_limit = Ref(template.add_parameter(
 redis_automatic_failover = template.add_parameter(
     Parameter(
         "RedisAutomaticFailover",
-        Description="Auto-promote replica on failure.",
+        Description="Auto-promote replica on failure",
         Type="String",
         AllowedValues=["true", "false"],
         Default="false",
@@ -277,19 +277,19 @@ cache_url = If(
 template.add_output([
     Output(
         "CacheAddress",
-        Description="Cache DNS address.",
+        Description="Cache DNS.",
         Value=cache_address,
         Condition=using_memcached_condition,
     ),
     Output(
         "CachePort",
-        Description="Cache port.",
+        Description="Cache port",
         Value=GetAtt(cache_cluster, 'ConfigurationEndpoint.Port'),
         Condition=using_memcached_condition,
     ),
     Output(
         "CacheURL",
-        Description="Cache connection URL.",
+        Description="Cache URL.",
         Value=cache_url,
         Condition=using_memcached_condition,
     ),
@@ -324,19 +324,19 @@ redis_url = If(
 template.add_output([
     Output(
         "RedisAddress",
-        Description="Redis DNS address.",
+        Description="Redis DNS.",
         Value=redis_address,
         Condition=using_redis_condition,
     ),
     Output(
         "RedisPort",
-        Description="Redis port.",
+        Description="Redis port",
         Value=redis_port,
         Condition=using_redis_condition,
     ),
     Output(
         "RedisURL",
-        Description="Redis connection URL.",
+        Description="Redis URL.",
         Value=redis_url,
         Condition=using_redis_condition,
     ),
