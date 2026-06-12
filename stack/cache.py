@@ -40,7 +40,7 @@ cache_node_type = template.add_parameter(
     Parameter(
         "CacheNodeType",
         Default=dont_create_value,
-        Description="Cache instance type (e.g. cache.t3.micro, cache.m5.large). Use '(none)' to skip.",
+        Description="Cache node type. Use '(none)' to skip.",
         Type="String",
     ),
     group="Memcached",
@@ -56,7 +56,7 @@ redis_node_type = template.add_parameter(
     Parameter(
         "RedisNodeType",
         Default=dont_create_value,
-        Description="Redis instance type (e.g. cache.t3.micro, cache.m5.large). Use '(none)' to skip.",
+        Description="Redis node type. Use '(none)' to skip.",
         Type="String",
     ),
     group="Redis",
@@ -75,7 +75,7 @@ redis_auth_token = template.add_parameter(
         "RedisAuthToken",
         NoEcho=True,
         Default=auth_token_dont_create_value,
-        Description="The password used to access a Redis ReplicationGroup (required for HIPAA).",
+        Description="Redis auth token (required for HIPAA).",
         Type="String",
         MinLength="16",
         MaxLength="128",
@@ -95,7 +95,7 @@ redis_version = template.add_parameter(
     Parameter(
         "RedisVersion",
         Default="",
-        Description="Redis version to use. See available versions: aws elasticache describe-cache-engine-versions",
+        Description="Redis version.",
         Type="String",
     ),
     group="Redis",
@@ -105,7 +105,7 @@ redis_version = template.add_parameter(
 redis_num_cache_clusters = Ref(template.add_parameter(
     Parameter(
         "RedisNumCacheClusters",
-        Description="The number of clusters this replication group initially has.",
+        Description="Initial number of node groups.",
         Type="Number",
         Default="1",
     ),
@@ -117,9 +117,7 @@ redis_snapshot_retention_limit = Ref(template.add_parameter(
     Parameter(
         "RedisSnapshotRetentionLimit",
         Default="0",
-        Description="The number of days for which ElastiCache retains automatic snapshots before deleting them."
-                    "For example, if you set SnapshotRetentionLimit to 5, a snapshot that was taken today is "
-                    "retained for 5 days before being deleted. 0 = automatic backups are disabled for this cluster.",
+        Description="Days to retain snapshots. 0 = disabled.",
         Type="Number",
     ),
     group="Redis",
@@ -129,8 +127,7 @@ redis_snapshot_retention_limit = Ref(template.add_parameter(
 redis_automatic_failover = template.add_parameter(
     Parameter(
         "RedisAutomaticFailover",
-        Description="Specifies whether a read-only replica is automatically promoted to read/write primary if "
-                    "the existing primary fails.",
+        Description="Auto-promote replica on failure.",
         Type="String",
         AllowedValues=["true", "false"],
         Default="false",
@@ -154,7 +151,7 @@ template.add_condition(using_either_cache_condition,
 cache_subnet_group = elasticache.SubnetGroup(
     "CacheSubnetGroup",
     template=template,
-    Description="Subnets available for the cache instance",
+    Description="Cache subnet group",
     Condition=using_either_cache_condition,
     SubnetIds=[Ref(private_subnet_a), Ref(private_subnet_b)],
 )
@@ -162,7 +159,7 @@ cache_subnet_group = elasticache.SubnetGroup(
 cache_security_group = ec2.SecurityGroup(
     'CacheSecurityGroup',
     template=template,
-    GroupDescription="Cache security group.",
+    GroupDescription="Cache SG.",
     Condition=using_either_cache_condition,
     VpcId=Ref(vpc),
     SecurityGroupIngress=[
@@ -280,19 +277,19 @@ cache_url = If(
 template.add_output([
     Output(
         "CacheAddress",
-        Description="The DNS address for the cache node/cluster.",
+        Description="Cache DNS address.",
         Value=cache_address,
         Condition=using_memcached_condition,
     ),
     Output(
         "CachePort",
-        Description="The port number for the cache node/cluster.",
+        Description="Cache port.",
         Value=GetAtt(cache_cluster, 'ConfigurationEndpoint.Port'),
         Condition=using_memcached_condition,
     ),
     Output(
         "CacheURL",
-        Description="URL to connect to the cache node/cluster.",
+        Description="Cache connection URL.",
         Value=cache_url,
         Condition=using_memcached_condition,
     ),
@@ -327,19 +324,19 @@ redis_url = If(
 template.add_output([
     Output(
         "RedisAddress",
-        Description="The DNS address for the Redis node/cluster.",
+        Description="Redis DNS address.",
         Value=redis_address,
         Condition=using_redis_condition,
     ),
     Output(
         "RedisPort",
-        Description="The port number for the Redis node/cluster.",
+        Description="Redis port.",
         Value=redis_port,
         Condition=using_redis_condition,
     ),
     Output(
         "RedisURL",
-        Description="URL to connect to the Redis node/cluster.",
+        Description="Redis connection URL.",
         Value=redis_url,
         Condition=using_redis_condition,
     ),

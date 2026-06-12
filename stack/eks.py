@@ -58,7 +58,7 @@ eks_service_role = iam.Role(
 eks_security_group = ec2.SecurityGroup(
     "EksClusterSecurityGroup",
     template=template,
-    GroupDescription="EKS control plane security group.",
+    GroupDescription="EKS security group.",
     VpcId=Ref(vpc),
     Tags=Tags(Name=Join("-", [Ref("AWS::StackName"), "eks-cluster"])),
 )
@@ -70,7 +70,7 @@ eks_security_group = ec2.SecurityGroup(
 public_access_cidrs = Ref(template.add_parameter(
     Parameter(
         "EksPublicAccessCidrs",
-        Description="CIDR blocks allowed access to the public Kubernetes API endpoint.",
+        Description="CIDR blocks for public Kubernetes API access.",
         Type="CommaDelimitedList",
         Default="",
     ),
@@ -84,7 +84,7 @@ template.add_condition(restrict_eks_api_access_cond, Not(Equals(Join("", public_
 use_eks_encryption_config = Ref(template.add_parameter(
     Parameter(
         "EnableEksEncryptionConfig",
-        Description="Use AWS Key Management Service (KMS) keys to provide envelope encryption of Kubernetes secrets. Depends on Customer managed key ARN.",  # noqa
+        Description="Encrypt Kubernetes secrets with KMS. Requires CMK ARN.",
         Type="String",
         AllowedValues=["true", "false"],
         Default="false",
@@ -99,7 +99,7 @@ template.add_condition(use_eks_encryption_config_cond, And(
 ))
 
 cluster_name = Ref(template.add_parameter(
-    Parameter("EksClusterName", Description="The unique name to give to your cluster.", Type="String"),
+    Parameter("EksClusterName", Description="Unique cluster name.", Type="String"),
     group="Elastic Kubernetes Service (EKS)",
     label="Cluster name",
 ))
@@ -108,7 +108,7 @@ cluster_name = Ref(template.add_parameter(
 custom_eks_ami = Ref(template.add_parameter(
     Parameter(
         "CustomEKSAMI",
-        Description="Custom AMI ID for the EKS node group. It is recommended not to set this value, as AWS will automatically select the most optimized image when CustomAMIImageType is specified.",  # noqa
+        Description="Custom AMI for the nodegroup. Leave blank for AWS default.",
         Type="String",
         Default="",
     ),
@@ -122,7 +122,7 @@ template.add_condition(use_custom_ami, Not(Equals(custom_eks_ami, "")))
 custom_ami_image_type = Ref(template.add_parameter(
     Parameter(
         "CustomAMIImageType",
-        Description="The image type to match the custom AMI. E.g., AL2023_x86_64_STANDARD, AL2_x86_64",
+        Description="AMI image type (e.g. AL2023_x86_64_STANDARD).",
         Type="String",
         Default="",
     ),
@@ -134,7 +134,7 @@ use_custom_ami_type = "UseCustomAMIType"
 template.add_condition(use_custom_ami_type, Not(Equals(custom_ami_image_type, "")))
 
 cluster_version = Ref(template.add_parameter(
-    Parameter("EksClusterVersion", Description="Kubernetes version for the EKS cluster.", Type="String", Default=""),
+    Parameter("EksClusterVersion", Description="Kubernetes version.", Type="String", Default=""),
     group="Elastic Kubernetes Service (EKS)",
     label="Kubernetes Cluster Version",
 ))
@@ -307,21 +307,21 @@ eks.Nodegroup(
 
 template.add_output(Output(
     "ClusterEndpoint",
-    Description="EKS cluster API endpoint.",
+    Description="Cluster API endpoint.",
     Value=GetAtt(cluster, "Endpoint"),
 ))
 template.add_output(Output(
     "ClusterName",
-    Description="EKS cluster name.",
+    Description="Cluster name.",
     Value=cluster_name,
 ))
 template.add_output(Output(
     "NodegroupName",
-    Description="EKS managed nodegroup name.",
+    Description="Nodegroup name.",
     Value=Join("-", [Ref("AWS::StackName"), "nodegroup"]),
 ))
 template.add_output(Output(
     "ContainerInstanceRoleArn",
-    Description="ARN of the IAM role assumed by EKS worker nodes.",
+    Description="Worker node IAM role ARN.",
     Value=GetAtt(container_instance_role, "Arn"),
 ))

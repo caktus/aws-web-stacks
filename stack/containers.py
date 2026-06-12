@@ -10,7 +10,7 @@ desired_container_instances = Ref(
     template.add_parameter(
         Parameter(
             "DesiredScale",
-            Description="Desired container instances count",
+            Description="Desired instance count",
             Type="Number",
             Default="2",
         ),
@@ -22,7 +22,7 @@ max_container_instances = Ref(
     template.add_parameter(
         Parameter(
             "MaxScale",
-            Description="Maximum container instances count",
+            Description="Maximum instance count",
             Type="Number",
             Default="4",
         ),
@@ -35,7 +35,7 @@ container_volume_size = Ref(
     template.add_parameter(
         Parameter(
             "ContainerVolumeSize",
-            Description="Size of instance EBS root volume (in GB)",
+            Description="EBS root volume size (GB).",
             Type="Number",
             Default="20",
         ),
@@ -80,7 +80,7 @@ container_instance_type = Ref(
     template.add_parameter(
         Parameter(
             "ContainerInstanceType",
-            Description="The application server instance type (e.g. t3a.micro, m5.large, r5.xlarge)",
+            Description="Instance type.",
             Type="String",
             Default="t3a.micro",
         ),

@@ -40,7 +40,7 @@ db_class = template.add_parameter(
     Parameter(
         "DatabaseClass",
         Default="db.t3.micro",
-        Description="Database instance class (e.g. db.t3.micro, db.m5.large, db.r5.xlarge). Use '(none)' to skip.",
+        Description="Database instance class. Use '(none)' to skip.",
         Type="String",
     ),
     group="Database",
@@ -56,8 +56,7 @@ db_replication = template.add_parameter(
         Type="String",
         AllowedValues=["true", "false"],
         Default="false",
-        Description="Whether to create a database server replica - "
-        "WARNING this will fail if DatabaseBackupRetentionDays is 0.",
+        Description="Create a DB replica (fails if backup retention is 0).",
     ),
     group="Database",
     label="Database replication"
@@ -75,7 +74,7 @@ db_engine = template.add_parameter(
     Parameter(
         "DatabaseEngine",
         Default="postgres",
-        Description="Database engine to use",
+        Description="Database engine.",
         Type="String",
         AllowedValues=list(rds_engine_map.keys()),
         ConstraintDescription="must select a valid database engine.",
@@ -88,7 +87,7 @@ db_engine_version = template.add_parameter(
     Parameter(
         "DatabaseEngineVersion",
         Default="",
-        Description="Database version to use",
+        Description="Database version.",
         Type="String",
     ),
     group="Database",
@@ -98,8 +97,7 @@ db_engine_version = template.add_parameter(
 db_parameter_group_family = template.add_parameter(
     Parameter(
         "DatabaseParameterGroupFamily",
-        Description="Database parameter group family name; must match the engine and version of "
-                    "the RDS instance.",
+        Description="Parameter group family matching engine and version.",
         Type="String",
     ),
     group="Database",
@@ -110,7 +108,7 @@ db_parameter_group = rds.DBParameterGroup(
     "DatabaseParameterGroup",
     template=template,
     Condition=db_condition,
-    Description="Database parameter group.",
+    Description="DB parameter group.",
     Family=Ref(db_parameter_group_family),
     Parameters={},
 )
@@ -119,7 +117,7 @@ db_name = template.add_parameter(
     Parameter(
         "DatabaseName",
         Default="app",
-        Description="Name of the database to create in the database server",
+        Description="Database name.",
         Type="String",
         MinLength="1",
         MaxLength="64",
@@ -134,7 +132,7 @@ db_user = template.add_parameter(
     Parameter(
         "DatabaseUser",
         Default="app",
-        Description="The database admin account username",
+        Description="DB admin username.",
         Type="String",
         MinLength="1",
         MaxLength="63",
@@ -149,13 +147,12 @@ db_password = template.add_parameter(
     Parameter(
         "DatabasePassword",
         NoEcho=True,
-        Description="The database admin account password must consist of 10-41 "
-                    "printable ASCII characters except /, \", or @.",
+        Description="Database password: 10-41 printable ASCII characters except /, \", or @.",
         Type="String",
         MinLength="10",
         MaxLength="41",
         AllowedPattern="[ !#-.0-?A-~]*",
-        ConstraintDescription="must consist of 10-41 printable ASCII characters except /, \", or @.",
+        ConstraintDescription="10-41 printable ASCII characters except /, \", or @.",
     ),
     group="Database",
     label="Password",
@@ -165,11 +162,11 @@ db_allocated_storage = template.add_parameter(
     Parameter(
         "DatabaseAllocatedStorage",
         Default="20",
-        Description="The size of the database (Gb)",
+        Description="Storage size (Gb).",
         Type="Number",
         MinValue="5",
         MaxValue="1024",
-        ConstraintDescription="must be between 5 and 1024Gb.",
+        ConstraintDescription="must be between 5 and 1024 Gb.",
     ),
     group="Database",
     label="Storage (GB)",
@@ -179,10 +176,10 @@ db_multi_az = template.add_parameter(
     Parameter(
         "DatabaseMultiAZ",
         Default="false",
-        Description="Whether or not to create a MultiAZ database",
+        Description="Enable MultiAZ.",
         Type="String",
         AllowedValues=["true", "false"],
-        ConstraintDescription="must choose true or false.",
+        ConstraintDescription="must be true or false.",
     ),
     group="Database",
     label="Enable MultiAZ"
@@ -192,8 +189,7 @@ db_backup_retention_days = template.add_parameter(
     Parameter(
         "DatabaseBackupRetentionDays",
         Default="30",
-        Description="The number of days for which automated backups "
-                    "are retained. Setting to 0 disables automated backups.",
+        Description="Days to retain automated backups. 0 = backups disabled.",
         Type="Number",
         MinValue="0",
         MaxValue="35",
@@ -206,8 +202,7 @@ db_logging = template.add_parameter(
     Parameter(
         "DatabaseCloudWatchLogTypes",
         Default="",
-        Description="A comma-separated list of the RDS log types (if any) to publish to "
-                    "CloudWatch Logs. Note that log types are database engine-specific.",
+        Description="RDS log types for CloudWatch.",
         Type="CommaDelimitedList",
     ),
     group="Database",
@@ -221,7 +216,7 @@ template.add_condition(db_logging_condition, Not(Equals(Join(",", Ref(db_logging
 db_security_group = ec2.SecurityGroup(
     'DatabaseSecurityGroup',
     template=template,
-    GroupDescription="Database security group.",
+    GroupDescription="DB security group.",
     Condition=db_condition,
     VpcId=Ref(vpc),
     SecurityGroupIngress=[
@@ -247,7 +242,7 @@ db_subnet_group = rds.DBSubnetGroup(
     "DatabaseSubnetGroup",
     template=template,
     Condition=db_condition,
-    DBSubnetGroupDescription="Subnets available for the RDS DB Instance",
+    DBSubnetGroupDescription="DB subnet group",
     SubnetIds=[Ref(private_subnet_a), Ref(private_subnet_b)],
 )
 
@@ -322,7 +317,7 @@ db_replica_url = If(
 template.add_output([
     Output(
         "DatabaseURL",
-        Description="URL to connect (without the password) to the database.",
+        Description="DB connection URL (no password).",
         Value=db_url,
         Condition=db_condition,
     ),
@@ -331,7 +326,7 @@ template.add_output([
 template.add_output([
     Output(
         "DatabaseReplicaURL",
-        Description="URL to connect (without the password) to the database replica.",
+        Description="DB replica URL (no password).",
         Value=db_replica_url,
         Condition=db_replication_condition,
     ),
@@ -340,7 +335,7 @@ template.add_output([
 template.add_output([
     Output(
         "DatabasePort",
-        Description="The port number on which the database accepts connections.",
+        Description="DB port.",
         Value=GetAtt(db_instance, 'Endpoint.Port'),
         Condition=db_condition,
     ),
@@ -349,7 +344,7 @@ template.add_output([
 template.add_output([
     Output(
         "DatabaseAddress",
-        Description="The connection endpoint for the database.",
+        Description="DB endpoint.",
         Value=GetAtt(db_instance, 'Endpoint.Address'),
         Condition=db_condition,
     ),
@@ -358,7 +353,7 @@ template.add_output([
 template.add_output([
     Output(
         "DatabaseReplicaAddress",
-        Description="The connection endpoint for the database replica.",
+        Description="DB replica endpoint.",
         Value=GetAtt(db_replica, "Endpoint.Address"),
         Condition=db_replication_condition
     ),

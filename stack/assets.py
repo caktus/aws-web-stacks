@@ -204,7 +204,7 @@ assets_management_policy = iam.Policy(
 assets_use_cloudfront = template.add_parameter(
     Parameter(
         "AssetsUseCloudFront",
-        Description="Whether or not to create a CloudFront distribution tied to the S3 assets bucket.",
+        Description="Create a CloudFront distribution for the assets bucket.",
         Type="String",
         AllowedValues=["true", "false"],
         Default="true",
@@ -218,8 +218,7 @@ template.add_condition(assets_use_cloudfront_condition, Equals(Ref(assets_use_cl
 assets_cloudfront_domain = template.add_parameter(
     Parameter(
         "AssetsCloudFrontDomain",
-        Description="A custom domain name (CNAME) for your CloudFront distribution, e.g., "
-                    "\"static.example.com\" (optional).",
+        Description="Custom CloudFront domain name (optional).",
         Type="String",
         Default="",
     ),
@@ -232,9 +231,7 @@ template.add_condition(assets_custom_domain_condition, Not(Equals(Ref(assets_clo
 assets_certificate_arn = template.add_parameter(
     Parameter(
         "AssetsCloudFrontCertArn",
-        Description="If (1) you specified a custom static media domain, (2) your stack is NOT in the us-east-1 "
-                    "region, and (3) you wish to serve static media over HTTPS, you must manually create an "
-                    "ACM certificate in the us-east-1 region and provide its ARN here.",
+        Description="ACM certificate ARN for CloudFront HTTPS (outside us-east-1).",
         Type="String",
         Default="",
     ),
@@ -325,7 +322,7 @@ distribution = template.add_resource(
 template.add_output(
     Output(
         "AssetsDistributionDomainName",
-        Description="The assets CDN domain name",
+        Description="Assets CDN domain name",
         Value=GetAtt(distribution, "DomainName"),
         Condition=assets_use_cloudfront_condition,
     )

@@ -8,7 +8,7 @@ container_security_group = SecurityGroup(
     # NOTE: If creating an EKS cluster, eks.py will modify this security group.
     'ContainerSecurityGroup',
     template=template,
-    GroupDescription="Container security group.",
+    GroupDescription="Container SG.",
     VpcId=Ref(vpc),
     Tags=Tags(
         Tag("Name", Join("-", [Ref("AWS::StackName"), "container"])),
