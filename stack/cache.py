@@ -159,7 +159,7 @@ cache_subnet_group = elasticache.SubnetGroup(
 cache_security_group = ec2.SecurityGroup(
     'CacheSecurityGroup',
     template=template,
-    GroupDescription="Cache SG.",
+    GroupDescription="Cache security group.",
     Condition=using_either_cache_condition,
     VpcId=Ref(vpc),
     SecurityGroupIngress=[

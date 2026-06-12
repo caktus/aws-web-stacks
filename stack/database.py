@@ -108,7 +108,7 @@ db_parameter_group = rds.DBParameterGroup(
     "DatabaseParameterGroup",
     template=template,
     Condition=db_condition,
-    Description="DB parameter group.",
+    Description="Database parameter group.",
     Family=Ref(db_parameter_group_family),
     Parameters={},
 )
@@ -216,7 +216,7 @@ template.add_condition(db_logging_condition, Not(Equals(Join(",", Ref(db_logging
 db_security_group = ec2.SecurityGroup(
     'DatabaseSecurityGroup',
     template=template,
-    GroupDescription="DB security group.",
+    GroupDescription="Database security group.",
     Condition=db_condition,
     VpcId=Ref(vpc),
     SecurityGroupIngress=[

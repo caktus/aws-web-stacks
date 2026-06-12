@@ -58,7 +58,7 @@ eks_service_role = iam.Role(
 eks_security_group = ec2.SecurityGroup(
     "EksClusterSecurityGroup",
     template=template,
-    GroupDescription="EKS security group.",
+    GroupDescription="EKS control plane security group.",
     VpcId=Ref(vpc),
     Tags=Tags(Name=Join("-", [Ref("AWS::StackName"), "eks-cluster"])),
 )
