@@ -145,11 +145,10 @@ template.add_condition(use_cluster_version, Not(Equals(cluster_version, "")))
 # Existing stacks: set to "false" first, update, then enable.
 use_access_config = Ref(template.add_parameter(
     Parameter(
-        "UseAccessConfig",
+        "EksUseAccessConfig",
         Description="Enable AccessConfig (API auth).",
         Type="String",
         AllowedValues=["true", "false"],
-        Default="true",
     ),
     group="Elastic Kubernetes Service (EKS)",
     label="Enable AccessConfig",
