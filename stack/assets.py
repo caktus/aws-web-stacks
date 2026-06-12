@@ -78,6 +78,7 @@ common_bucket_conf = dict(
 assets_bucket = template.add_resource(
     Bucket(
         "AssetsBucket",
+        AccessControl=Private,  # Kept for migration: CloudFormation won't try to remove ACL
         OwnershipControls=OwnershipControls(
             Rules=[OwnershipControlsRule(ObjectOwnership="BucketOwnerEnforced")]
         ),
