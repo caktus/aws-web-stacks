@@ -78,7 +78,7 @@ common_bucket_conf = dict(
 assets_bucket = template.add_resource(
     Bucket(
         "AssetsBucket",
-        AccessControl=Private,  # Kept for migration: CloudFormation won't try to remove ACL
+        AccessControl=If("AssetsBucketACLCondition", Ref("AssetsBucketACL"), NoValue),
         OwnershipControls=OwnershipControls(
             Rules=[OwnershipControlsRule(ObjectOwnership="BucketOwnerEnforced")]
         ),
@@ -201,6 +201,19 @@ assets_management_policy = iam.Policy(
         ]
     ),
 )
+
+assets_bucket_acl = template.add_parameter(
+    Parameter(
+        "AssetsBucketACL",
+        Description="ACL for assets bucket (Private for migration, empty for new stacks).",
+        Type="String",
+        Default="",
+    ),
+    group="Static Media",
+    label="Assets Bucket ACL",
+)
+assets_bucket_acl_condition = "AssetsBucketACLCondition"
+template.add_condition(assets_bucket_acl_condition, Not(Equals(Ref(assets_bucket_acl), "")))
 
 assets_use_cloudfront = template.add_parameter(
     Parameter(
