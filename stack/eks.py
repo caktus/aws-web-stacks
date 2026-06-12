@@ -264,7 +264,6 @@ ebs_csi_pod_identity = eks.PodIdentityAssociation(
 nodegroup_launch_template = ec2.LaunchTemplate(
     "NodegroupLaunchTemplate",
     template=template,
-    LaunchTemplateName=Join("-", [Ref("AWS::StackName"), "nodegroup-lt"]),
     LaunchTemplateData=ec2.LaunchTemplateData(
         ImageId=If(use_custom_ami, custom_eks_ami, Ref("AWS::NoValue")),
         BlockDeviceMappings=[
