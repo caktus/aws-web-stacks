@@ -207,17 +207,6 @@ pod_identity_addon = eks.Addon(
     ResolveConflicts="OVERWRITE",
 )
 
-# EBS CSI driver add-on for persistent volume support
-# Requires AccessConfig (AuthenticationMode: API) for pod identity auth
-ebs_csi_addon = eks.Addon(
-    "EBSCSIAddon",
-    template=template,
-    Condition=use_access_config_cond,
-    AddonName="aws-ebs-csi-driver",
-    ClusterName=Ref(cluster),
-    ResolveConflicts="OVERWRITE",
-)
-
 # EBS CSI IAM role for Pod Identity
 ebs_csi_driver_role = iam.Role(
     "EBSCSIDriverRole",
@@ -247,16 +236,21 @@ ebs_csi_driver_role = iam.Role(
     ],
 )
 
-# EBS CSI pod identity association
-ebs_csi_pod_identity = eks.PodIdentityAssociation(
-    "EBSCSIPodIdentity",
+# EBS CSI driver add-on with inline Pod Identity association
+ebs_csi_addon = eks.Addon(
+    "EBSCSIAddon",
     template=template,
-    DependsOn=["PodIdentityAddon", "EBSCSIAddon"],
+    DependsOn=["PodIdentityAddon"],
     Condition=use_access_config_cond,
+    AddonName="aws-ebs-csi-driver",
     ClusterName=Ref(cluster),
-    Namespace="kube-system",
-    RoleArn=GetAtt(ebs_csi_driver_role, "Arn"),
-    ServiceAccount="ebs-csi-controller-sa",
+    ResolveConflicts="OVERWRITE",
+    PodIdentityAssociations=[
+        eks.PodIdentityAssociationProperty(
+            RoleArn=GetAtt(ebs_csi_driver_role, "Arn"),
+            ServiceAccount="ebs-csi-controller-sa",
+        ),
+    ],
 )
 
 # ---------------------------------------------------------------------------
