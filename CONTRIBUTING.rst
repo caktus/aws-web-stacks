@@ -17,6 +17,20 @@ Setup
     # Optionally install git pre-commit hook:
     pre-commit install
 
+Using `direnv <https://direnv.net/>`_, enable uv's virtual environment in your shell:
+
+.. code-block::
+
+    # .envrc
+    unset VIRTUAL_ENV
+    uv sync --locked
+    PATH_add .venv/bin
+
+
+.. code-block:: bash
+
+    direnv allow
+
 Sandbox Account for Testing
 ---------------------------
 
