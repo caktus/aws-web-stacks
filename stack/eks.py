@@ -295,7 +295,6 @@ eks.Nodegroup(
     "Nodegroup",
     template=template,
     ClusterName=Ref(cluster),
-    NodegroupName=Join("-", [Ref("AWS::StackName"), "nodegroup"]),
     NodeRole=GetAtt(container_instance_role, "Arn"),
     Version=If(use_cluster_version, cluster_version, Ref("AWS::NoValue")),
     LaunchTemplate=eks.LaunchTemplateSpecification(
