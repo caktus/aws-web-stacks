@@ -156,6 +156,25 @@ use_access_config = Ref(template.add_parameter(
 use_access_config_cond = "UseAccessConfigCond"
 template.add_condition(use_access_config_cond, Equals(use_access_config, "true"))
 
+use_eks_control_plane_logging = Ref(template.add_parameter(
+    Parameter(
+        "EnableEksControlPlaneLogging",
+        Description="Enable EKS control plane logging.",
+        Type="String",
+        AllowedValues=["true", "false"],
+        Default="false",
+    ),
+    group="Elastic Kubernetes Service (EKS)",
+    label="Enable EKS control plane logging",
+))
+
+use_eks_control_plane_logging_cond = "EnableEksControlPlaneLoggingCond"
+
+template.add_condition(
+    use_eks_control_plane_logging_cond,
+    Equals(use_eks_control_plane_logging, "true"),
+)
+
 # ---------------------------------------------------------------------------
 # EKS cluster
 # ---------------------------------------------------------------------------
@@ -173,11 +192,23 @@ cluster = eks.Cluster(
         ),
         Ref("AWS::NoValue"),
     ),
-    Logging=eks.Logging(ClusterLogging=eks.ClusterLogging(EnabledTypes=[
-        eks.LoggingTypeConfig(Type="api"),
-        eks.LoggingTypeConfig(Type="audit"),
-        eks.LoggingTypeConfig(Type="authenticator"),
-    ])),
+    Logging=If(
+        use_eks_control_plane_logging_cond,
+        eks.Logging(
+            ClusterLogging=eks.ClusterLogging(
+                EnabledTypes=[
+                    eks.LoggingTypeConfig(Type="api"),
+                    eks.LoggingTypeConfig(Type="audit"),
+                    eks.LoggingTypeConfig(Type="authenticator"),
+                ]
+            )
+        ),
+        eks.Logging(
+            ClusterLogging=eks.ClusterLogging(
+                EnabledTypes=[]
+            )
+        ),
+    ),
     ResourcesVpcConfig=eks.ResourcesVpcConfig(
         SubnetIds=[Ref(public_subnet_a), Ref(public_subnet_b), Ref(private_subnet_a), Ref(private_subnet_b)],
         SecurityGroupIds=[Ref(eks_security_group)],

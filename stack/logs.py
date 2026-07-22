@@ -1,4 +1,4 @@
-from troposphere import Join, iam, logs
+from troposphere import Join, iam, logs, Ref
 
 from .common import arn_prefix
 from .template import template
@@ -30,4 +30,18 @@ logging_policy = iam.Policy(
             ]),
         )],
     ),
+)
+
+eks_cluster_log_group = logs.LogGroup(
+    "EksClusterLogGroup",
+    template=template,
+    Condition="EnableEksControlPlaneLoggingCond",
+    LogGroupName=Join("", [
+        "/aws/eks/",
+        Ref("EksClusterName"),
+        "/cluster",
+    ]),
+    RetentionInDays=90,
+    DeletionPolicy="Retain",
+    UpdateReplacePolicy="Retain",
 )
