@@ -1,4 +1,6 @@
 from troposphere import (
+    AWS_ACCOUNT_ID,
+    AWS_REGION,
     And,
     Equals,
     GetAtt,
@@ -14,7 +16,7 @@ from troposphere import (
     iam
 )
 
-from .common import cmk_arn, use_aes256_encryption, use_cmk_arn
+from .common import arn_prefix, cmk_arn, use_aes256_encryption, use_cmk_arn
 from .containers import (
     container_instance_role,
     container_instance_type,
@@ -32,39 +34,57 @@ from .vpc import (
     vpc
 )
 
+# ---------------------------------------------------------------------------
+# EKS service role
+# ---------------------------------------------------------------------------
+
 eks_service_role = iam.Role(
-    # an IAM role that Kubernetes can assume to create AWS resources
     "EksServiceRole",
     template=template,
     AssumeRolePolicyDocument=dict(
-        Statement=[
-            dict(
-                Effect="Allow",
-                Principal=dict(Service=["eks.amazonaws.com"]),
-                Action=["sts:AssumeRole"],
-            )
-        ]
+        Statement=[dict(Effect="Allow", Principal=dict(Service=["eks.amazonaws.com"]), Action=["sts:AssumeRole"])]
     ),
     Path="/",
     ManagedPolicyArns=[
-        "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
-        "arn:aws:iam::aws:policy/AmazonEKSServicePolicy",
+        Join("", [arn_prefix, ":iam::aws:policy/AmazonEKSClusterPolicy"]),
+        Join("", [arn_prefix, ":iam::aws:policy/AmazonEKSServicePolicy"]),
     ],
 )
 
+# ---------------------------------------------------------------------------
+# EKS cluster security group
+# ---------------------------------------------------------------------------
 
 eks_security_group = ec2.SecurityGroup(
     "EksClusterSecurityGroup",
     template=template,
     GroupDescription="EKS control plane security group.",
     VpcId=Ref(vpc),
-    Tags=Tags(Name=Join("-", [Ref("AWS::StackName"), "eks-cluster"]),),
+    Tags=Tags(Name=Join("-", [Ref("AWS::StackName"), "eks-cluster"])),
 )
 
+# ---------------------------------------------------------------------------
+# Parameters
+# ---------------------------------------------------------------------------
+
+public_access_cidrs = Ref(template.add_parameter(
+    Parameter(
+        "EksPublicAccessCidrs",
+        Description="Public API CIDR blocks.",
+        Type="CommaDelimitedList",
+        Default="",
+    ),
+    group="Elastic Kubernetes Service (EKS)",
+    label="Kubernetes API public access CIDRs",
+))
+restrict_eks_api_access_cond = "RestrictEksApiAccessCond"
+template.add_condition(restrict_eks_api_access_cond, Not(Equals(Join("", public_access_cidrs), "")))
+
+# Encryption config for Kubernetes secrets
 use_eks_encryption_config = Ref(template.add_parameter(
     Parameter(
         "EnableEksEncryptionConfig",
-        Description="Use AWS Key Management Service (KMS) keys to provide envelope encryption of Kubernetes secrets. Depends on Customer managed key ARN.",  # noqa
+        Description="Encrypt K8s secrets with KMS. Requires CMK ARN.",
         Type="String",
         AllowedValues=["true", "false"],
         Default="false",
@@ -78,37 +98,17 @@ template.add_condition(use_eks_encryption_config_cond, And(
     Not(Equals(Ref(cmk_arn), ""))
 ))
 
-# https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html#modify-endpoint-access
-public_access_cidrs = Ref(template.add_parameter(
-    Parameter(
-        "EksPublicAccessCidrs",
-        Description="The CIDR blocks that are allowed access to your cluster's public Kubernetes API server endpoint.",  # noqa
-        Type="CommaDelimitedList",
-        Default="",
-    ),
-    group="Elastic Kubernetes Service (EKS)",
-    label="Kubernetes API public access CIDRs",
-))
-restrict_eks_api_access_cond = "RestrictEksApiAccessCond"
-template.add_condition(restrict_eks_api_access_cond, Not(Equals(Join("", public_access_cidrs), "")))
-
-# Unlike most other resources in the stack, we specify the cluster name
-# via a stack parameter so it's easy to find and so it cannot be accidentally
-# recreated (for example if the ResourcesVpcConfig is changed).
 cluster_name = Ref(template.add_parameter(
-    Parameter(
-        "EksClusterName",
-        Description="The unique name to give to your cluster.",  # noqa
-        Type="String",
-    ),
+    Parameter("EksClusterName", Description="Cluster name.", Type="String"),
     group="Elastic Kubernetes Service (EKS)",
     label="Cluster name",
 ))
 
+# Custom AMI support for the nodegroup
 custom_eks_ami = Ref(template.add_parameter(
     Parameter(
         "CustomEKSAMI",
-        Description="Custom AMI ID for the EKS node group. It is recommended not to set this value, as AWS will automatically select the most optimized image when CustomAMIImageType is specified.", # noqa
+        Description="Custom AMI for the nodegroup.",
         Type="String",
         Default="",
     ),
@@ -117,15 +117,12 @@ custom_eks_ami = Ref(template.add_parameter(
 ))
 
 use_custom_ami = "UseCustomAMI"
-template.add_condition(
-    use_custom_ami,
-    Not(Equals(custom_eks_ami, ""))
-)
+template.add_condition(use_custom_ami, Not(Equals(custom_eks_ami, "")))
 
 custom_ami_image_type = Ref(template.add_parameter(
     Parameter(
         "CustomAMIImageType",
-        Description="The image type to match the custom AMI. E.g., AL2023_x86_64_STANDARD, AL2_x86_64",
+        Description="AMI type (e.g. AL2023_x86_64_STANDARD).",
         Type="String",
         Default="",
     ),
@@ -134,65 +131,132 @@ custom_ami_image_type = Ref(template.add_parameter(
 ))
 
 use_custom_ami_type = "UseCustomAMIType"
-template.add_condition(
-    use_custom_ami_type,
-    Not(Equals(custom_ami_image_type, ""))
-)
+template.add_condition(use_custom_ami_type, Not(Equals(custom_ami_image_type, "")))
 
 cluster_version = Ref(template.add_parameter(
-    Parameter(
-        "EksClusterVersion",
-        Description="The version of Kubernetes to use for the EKS cluster",
-        Type="String",
-        Default="",
-    ),
+    Parameter("EksClusterVersion", Description="K8s version.", Type="String", Default=""),
     group="Elastic Kubernetes Service (EKS)",
     label="Kubernetes Cluster Version",
 ))
-
 use_cluster_version = "UseEksClusterVersion"
-template.add_condition(
-    use_cluster_version,
-    Not(Equals(cluster_version, ""))
-)
+template.add_condition(use_cluster_version, Not(Equals(cluster_version, "")))
+
+# AccessConfig (AuthenticationMode: API) required for Pod Identity.
+# Existing stacks: set to "false" first, update, then enable.
+use_access_config = Ref(template.add_parameter(
+    Parameter(
+        "EksUseAccessConfig",
+        Description="Enable AccessConfig (API auth).",
+        Type="String",
+        AllowedValues=["true", "false"],
+    ),
+    group="Elastic Kubernetes Service (EKS)",
+    label="Enable AccessConfig",
+))
+use_access_config_cond = "UseAccessConfigCond"
+template.add_condition(use_access_config_cond, Equals(use_access_config, "true"))
+
+# ---------------------------------------------------------------------------
+# EKS cluster
+# ---------------------------------------------------------------------------
 
 cluster = eks.Cluster(
     "EksCluster",
     template=template,
     Name=cluster_name,
     Version=If(use_cluster_version, cluster_version, Ref("AWS::NoValue")),
-    Logging=eks.Logging(
-        ClusterLogging=eks.ClusterLogging(
-            EnabledTypes=[
-                eks.LoggingTypeConfig(Type="api"),
-                eks.LoggingTypeConfig(Type="audit"),
-                eks.LoggingTypeConfig(Type="authenticator"),
-            ]
-        )
+    AccessConfig=If(
+        use_access_config_cond,
+        eks.AccessConfig(
+            AuthenticationMode="API",
+            BootstrapClusterCreatorAdminPermissions=True,
+        ),
+        Ref("AWS::NoValue"),
     ),
+    Logging=eks.Logging(ClusterLogging=eks.ClusterLogging(EnabledTypes=[
+        eks.LoggingTypeConfig(Type="api"),
+        eks.LoggingTypeConfig(Type="audit"),
+        eks.LoggingTypeConfig(Type="authenticator"),
+    ])),
     ResourcesVpcConfig=eks.ResourcesVpcConfig(
-        SubnetIds=[
-            # For load balancers
-            Ref(public_subnet_a),
-            Ref(public_subnet_b),
-            # For worker nodes
-            Ref(private_subnet_a),
-            Ref(private_subnet_b),
-        ],
+        SubnetIds=[Ref(public_subnet_a), Ref(public_subnet_b), Ref(private_subnet_a), Ref(private_subnet_b)],
         SecurityGroupIds=[Ref(eks_security_group)],
         EndpointPrivateAccess=If(restrict_eks_api_access_cond, True, False),
         EndpointPublicAccess=True,
         PublicAccessCidrs=If(restrict_eks_api_access_cond, public_access_cidrs, NoValue),
     ),
+    RoleArn=GetAtt(eks_service_role, "Arn"),
     EncryptionConfig=If(
         use_eks_encryption_config_cond,
-        [eks.EncryptionConfig(Provider=eks.Provider(KeyArn=Ref(cmk_arn)), Resources=['secrets'])],
-        NoValue
+        [eks.EncryptionConfig(Provider=eks.Provider(KeyArn=Ref(cmk_arn)), Resources=["secrets"])],
+        NoValue,
     ),
-    RoleArn=GetAtt(eks_service_role, "Arn"),
 )
 
-# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-launchtemplate.html
+# ---------------------------------------------------------------------------
+# EKS add-ons
+# ---------------------------------------------------------------------------
+
+# Pod Identity Agent add-on (must be installed before any associations)
+pod_identity_addon = eks.Addon(
+    "PodIdentityAddon",
+    template=template,
+    Condition=use_access_config_cond,
+    AddonName="eks-pod-identity-agent",
+    ClusterName=Ref(cluster),
+    ResolveConflicts="OVERWRITE",
+)
+
+# EBS CSI IAM role for Pod Identity
+ebs_csi_driver_role = iam.Role(
+    "EBSCSIDriverRole",
+    template=template,
+    Condition=use_access_config_cond,
+    AssumeRolePolicyDocument=dict(
+        Version="2012-10-17",
+        Statement=[
+            dict(
+                Effect="Allow",
+                Principal=dict(Service="pods.eks.amazonaws.com"),
+                Action=["sts:AssumeRole", "sts:TagSession"],
+                Condition=dict(
+                    StringEquals={
+                        "aws:SourceArn": Join("", [
+                            arn_prefix, ":eks:", Ref(AWS_REGION), ":",
+                            Ref(AWS_ACCOUNT_ID), ":cluster/", cluster_name,
+                        ]),
+                    },
+                ),
+            ),
+        ],
+    ),
+    Path="/",
+    ManagedPolicyArns=[
+        Join("", [arn_prefix, ":iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"]),
+    ],
+)
+
+# EBS CSI driver add-on with inline Pod Identity association
+ebs_csi_addon = eks.Addon(
+    "EBSCSIAddon",
+    template=template,
+    DependsOn=["PodIdentityAddon"],
+    Condition=use_access_config_cond,
+    AddonName="aws-ebs-csi-driver",
+    ClusterName=Ref(cluster),
+    ResolveConflicts="OVERWRITE",
+    PodIdentityAssociations=[
+        eks.PodIdentityAssociationProperty(
+            RoleArn=GetAtt(ebs_csi_driver_role, "Arn"),
+            ServiceAccount="ebs-csi-controller-sa",
+        ),
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# Nodegroup launch template
+# ---------------------------------------------------------------------------
+
 nodegroup_launch_template = ec2.LaunchTemplate(
     "NodegroupLaunchTemplate",
     template=template,
@@ -211,47 +275,66 @@ nodegroup_launch_template = ec2.LaunchTemplate(
             ),
         ],
         InstanceType=container_instance_type,
-        MetadataOptions=ec2.MetadataOptions(
-            HttpTokens="required",
-            # Why 3? See note: https://github.com/adamchainz/ec2-metadata#instance-metadata-service-version-2
-            HttpPutResponseHopLimit=3,
-        ),
+        MetadataOptions=ec2.MetadataOptions(HttpTokens="required", HttpPutResponseHopLimit=3),
+        TagSpecifications=[
+            ec2.TagSpecifications(
+                ResourceType="instance",
+                Tags=Tags(
+                    Name=Join("-", [Ref("AWS::StackName"), "node"]),
+                ),
+            ),
+        ],
     )
 )
 
+# ---------------------------------------------------------------------------
+# Nodegroup
+# ---------------------------------------------------------------------------
+
 eks.Nodegroup(
-    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-eks-nodegroup.html
     "Nodegroup",
     template=template,
-    # For some reason, CloudFormation doesn't figure out that it needs to create
-    # the cluster before the nodegroup that uses it.
-    DependsOn=[cluster],
-    # Required parameters:
     ClusterName=Ref(cluster),
-    # The NodeRole must be specified as an ARN.
     NodeRole=GetAtt(container_instance_role, "Arn"),
     Version=If(use_cluster_version, cluster_version, Ref("AWS::NoValue")),
     LaunchTemplate=eks.LaunchTemplateSpecification(
         Id=Ref(nodegroup_launch_template),
         Version=GetAtt(nodegroup_launch_template, "LatestVersionNumber"),
     ),
-    # The rest are optional.
     ScalingConfig=eks.ScalingConfig(
         DesiredSize=desired_container_instances,
         MaxSize=max_container_instances,
         MinSize=2,
     ),
     Subnets=[Ref(private_subnet_a), Ref(private_subnet_b)],
-    AmiType=If(use_custom_ami_type, custom_ami_image_type, Ref("AWS::NoValue"))
+    # EKS Nodegroup Tags expects a dict, not the list format from Tags()
+    Tags={
+        "Name": Join("-", [Ref("AWS::StackName"), "nodegroup"]),
+    },
+    AmiType=If(use_custom_ami_type, custom_ami_image_type, Ref("AWS::NoValue")),
 )
 
-# OUTPUTS
-template.add_output(
-    [
-        Output(
-            "ClusterEndpoint",
-            Description="The connection endpoint for the EKS cluster API.",
-            Value=GetAtt(cluster, "Endpoint"),
-        ),
-    ]
-)
+# ---------------------------------------------------------------------------
+# Outputs
+# ---------------------------------------------------------------------------
+
+template.add_output(Output(
+    "ClusterEndpoint",
+    Description="Cluster endpoint.",
+    Value=GetAtt(cluster, "Endpoint"),
+))
+template.add_output(Output(
+    "ClusterName",
+    Description="Cluster name.",
+    Value=cluster_name,
+))
+template.add_output(Output(
+    "NodegroupName",
+    Description="Nodegroup.",
+    Value=Join("-", [Ref("AWS::StackName"), "nodegroup"]),
+))
+template.add_output(Output(
+    "ContainerInstanceRoleArn",
+    Description="Worker node role ARN.",
+    Value=GetAtt(container_instance_role, "Arn"),
+))

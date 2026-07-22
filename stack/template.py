@@ -79,9 +79,7 @@ template = InterfaceTemplate()
 template.set_group_order([
     'Global',
     'Application Server',
-    'Load Balancer',
     'Static Media',
     'Database',
     'Cache',
-    'Elasticsearch',
 ])

@@ -4,19 +4,48 @@ Contributing
 Troposphere and CloudFormation open up many possibilities, and we're open to any
 contributions that expand the flexibility of this project within its overall mission.
 
-To contribute, you'll need Python 3.5 and a virtual environment with our requirements
-installed.
+To contribute, you'll need Python 3.8+ and `uv <https://github.com/astral-sh/uv>`_
+installed. Dependencies are managed via ``pyproject.toml``.
 
 Setup
 -----
 
 .. code-block:: bash
 
-    mkvirtualenv -p python3.8 aws-web-stacks
-    pip install -r requirements.txt
-    pip install -U pre-commit
+    uv sync
+    uv tool install pre-commit
     # Optionally install git pre-commit hook:
     pre-commit install
+
+Using `direnv <https://direnv.net/>`_, enable uv's virtual environment in your shell:
+
+.. code-block::
+
+    # .envrc
+    unset VIRTUAL_ENV
+    uv sync --locked
+    PATH_add .venv/bin
+
+
+.. code-block:: bash
+
+    direnv allow
+
+Sandbox Account for Testing
+---------------------------
+
+For sandbox testing instructions, see ``AGENTS.md`` in the repository root.
+
+The short version: authenticate to your sandbox AWS account, then use the
+``.venv/bin/aws`` CLI to create and update CloudFormation stacks.
+
+.. code-block:: bash
+
+    source ~/.sandbox-aws-env
+    export AWS_DEFAULT_REGION=us-east-1
+    .venv/bin/aws sts get-caller-identity
+
+See ``AGENTS.md`` for full stack creation and update examples.
 
 Check Code Formatting
 ---------------------
@@ -35,7 +64,14 @@ Compile YAML Templates
 
     make
 
-The templates will be saved to the ``content/`` directory.
+This generates four templates in ``content/``:
+
+- ``eks-no-nat.yaml`` — EKS without NAT gateway
+- ``eks-nat.yaml`` — EKS with NAT gateway
+- ``gc-no-nat.yaml`` — EKS on GovCloud without NAT gateway
+- ``gc-nat.yaml`` — EKS on GovCloud with NAT gateway
+
+All templates must stay under 51,200 bytes.
 
 Building the documentation
 --------------------------
@@ -81,8 +117,8 @@ Release Process
 * Tag the release in Git and push it to GitHub, e.g.::
 
       git checkout main && git pull
-      git tag -a v2.1.0 -m "v2.1.0"
-      git push origin v2.1.0
+      git tag -a v3.0.0 -m "v3.0.0"
+      git push origin v3.0.0
 
 * After pushing a version tag, Actions will:
 

@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Sandbox cross-account access role + cost guardrail.
+  Deploy this ONCE in the sandbox account. Your workstation principal
+  assumes SandboxAdminRole via STS to get temporary (15min-12h) credentials.
+
+Parameters:
+  TrustedPrincipalArn:
+    Type: String
+    Description: >
+      ARN allowed to assume the role, e.g.
+      arn:aws:iam::111111111111:user/me  or  arn:aws:iam::111111111111:root
+  MaxSessionSeconds:
+    Type: Number
+    Default: 43200
+    MinValue: 3600
+    MaxValue: 43200
+    Description: Max length of a single assumed session in seconds (STS hard cap 43200 = 12h).
+  ExternalId:
+    Type: String
+    Default: sandbox-testing
+    Description: ExternalId to defend against the confused-deputy problem.
+  MonthlyBudgetUSD:
+    Type: Number
+    Default: 20
+    Description: Email alert fires when forecasted spend exceeds this.
+  BudgetAlertEmail:
+    Type: String
+    Description: Where budget alerts are sent.
+
+Resources:
+  SandboxAdminRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: SandboxAdminRole
+      MaxSessionDuration: !Ref MaxSessionSeconds
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Ref TrustedPrincipalArn
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Ref ExternalId
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+      Tags:
+        - Key: purpose
+          Value: sandbox-testing
+
+  Budget:
+    Type: AWS::Budgets::Budget
+    Properties:
+      Budget:
+        BudgetName: sandbox-monthly-guardrail
+        BudgetLimit:
+          Amount: !Ref MonthlyBudgetUSD
+          Unit: USD
+        TimeUnit: MONTHLY
+        BudgetType: COST
+      NotificationsWithSubscribers:
+        - Notification:
+            NotificationType: FORECASTED
+            ComparisonOperator: GREATER_THAN
+            Threshold: 100
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref BudgetAlertEmail
+
+Outputs:
+  RoleArn:
+    Description: Assume this from your workstation.
+    Value: !GetAtt SandboxAdminRole.Arn
+  ExternalId:
+    Value: !Ref ExternalId

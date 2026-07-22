@@ -34,44 +34,14 @@ from .vpc import (
     vpc
 )
 
-NODE_TYPES = [
-    dont_create_value,
-    'cache.t2.micro',
-    'cache.t2.small',
-    'cache.t2.medium',
-    'cache.t3.micro',
-    'cache.t3.small',
-    'cache.t3.medium',
-    'cache.m3.medium',
-    'cache.m3.large',
-    'cache.m3.xlarge',
-    'cache.m3.2xlarge',
-    'cache.m4.large',
-    'cache.m4.xlarge',
-    'cache.m4.2xlarge',
-    'cache.m4.4xlarge',
-    'cache.m4.10xlarge',
-    'cache.r4.large',
-    'cache.r4.xlarge',
-    'cache.r4.2xlarge',
-    'cache.r4.4xlarge',
-    'cache.r4.8xlarge',
-    'cache.r4.16xlarge',
-    'cache.r3.large',
-    'cache.r3.xlarge',
-    'cache.r3.2xlarge',
-    'cache.r3.4xlarge',
-    'cache.r3.8xlarge',
-]
-
+# No AllowedValues - users can specify any ElastiCache node type directly.
+# This avoids the need to update the template when new node types are released.
 cache_node_type = template.add_parameter(
     Parameter(
         "CacheNodeType",
         Default=dont_create_value,
-        Description="Cache instance type",
+        Description="Cache type. Use '(none)' to skip.",
         Type="String",
-        AllowedValues=NODE_TYPES,
-        ConstraintDescription="must select a valid cache node type.",
     ),
     group="Memcached",
     label="Instance Type",
@@ -80,14 +50,14 @@ cache_node_type = template.add_parameter(
 using_memcached_condition = "UsingMemcached"
 template.add_condition(using_memcached_condition, Not(Equals(Ref(cache_node_type), dont_create_value)))
 
+# No AllowedValues - users can specify any ElastiCache node type directly.
+# This avoids the need to update the template when new node types are released.
 redis_node_type = template.add_parameter(
     Parameter(
         "RedisNodeType",
         Default=dont_create_value,
-        Description="Redis instance type",
+        Description="Redis type. Use '(none)' to skip.",
         Type="String",
-        AllowedValues=NODE_TYPES,
-        ConstraintDescription="must select a valid cache node type.",
     ),
     group="Redis",
     label="Instance Type",
@@ -105,7 +75,7 @@ redis_auth_token = template.add_parameter(
         "RedisAuthToken",
         NoEcho=True,
         Default=auth_token_dont_create_value,
-        Description="The password used to access a Redis ReplicationGroup (required for HIPAA).",
+        Description="Redis auth token (HIPAA required).",
         Type="String",
         MinLength="16",
         MaxLength="128",
@@ -125,7 +95,7 @@ redis_version = template.add_parameter(
     Parameter(
         "RedisVersion",
         Default="",
-        Description="Redis version to use. See available versions: aws elasticache describe-cache-engine-versions",
+        Description="Redis version",
         Type="String",
     ),
     group="Redis",
@@ -135,7 +105,7 @@ redis_version = template.add_parameter(
 redis_num_cache_clusters = Ref(template.add_parameter(
     Parameter(
         "RedisNumCacheClusters",
-        Description="The number of clusters this replication group initially has.",
+        Description="Initial node groups.",
         Type="Number",
         Default="1",
     ),
@@ -147,9 +117,7 @@ redis_snapshot_retention_limit = Ref(template.add_parameter(
     Parameter(
         "RedisSnapshotRetentionLimit",
         Default="0",
-        Description="The number of days for which ElastiCache retains automatic snapshots before deleting them."
-                    "For example, if you set SnapshotRetentionLimit to 5, a snapshot that was taken today is "
-                    "retained for 5 days before being deleted. 0 = automatic backups are disabled for this cluster.",
+        Description="Snapshot retention days. 0 = disabled.",
         Type="Number",
     ),
     group="Redis",
@@ -159,8 +127,7 @@ redis_snapshot_retention_limit = Ref(template.add_parameter(
 redis_automatic_failover = template.add_parameter(
     Parameter(
         "RedisAutomaticFailover",
-        Description="Specifies whether a read-only replica is automatically promoted to read/write primary if "
-                    "the existing primary fails.",
+        Description="Auto-promote replica on failure",
         Type="String",
         AllowedValues=["true", "false"],
         Default="false",
@@ -184,7 +151,7 @@ template.add_condition(using_either_cache_condition,
 cache_subnet_group = elasticache.SubnetGroup(
     "CacheSubnetGroup",
     template=template,
-    Description="Subnets available for the cache instance",
+    Description="Cache subnet group",
     Condition=using_either_cache_condition,
     SubnetIds=[Ref(private_subnet_a), Ref(private_subnet_b)],
 )
@@ -310,19 +277,19 @@ cache_url = If(
 template.add_output([
     Output(
         "CacheAddress",
-        Description="The DNS address for the cache node/cluster.",
+        Description="Cache DNS.",
         Value=cache_address,
         Condition=using_memcached_condition,
     ),
     Output(
         "CachePort",
-        Description="The port number for the cache node/cluster.",
+        Description="Cache port",
         Value=GetAtt(cache_cluster, 'ConfigurationEndpoint.Port'),
         Condition=using_memcached_condition,
     ),
     Output(
         "CacheURL",
-        Description="URL to connect to the cache node/cluster.",
+        Description="Cache URL.",
         Value=cache_url,
         Condition=using_memcached_condition,
     ),
@@ -357,19 +324,19 @@ redis_url = If(
 template.add_output([
     Output(
         "RedisAddress",
-        Description="The DNS address for the Redis node/cluster.",
+        Description="Redis DNS.",
         Value=redis_address,
         Condition=using_redis_condition,
     ),
     Output(
         "RedisPort",
-        Description="The port number for the Redis node/cluster.",
+        Description="Redis port",
         Value=redis_port,
         Condition=using_redis_condition,
     ),
     Output(
         "RedisURL",
-        Description="URL to connect to the Redis node/cluster.",
+        Description="Redis URL.",
         Value=redis_url,
         Condition=using_redis_condition,
     ),

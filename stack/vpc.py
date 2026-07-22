@@ -1,4 +1,4 @@
-from troposphere import GetAtt, Join, Ref, Sub, Tag, Tags
+from troposphere import GetAtt, Join, Output, Ref, Sub, Tag, Tags
 from troposphere.ec2 import (
     EIP,
     VPC,
@@ -12,7 +12,7 @@ from troposphere.ec2 import (
     VPCGatewayAttachment
 )
 
-from . import USE_EKS, USE_NAT_GATEWAY
+from . import USE_NAT_GATEWAY
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 
@@ -45,8 +45,7 @@ secondary_az = template.add_parameter(
 vpc_cidr = template.add_parameter(
     Parameter(
         "VpcCidr",
-        Description="The primary IPv4 CIDR block for the VPC. "
-                    "[Possibly not modifiable after stack creation]",
+        Description="VPC CIDR block.",
         Type="String",
         Default="10.0.0.0/20",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -59,8 +58,7 @@ vpc_cidr = template.add_parameter(
 public_subnet_a_cidr = template.add_parameter(
     Parameter(
         "PublicSubnetACidr",
-        Description="IPv4 CIDR block for the public subnet in the primary AZ. "
-                    "[Possibly not modifiable after stack creation]",
+        Description="Public subnet A CIDR.",
         Type="String",
         Default="10.0.0.0/22",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -73,8 +71,7 @@ public_subnet_a_cidr = template.add_parameter(
 public_subnet_b_cidr = template.add_parameter(
     Parameter(
         "PublicSubnetBCidr",
-        Description="IPv4 CIDR block for the public subnet in the secondary AZ. "
-                    "[Possibly not modifiable after stack creation]",
+        Description="Public subnet B CIDR.",
         Type="String",
         Default="10.0.4.0/22",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -87,8 +84,7 @@ public_subnet_b_cidr = template.add_parameter(
 private_subnet_a_cidr = template.add_parameter(
     Parameter(
         "PrivateSubnetACidr",
-        Description="IPv4 CIDR block for the private subnet in the primary AZ. "
-                    "[Possibly not modifiable after stack creation]",
+        Description="Private subnet A CIDR.",
         Type="String",
         Default="10.0.8.0/22",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -101,8 +97,7 @@ private_subnet_a_cidr = template.add_parameter(
 private_subnet_b_cidr = template.add_parameter(
     Parameter(
         "PrivateSubnetBCidr",
-        Description="IPv4 CIDR block for the private subnet in the secondary AZ. "
-                    "[Possibly not modifiable after stack creation]",
+        Description="Private subnet B CIDR.",
         Type="String",
         Default="10.0.12.0/22",
         AllowedPattern=PRIVATE_IPV4_CIDR_REGEX,
@@ -163,12 +158,9 @@ public_route = Route(
     RouteTableId=Ref(public_route_table),
 )
 
-public_subnet_eks_tags = []
-private_subnet_eks_tags = []
-if USE_EKS:
-    public_subnet_eks_tags.append(Tag("kubernetes.io/role/elb", "1"))
-    # Tag your private subnets so that Kubernetes knows that it can use them for internal load balancers.
-    private_subnet_eks_tags.append(Tag("kubernetes.io/role/internal-elb", "1"))
+# EKS subnet tags (always added since EKS is the only deployment mode)
+public_subnet_eks_tags = [Tag("kubernetes.io/role/elb", "1")]
+private_subnet_eks_tags = [Tag("kubernetes.io/role/internal-elb", "1")]
 
 # Holds load balancer, NAT gateway, and bastion (if specified)
 public_subnet_a = Subnet(
@@ -304,3 +296,23 @@ SubnetRouteTableAssociation(
     SubnetId=Ref(private_subnet_b),
     RouteTableId=private_route_table,
 )
+
+# ---------------------------------------------------------------------------
+# Outputs
+# ---------------------------------------------------------------------------
+
+template.add_output(Output(
+    "VpcId",
+    Description="VPC ID",
+    Value=Ref(vpc),
+))
+template.add_output(Output(
+    "PublicSubnetIds",
+    Description="Public subnets.",
+    Value=Join(",", [Ref(public_subnet_a), Ref(public_subnet_b)]),
+))
+template.add_output(Output(
+    "PrivateSubnetIds",
+    Description="Private subnets.",
+    Value=Join(",", [Ref(private_subnet_a), Ref(private_subnet_b)]),
+))

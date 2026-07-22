@@ -7,7 +7,9 @@ repos:
     - id: trailing-whitespace
     - id: end-of-file-fixer
     - id: check-yaml
+      exclude: ^(content/.*\.yaml|sandbox/sandbox-access-role.yaml)$
     - id: check-added-large-files
+      exclude: ^uv.lock$
     - id: check-json
 - repo: https://github.com/pycqa/isort
   rev: 5.11.5
@@ -17,3 +19,8 @@ repos:
   rev: 7.0.0
   hooks:
     - id: flake8
+- repo: https://github.com/aws-cloudformation/cfn-lint
+  rev: v1.26.0
+  hooks:
+    - id: cfn-lint
+      files: ^content/.*\.yaml$
