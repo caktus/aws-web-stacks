@@ -42,6 +42,4 @@ eks_cluster_log_group = logs.LogGroup(
         "/cluster",
     ]),
     RetentionInDays=90,
-    DeletionPolicy="Retain",
-    UpdateReplacePolicy="Retain",
 )
