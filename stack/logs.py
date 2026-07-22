@@ -1,4 +1,4 @@
-from troposphere import Join, iam, logs, Ref
+from troposphere import Join, Ref, iam, logs
 
 from .common import arn_prefix
 from .template import template
