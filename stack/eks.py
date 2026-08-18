@@ -160,6 +160,12 @@ template.add_condition(use_access_config_cond, Equals(use_access_config, "true")
 # EKS cluster
 # ---------------------------------------------------------------------------
 
+# Note: AWS::EKS::Cluster has no IPFamily property in CloudFormation, so the
+# cluster is created IPv4-only. To make it dualstack, update it in place after
+# the stack is created (the VPC/subnets are already dualstack):
+#   aws eks update-cluster-config --name <cluster> \
+#     --kubernetes-network-config serviceIpv6Cidr=fc00::/120
+
 cluster = eks.Cluster(
     "EksCluster",
     template=template,

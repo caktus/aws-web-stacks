@@ -20,7 +20,7 @@ repos:
   hooks:
     - id: flake8
 - repo: https://github.com/aws-cloudformation/cfn-lint
-  rev: v1.26.0
+  rev: v1.51.4
   hooks:
     - id: cfn-lint
       files: ^content/.*\.yaml$

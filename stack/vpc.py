@@ -1,13 +1,15 @@
-from troposphere import GetAtt, Join, Output, Ref, Sub, Tag, Tags
+from troposphere import Cidr, GetAtt, Join, Output, Ref, Select, Sub, Tag, Tags
 from troposphere.ec2 import (
     EIP,
     VPC,
+    EgressOnlyInternetGateway,
     InternetGateway,
     NatGateway,
     Route,
     RouteTable,
     Subnet,
     SubnetRouteTableAssociation,
+    VPCCidrBlock,
     VPCEndpoint,
     VPCGatewayAttachment
 )
@@ -119,6 +121,19 @@ vpc = VPC(
     ),
 )
 
+# Add an Amazon-provided IPv6 CIDR block to the VPC (dualstack)
+# (AWS::EC2::VPC has no IPv6 properties of its own - use VPCCidrBlock)
+vpc_ipv6_cidr = VPCCidrBlock(
+    "VpcIpv6Cidr",
+    template=template,
+    VpcId=Ref(vpc),
+    AmazonProvidedIpv6CidrBlock=True,
+)
+
+# Split the /56 Amazon-provided block into four /64s, one per subnet.
+# Fn::Cidr's third argument is "cidrBits": 128 - 64 = 64 for /64 subnets.
+v6_subnet_cidrs = Cidr(Select(0, GetAtt(vpc, "Ipv6CidrBlocks")), 4, 64)
+
 
 # Allow outgoing to outside VPC
 internet_gateway = InternetGateway(
@@ -136,6 +151,16 @@ VPCGatewayAttachment(
     template=template,
     VpcId=Ref(vpc),
     InternetGatewayId=Ref(internet_gateway),
+)
+
+# Egress-only IGW: gives private subnets outbound IPv6 without inbound exposure
+egress_only_igw = EgressOnlyInternetGateway(
+    "EgressOnlyIGW",
+    template=template,
+    VpcId=Ref(vpc),
+    Tags=Tags(
+        Name=Join("-", [Ref("AWS::StackName"), "eigw"]),
+    ),
 )
 
 
@@ -158,6 +183,14 @@ public_route = Route(
     RouteTableId=Ref(public_route_table),
 )
 
+public_route_v6 = Route(
+    "PublicRouteV6",
+    template=template,
+    GatewayId=Ref(internet_gateway),
+    DestinationIpv6CidrBlock="::/0",
+    RouteTableId=Ref(public_route_table),
+)
+
 # EKS subnet tags (always added since EKS is the only deployment mode)
 public_subnet_eks_tags = [Tag("kubernetes.io/role/elb", "1")]
 private_subnet_eks_tags = [Tag("kubernetes.io/role/internal-elb", "1")]
@@ -166,8 +199,10 @@ private_subnet_eks_tags = [Tag("kubernetes.io/role/internal-elb", "1")]
 public_subnet_a = Subnet(
     "PublicSubnetA",
     template=template,
+    DependsOn=["VpcIpv6Cidr"],
     VpcId=Ref(vpc),
     CidrBlock=Ref(public_subnet_a_cidr),
+    Ipv6CidrBlock=Select(0, v6_subnet_cidrs),
     AvailabilityZone=Ref(primary_az),
     Tags=Tags(
         Tag("Name", Join("-", [Ref("AWS::StackName"), "public-a"])),
@@ -185,8 +220,10 @@ SubnetRouteTableAssociation(
 public_subnet_b = Subnet(
     "PublicSubnetB",
     template=template,
+    DependsOn=["VpcIpv6Cidr"],
     VpcId=Ref(vpc),
     CidrBlock=Ref(public_subnet_b_cidr),
+    Ipv6CidrBlock=Select(1, v6_subnet_cidrs),
     AvailabilityZone=Ref(secondary_az),
     Tags=Tags(
         Tag("Name", Join("-", [Ref("AWS::StackName"), "public-b"])),
@@ -238,6 +275,24 @@ if USE_NAT_GATEWAY:
         NatGatewayId=Ref(nat_gateway),
     )
 
+    # NAT64: IPv6-only workloads reach IPv4 services via the NAT gateway
+    private_nat64_route = Route(
+        "NatGatewayRouteNat64",
+        template=template,
+        RouteTableId=Ref(nat_gateway_route_table),
+        DestinationIpv6CidrBlock="64:ff9b::/96",
+        NatGatewayId=Ref(nat_gateway),
+    )
+
+    # Outbound IPv6 for private subnets via the egress-only IGW
+    private_igw_route_v6 = Route(
+        "PrivateRouteV6",
+        template=template,
+        RouteTableId=Ref(nat_gateway_route_table),
+        DestinationIpv6CidrBlock="::/0",
+        EgressOnlyInternetGatewayId=Ref(egress_only_igw),
+    )
+
     private_route_table = Ref(nat_gateway_route_table)
 
     # Add a VPC Endpoint for S3 so we can talk directly to S3
@@ -257,8 +312,10 @@ else:
 private_subnet_a = Subnet(
     "PrivateSubnetA",
     template=template,
+    DependsOn=["VpcIpv6Cidr"],
     VpcId=Ref(vpc),
     CidrBlock=Ref(private_subnet_a_cidr),
+    Ipv6CidrBlock=Select(2, v6_subnet_cidrs),
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Ref(primary_az),
     Tags=Tags(
@@ -279,8 +336,10 @@ SubnetRouteTableAssociation(
 private_subnet_b = Subnet(
     "PrivateSubnetB",
     template=template,
+    DependsOn=["VpcIpv6Cidr"],
     VpcId=Ref(vpc),
     CidrBlock=Ref(private_subnet_b_cidr),
+    Ipv6CidrBlock=Select(3, v6_subnet_cidrs),
     MapPublicIpOnLaunch=not USE_NAT_GATEWAY,
     AvailabilityZone=Ref(secondary_az),
     Tags=Tags(

@@ -133,6 +133,7 @@ export AWS_DEFAULT_REGION=us-east-1
     ParameterKey=DomainName,ParameterValue=example.com \
     ParameterKey=DomainNameAlternates,ParameterValue= \
     ParameterKey=DatabasePassword,ParameterValue=T3stP4ssw0rd1 \
+    ParameterKey=DatabaseParameterGroupFamily,ParameterValue= \
     ParameterKey=EksClusterName,ParameterValue=pi-sandbox-test \
     ParameterKey=EksClusterVersion,ParameterValue=1.35 \
     ParameterKey=EksUseAccessConfig,ParameterValue=true \
@@ -174,6 +175,7 @@ USE_EKS=on .venv/bin/python -c 'import stack' > content/eks-no-nat.yaml
     ParameterKey=DomainName,ParameterValue=example.com \
     ParameterKey=DomainNameAlternates,ParameterValue= \
     ParameterKey=DatabasePassword,ParameterValue=T3stP4ssw0rd1 \
+    ParameterKey=DatabaseParameterGroupFamily,ParameterValue= \
     ParameterKey=EksClusterName,ParameterValue=pi-sandbox-test \
     ParameterKey=EksClusterVersion,ParameterValue=1.35 \
     ParameterKey=EksUseAccessConfig,ParameterValue=true \
@@ -221,6 +223,40 @@ export PATH="/home/tobias/aws-web-stacks/.venv/bin:$PATH"
 .venv/bin/aws eks update-kubeconfig --name <cluster-name> --alias <alias>
 kubectl get nodes --context <alias>
 ```
+
+### IPv6 / Dualstack
+
+- VPCs are always dualstack: an Amazon-provided IPv6 CIDR block is added via
+  `AWS::EC2::VPCCidrBlock` (`AmazonProvidedIpv6CidrBlock: true`). Subnets take
+  their /64s via `!Select [N, !Cidr [!Select [0, !GetAtt Vpc.Ipv6CidrBlocks], 4, 64]]`
+  (the 3rd `Fn::Cidr` arg is "cidrBits": 128 - 64 = 64) with `DependsOn` on the
+  VPCCidrBlock. Routes: public subnets `::/0` -> IGW; private subnets `::/0` ->
+  egress-only IGW and `64:ff9b::/96` -> NAT gateway (NAT64 for IPv6-only
+  workloads). Other services (RDS, ElastiCache) stay IPv4-only.
+- **A NAT gateway cannot be the next hop for `::/0`** (EC2 rejects it: only
+  `64:ff9b::/96` may point at a NAT gateway). Use the egress-only IGW for
+  outbound IPv6 from private subnets.
+- **`AWS::EC2::VPC` has no IPv6 properties in CloudFormation** — neither
+  `AssignGeneratedIpv6CidrBlock` nor `Ipv6CidrBlockOptions` are valid
+  (cfn-lint and CFN early validation both reject them). Use the separate
+  `AWS::EC2::VPCCidrBlock` resource.
+- **Backwards compatible**: updating an existing IPv4-only stack to a dualstack
+  template is in-place — VPC/subnets get `Modify` (IPv6 CIDR added, no
+  replacement), new resources (VPCCidrBlock, egress-only IGW, v6 routes) are
+  `Add`. Verified in the sandbox (see `pi-sandbox-ipv4-legacy` test).
+- **`AWS::EKS::Cluster` has no `IPFamily` property in CloudFormation**, so the
+  cluster is created IPv4-only. To make it dualstack on real AWS, update it in
+  place after the stack is created:
+
+  ```bash
+  .venv/bin/aws eks update-cluster-config --name <cluster-name> \
+    --kubernetes-network-config serviceIpv6Cidr=fc00::/120
+  ```
+
+  Then verify with `describe-cluster` (ipFamily should report `dualstack`).
+  Note: the sandbox simulator's `update-cluster-config` does not support this
+  conversion ("The type for cluster update was not provided"), so EKS
+  dualstack can only be verified on real AWS.
 
 ### EKS Add-on Health
 
