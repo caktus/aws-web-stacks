@@ -245,13 +245,13 @@ kubectl get nodes --context <alias>
   replacement), new resources (VPCCidrBlock, egress-only IGW, v6 routes) are
   `Add`. Verified in the sandbox (see `pi-sandbox-ipv4-legacy` test).
 - **EKS IP family is immutable**: `AWS::EC2::Cluster` supports setting
-  `IpFamily` (`ipv4` or `ipv6`) at **creation time** only. 
-  This means `ipFamily` **cannot** be changed post-creation. Converting an 
-  existing IPv4 EKS cluster's internal pod network to IPv6 requires 
+  `IpFamily` (`ipv4` or `ipv6`) at **creation time** only.
+  This means `ipFamily` **cannot** be changed post-creation. Converting an
+  existing IPv4 EKS cluster's internal pod network to IPv6 requires
   recreating the `AWS::EKS::Cluster` resource.
-- **Dual Stack Ingress via Traefik (No Cluster Recreation)**: Even if an existing EKS cluster 
-  remains `ipv4` only internally, its public ingress load balancer can be converted to dual-stack in place. 
-  This can be handled by the [k8s-web-cluster](https://github.com/caktus/ansible-role-k8s-web-cluster/pull/45) 
+- **Dual Stack Ingress via Traefik (No Cluster Recreation)**: Even if an existing EKS cluster
+  remains `ipv4` only internally, its public ingress load balancer can be converted to dual-stack in place.
+  This can be handled by the [k8s-web-cluster](https://github.com/caktus/ansible-role-k8s-web-cluster/pull/45)
   Ansible role deployed **after** applying CloudFormation stack changes:
   1. Set Ansible variable `k8s_traefik_dualstack: true`.
   2. Redeploy the Traefik Helm chart via k8s-web-cluster Ansible role.
