@@ -244,19 +244,19 @@ kubectl get nodes --context <alias>
   template is in-place — VPC/subnets get `Modify` (IPv6 CIDR added, no
   replacement), new resources (VPCCidrBlock, egress-only IGW, v6 routes) are
   `Add`. Verified in the sandbox (see `pi-sandbox-ipv4-legacy` test).
-- **`AWS::EKS::Cluster` has no `IPFamily` property in CloudFormation**, so the
-  cluster is created IPv4-only. To make it dualstack on real AWS, update it in
-  place after the stack is created:
+- **EKS IP family is immutable**: `AWS::EC2::Cluster` supports setting
+  `IpFamily` (`ipv4` or `ipv6`) at **creation time** only. 
+  This means `ipFamily` **cannot** be changed post-creation. Converting an 
+  existing IPv4 EKS cluster's internal pod network to IPv6 requires 
+  recreating the `AWS::EKS::Cluster` resource.
+- **Dual Stack Ingress via Traefik (No Cluster Recreation)**: Even if an existing EKS cluster 
+  remains `ipv4` only internally, its public ingress load balancer can be converted to dual-stack in place. 
+  This can be handled by the [k8s-web-cluster](https://github.com/caktus/ansible-role-k8s-web-cluster/pull/45) 
+  Ansible role deployed **after** applying CloudFormation stack changes:
+  1. Set Ansible variable `k8s_traefik_dualstack: true`.
+  2. Redeploy the Traefik Helm chart via k8s-web-cluster Ansible role.
+  3. Traefik updates the AWS Network Load Balancer (NLB) annotations to route incoming IPv6 and IPv4 public traffic to the internal IPv4 EKS pods.
 
-  ```bash
-  .venv/bin/aws eks update-cluster-config --name <cluster-name> \
-    --kubernetes-network-config serviceIpv6Cidr=fc00::/120
-  ```
-
-  Then verify with `describe-cluster` (ipFamily should report `dualstack`).
-  Note: the sandbox simulator's `update-cluster-config` does not support this
-  conversion ("The type for cluster update was not provided"), so EKS
-  dualstack can only be verified on real AWS.
 
 ### EKS Add-on Health
 
