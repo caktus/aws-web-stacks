@@ -204,6 +204,60 @@ parameters accordingly.
 
       kubectl rollout restart deployment ebs-csi-driver -n kube-system
 
+IPv6 / Dual-Stack Networking
+----------------------------
+
+These templates provision VPCs with dual-stack networking enabled, meaning each
+subnet can use both IPv4 and IPv6 addresses:
+
+- IPv6 support to the VPC is provided via an Amazon-provided IPv6 CIDR block added
+  by setting ``AWS::EC2::VPCCidrBlock`` (``AmazonProvidedIpv6CidrBlock: true``).
+
+  NOTE: ``AWS::EC2::VPCCidrBlock`` is used rather than trying to set IPv6 properties on the VPC resource directly,
+  since CloudFormation does not support IPv6 configuration on ``AWS::EC2::VPC`` as neither
+  ``AssignGeneratedIPv6CidrBlock`` nor ``IPv6CidrBlockOptions`` are valid.
+- Each subnet receives a /64 IPv6 prefix via ``!Select [N, !Cidr [!Select [0, !GetAtt
+  Vpc.Ipv6CidrBlocks], 4, 64]]`` (the 3rd ``Fn::Cidr`` arg is "cidrBits": 128 - 64 = 64) with ``DependsOn`` on the VPCCidrBlock.
+
+IPv6 routing follows these conventions:
+
+- Public subnets route all IPv6 traffic (``::/0``) through the Internet Gateway (IGW).
+- Private subnets route all IPv6 traffic (``::/0``) through the Egress-Only Internet
+  Gateway. The NAT gateway is only used for NAT64 traffic (``64:ff9b::/96``),
+  enabling IPv6-only workloads to reach IPv4 endpoints. Services like RDS and
+  ElastiCache remain IPv4-only.
+
+  NOTE: EC2 does not allow a NAT gateway as the next hop for ``::/0``. Private
+  subnets must use the Egress-Only IGW for general outbound IPv6 traffic.
+
+
+Upgrading from V2 to V3: EKS IPv6 Backward Compatibility for Existing IPv4 EKS Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The EKS cluster's IP family (``IPv4`` or ``IPv6``) is set at creation time and is
+immutable. This means an existing IPv4 cluster cannot be modified to support IPv6.
+If you need an IPv6 pod network, you would need to recreate the ``AWS::EKS::Cluster``
+resource.
+
+If IPv6 support on the cluster is not required, updating an existing IPv4-only stack (v2)
+to a dual-stack template (v3) is an in-place update:
+
+- VPC/subnets get `Modify` (IPv6 CIDR added, no replacement)
+- New resources such as VPCCidrBlock, egress-only IGW, v6 routes) are `Add`
+
+
+Additionally, dual-stack ingress is possible without cluster changes: the
+`k8s-web-cluster <https://github.com/caktus/ansible-role-k8s-web-cluster/pull/45>`_
+Ansible role can update the Traefik ingress controller to provision a dual-stack
+Network Load Balancer, routing both IPv4 and IPv6 traffic to the cluster's IPv4 pods.
+
+These changes should be applied **after** the CloudFormation stack update:
+
+1. Set Ansible variable ``k8s_traefik_dualstack: true``.
+2. Redeploy the Traefik Helm chart via the k8s-web-cluster Ansible role.
+3. Traefik updates the AWS Network Load Balancer (NLB) to dual-stack.
+
+
 Contributing
 ------------
 
