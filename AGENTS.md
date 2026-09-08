@@ -224,40 +224,6 @@ export PATH="/home/tobias/aws-web-stacks/.venv/bin:$PATH"
 kubectl get nodes --context <alias>
 ```
 
-### IPv6 / Dualstack
-
-- VPCs are always dualstack: an Amazon-provided IPv6 CIDR block is added via
-  `AWS::EC2::VPCCidrBlock` (`AmazonProvidedIpv6CidrBlock: true`). Subnets take
-  their /64s via `!Select [N, !Cidr [!Select [0, !GetAtt Vpc.Ipv6CidrBlocks], 4, 64]]`
-  (the 3rd `Fn::Cidr` arg is "cidrBits": 128 - 64 = 64) with `DependsOn` on the
-  VPCCidrBlock. Routes: public subnets `::/0` -> IGW; private subnets `::/0` ->
-  egress-only IGW and `64:ff9b::/96` -> NAT gateway (NAT64 for IPv6-only
-  workloads). Other services (RDS, ElastiCache) stay IPv4-only.
-- **A NAT gateway cannot be the next hop for `::/0`** (EC2 rejects it: only
-  `64:ff9b::/96` may point at a NAT gateway). Use the egress-only IGW for
-  outbound IPv6 from private subnets.
-- **`AWS::EC2::VPC` has no IPv6 properties in CloudFormation** — neither
-  `AssignGeneratedIpv6CidrBlock` nor `Ipv6CidrBlockOptions` are valid
-  (cfn-lint and CFN early validation both reject them). Use the separate
-  `AWS::EC2::VPCCidrBlock` resource.
-- **Backwards compatible**: updating an existing IPv4-only stack to a dualstack
-  template is in-place — VPC/subnets get `Modify` (IPv6 CIDR added, no
-  replacement), new resources (VPCCidrBlock, egress-only IGW, v6 routes) are
-  `Add`. Verified in the sandbox (see `pi-sandbox-ipv4-legacy` test).
-- **EKS IP family is immutable**: `AWS::EC2::Cluster` supports setting
-  `IpFamily` (`ipv4` or `ipv6`) at **creation time** only.
-  This means `ipFamily` **cannot** be changed post-creation. Converting an
-  existing IPv4 EKS cluster's internal pod network to IPv6 requires
-  recreating the `AWS::EKS::Cluster` resource.
-- **Dual Stack Ingress via Traefik (No Cluster Recreation)**: Even if an existing EKS cluster
-  remains `ipv4` only internally, its public ingress load balancer can be converted to dual-stack in place.
-  This can be handled by the [k8s-web-cluster](https://github.com/caktus/ansible-role-k8s-web-cluster/pull/45)
-  Ansible role deployed **after** applying CloudFormation stack changes:
-  1. Set Ansible variable `k8s_traefik_dualstack: true`.
-  2. Redeploy the Traefik Helm chart via k8s-web-cluster Ansible role.
-  3. Traefik updates the AWS Network Load Balancer (NLB) annotations to route incoming IPv6 and IPv4 public traffic to the internal IPv4 EKS pods.
-
-
 ### EKS Add-on Health
 
 Use `addon.` prefix in query paths (not bare property names):
