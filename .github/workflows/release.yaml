@@ -47,13 +47,13 @@ jobs:
       - name: Install requirements
         run: uv sync
       - name: Build CloudFormation templates
-        run: make VERSION=${{ steps.vars.outputs.version }} versioned_templates
+        run: uv run make VERSION=${{ steps.vars.outputs.version }} versioned_templates
       - name: Upload CloudFormation templates to S3
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
-        run: make upload
+        run: uv run make upload
       - name: Zip CloudFormation templates
         run: |
           cp -r content/${{ steps.vars.outputs.version }}/ ${{ steps.vars.outputs.asset_name }}/
