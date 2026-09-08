@@ -213,8 +213,8 @@ subnet can use both IPv4 and IPv6 addresses:
 - IPv6 support to the VPC is provided via an Amazon-provided IPv6 CIDR block added
   by setting ``AWS::EC2::VPCCidrBlock`` (``AmazonProvidedIpv6CidrBlock: true``).
 
-  NOTE: ``AWS::EC2::VPCCidrBlock`` is used rather than trying to set IPv6 properties on the VPC resource directly, 
-  since CloudFormation does not support IPv6 configuration on ``AWS::EC2::VPC`` as neither 
+  NOTE: ``AWS::EC2::VPCCidrBlock`` is used rather than trying to set IPv6 properties on the VPC resource directly,
+  since CloudFormation does not support IPv6 configuration on ``AWS::EC2::VPC`` as neither
   ``AssignGeneratedIPv6CidrBlock`` nor ``IPv6CidrBlockOptions`` are valid.
 - Each subnet receives a /64 IPv6 prefix via ``!Select [N, !Cidr [!Select [0, !GetAtt
   Vpc.Ipv6CidrBlocks], 4, 64]]`` (the 3rd ``Fn::Cidr`` arg is "cidrBits": 128 - 64 = 64) with ``DependsOn`` on the VPCCidrBlock.
@@ -234,7 +234,7 @@ IPv6 routing follows these conventions:
 Upgrading from V2 to V3: EKS IPv6 Backward Compatibility for Existing IPv4 EKS Clusters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The EKS cluster's IP family (``IPv4`` or ``IPv6``) is set at creation time and is 
+The EKS cluster's IP family (``IPv4`` or ``IPv6``) is set at creation time and is
 immutable. This means an existing IPv4 cluster cannot be modified to support IPv6.
 If you need an IPv6 pod network, you would need to recreate the ``AWS::EKS::Cluster``
 resource.
