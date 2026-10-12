@@ -11,6 +11,7 @@ from . import cache  # noqa: F401, E402
 from . import database  # noqa: F401, E402
 from . import eks  # noqa: F401, E402
 from . import logs  # noqa: F401, E402
+from . import nodegroup_update  # noqa: F401, E402
 from . import repository  # noqa: F401, E402
 from . import tags  # noqa: F401, E402
 from . import template  # noqa: F401, E402
