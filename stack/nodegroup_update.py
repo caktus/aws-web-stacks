@@ -12,7 +12,7 @@ update_schedule = Ref(template.add_parameter(
         "EksNodegroupUpdateSchedule",
         Description="SSM cron schedule (UTC) for the nodegroup upgrade.",
         Type="String",
-        Default="cron(0 10 ? * TUE#1 *)",
+        Default="cron(30 10 ? * TUE#1 *)",
     ),
     group="Elastic Kubernetes Service (EKS)",
     label="Upgrade schedule (UTC cron)",
@@ -49,6 +49,10 @@ ssm_nodegroup_update_role = iam.Role(
                             "eks:UpdateNodegroupVersion",
                             "eks:UpdateNodegroupConfig",
                             "eks:DescribeUpdate",
+                            "eks:DescribeAddon",
+                            "eks:DescribeAddonVersions",
+                            "eks:ListAddons",
+                            "eks:UpdateAddon",
                         ],
                         Resource="*",
                     ),
@@ -61,6 +65,16 @@ ssm_nodegroup_update_role = iam.Role(
                             "ec2:RunInstances",
                         ],
                         Resource="*",
+                    ),
+                    dict(
+                        # UpdateAddon requires iam:PassRole on an addon's
+                        # service account role when it is carried through
+                        # (the addon-update script does this). Scoped to
+                        # EKS addon roles, which are currently named AmazonEKS*;
+                        # can be widened to "*" if an addon uses another name.
+                        Effect="Allow",
+                        Action=["iam:PassRole"],
+                        Resource=Join("", [arn_prefix, ":iam::", Ref("AWS::AccountId"), ":role/AmazonEKS*"]),
                     ),
                     dict(
                         Effect="Allow",

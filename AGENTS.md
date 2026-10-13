@@ -104,6 +104,35 @@ ls -la content/*.yaml
 | `USE_GOVCLOUD` | Set to `on` for GovCloud templates (changes `arn_prefix`) |
 | `USE_NAT_GATEWAY` | Set to `on` to include NAT gateway in private subnets |
 
+## EKS Auto-Updates (Nodegroup + Add-ons)
+
+Scheduled upgrades run as **SSM Associations** (not Maintenance Windows) using the
+shared role `SSMNodegroupUpdateServiceRole`:
+
+| Association | Default schedule (UTC) | Source |
+|-------------|------------------------|--------|
+| `EKS-NodegroupUpdate-<stack>` | `cron(30 10 ? * TUE#1 *)` (`EksNodegroupUpdateSchedule`) | AWS runbook `AWS-UpdateEKSManagedNodeGroup` |
+| `EKS-AddonUpdate-<stack>` | `cron(0 10 ? * TUE#1 *)` (`EksAddonUpdateSchedule`) | Custom document (no AWS-managed runbook exists) |
+
+- Both use `ApplyOnlyAtCronInterval=True` — a deploy never triggers a live upgrade.
+- Addons run **before** the nodegroup on purpose: vpc-cni/kube-proxy track the
+  cluster K8s version, and the CNI node rollover should finish before the
+  nodegroup rolling update starts touching nodes.
+- The addon script lives in `stack/eks_addon_update.py` (`script` +
+  `document_content`). It is designed to:
+  1. Select the highest compatible version
+  2. Never downgrade
+  3. Limit vpc-cni to one minor version step per run
+  4. Provide per-addon error isolation with a JSON summary payload
+- **The addon document deliberately has no `Name` property** (CFN generates the
+  name): `AWS::SSM::Document` content changes are a *replacement* in
+  CloudFormation, and CFN refuses to replace custom-named resources with error, "custom-named
+  resource requires replacing". Each script change therefore replaces the
+  document (new generated name) and the association retargets in place. Do not
+  add a custom `Name` back.
+- The shared role includes `iam:PassRole` on `role/AmazonEKS*`: `UpdateAddon`
+  requires it when the addon's existing `serviceAccountRoleArn` is carried through.
+
 ## Testing
 
 ### Sandbox Deployment
