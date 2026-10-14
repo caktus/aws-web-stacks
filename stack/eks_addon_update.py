@@ -14,11 +14,11 @@
 # Schedule expressions are UTC.
 #
 # Runs as SSMNodegroupUpdateServiceRole (the shared EKS-update role
-# from nodegroup_update.py).
+# from eks_nodegroup_update.py).
 from troposphere import GetAtt, Join, Ref, ssm
 
 from .eks import cluster_name
-from .nodegroup_update import ssm_nodegroup_update_role
+from .eks_nodegroup_update import ssm_nodegroup_update_role
 from .template import template
 from .utils import ParameterWithDefaults as Parameter
 
