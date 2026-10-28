@@ -71,6 +71,11 @@ class InterfaceTemplate(Template):
 # The CloudFormation template
 template = InterfaceTemplate()
 
+# Separate template holding the scheduled EKS update resources (SSM
+# automation role, document, and associations). Deployed as a separate stack
+# after the main stack; see stack/eks_updates.py.
+updates_template = InterfaceTemplate()
+
 # If you create a new group and care about the order in which it shows up in the
 # CloudFormation interface, add it below.
 template.set_group_order([

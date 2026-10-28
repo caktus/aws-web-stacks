@@ -15,14 +15,17 @@
 #
 # Runs as SSMNodegroupUpdateServiceRole (the shared EKS-update role
 # from eks_nodegroup_update.py).
+#
+# Generated as part of the separate "eks-*-updates" template (see stack/eks_updates.py);
+# the cluster is referenced by name via the EksClusterName parameter.
 from troposphere import GetAtt, Join, Ref, ssm
 
-from .eks import cluster_name
 from .eks_nodegroup_update import ssm_nodegroup_update_role
-from .template import template
+from .eks_updates import eks_cluster_name
+from .template import updates_template
 from .utils import ParameterWithDefaults as Parameter
 
-update_schedule = Ref(template.add_parameter(
+update_schedule = Ref(updates_template.add_parameter(
     Parameter(
         "EksAddonUpdateSchedule",
         Description="SSM cron (UTC) for EKS addon updates; keep separate from the nodegroup schedule.",
@@ -270,7 +273,7 @@ document_content = dict(
 
 addon_update_document = ssm.Document(
     "EKSAddonUpdateDocument",
-    template=template,
+    template=updates_template,
     DocumentType="Automation",
     Content=document_content,
 )
@@ -281,11 +284,11 @@ addon_update_document = ssm.Document(
 
 ssm.Association(
     "EKSAddonUpdateAssociation",
-    template=template,
+    template=updates_template,
     Name=Ref(addon_update_document),
     AssociationName=Join("", ["EKS-AddonUpdate-", Ref("AWS::StackName")]),
     Parameters=dict(
-        ClusterName=[cluster_name],
+        ClusterName=[eks_cluster_name],
         AutomationAssumeRole=[GetAtt(ssm_nodegroup_update_role, "Arn")],
     ),
     ScheduleExpression=update_schedule,

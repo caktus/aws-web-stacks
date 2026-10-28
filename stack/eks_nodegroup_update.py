@@ -1,13 +1,15 @@
 # Scheduled EKS managed nodegroup updates (AMI / K8s version) using an SSM
 # Association and the AWS-UpdateEKSManagedNodeGroup runbook.
+#
+# Generated as part of the separate "eks-*-updates" template (see stack/eks_updates.py);
+# the cluster and nodegroup are referenced by name via parameters.
 from troposphere import GetAtt, Join, Ref, iam, ssm
 
-from .common import arn_prefix
-from .eks import cluster_name
-from .template import template
+from .eks_updates import arn_prefix, eks_cluster_name, eks_nodegroup_name
+from .template import updates_template
 from .utils import ParameterWithDefaults as Parameter
 
-update_schedule = Ref(template.add_parameter(
+update_schedule = Ref(updates_template.add_parameter(
     Parameter(
         "EksNodegroupUpdateSchedule",
         Description="SSM cron schedule (UTC) for the nodegroup upgrade.",
@@ -24,7 +26,7 @@ update_schedule = Ref(template.add_parameter(
 
 ssm_nodegroup_update_role = iam.Role(
     "SSMNodegroupUpdateServiceRole",
-    template=template,
+    template=updates_template,
     AssumeRolePolicyDocument=dict(
         Statement=[dict(
             Effect="Allow",
@@ -98,12 +100,12 @@ ssm_nodegroup_update_role = iam.Role(
 
 ssm.Association(
     "EKSNodegroupUpdateAssociation",
-    template=template,
+    template=updates_template,
     Name="AWS-UpdateEKSManagedNodeGroup",
     AssociationName=Join("", ["EKS-NodegroupUpdate-", Ref("AWS::StackName")]),
     Parameters=dict(
-        ClusterName=[cluster_name],
-        NodeGroupName=[GetAtt("Nodegroup", "NodegroupName")],
+        ClusterName=[eks_cluster_name],
+        NodeGroupName=[eks_nodegroup_name],
         UpdateType=["Update Node Group Version"],
         ForceUpdate=["false"],
         AutomationAssumeRole=[GetAtt(ssm_nodegroup_update_role, "Arn")],

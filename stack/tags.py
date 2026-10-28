@@ -1,6 +1,6 @@
 from troposphere import AWS_STACK_NAME, Ref, Tags, autoscaling
 
-from .template import template
+from .template import template, updates_template
 
 common_tags = {"aws-web-stacks:stack-name": Ref(AWS_STACK_NAME)}
 
@@ -66,3 +66,4 @@ def add_common_tags(template):
 
 
 add_common_tags(template)
+add_common_tags(updates_template)

@@ -297,7 +297,7 @@ nodegroup_launch_template = ec2.LaunchTemplate(
 # Nodegroup
 # ---------------------------------------------------------------------------
 
-eks.Nodegroup(
+nodegroup = eks.Nodegroup(
     "Nodegroup",
     template=template,
     ClusterName=Ref(cluster),
@@ -337,7 +337,7 @@ template.add_output(Output(
 template.add_output(Output(
     "NodegroupName",
     Description="Nodegroup.",
-    Value=Join("-", [Ref("AWS::StackName"), "nodegroup"]),
+    Value=GetAtt(nodegroup, "NodegroupName"),
 ))
 template.add_output(Output(
     "ContainerInstanceRoleArn",
