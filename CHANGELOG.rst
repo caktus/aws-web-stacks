@@ -1,6 +1,18 @@
 Change Log
 ==========
 
+`2.6.0`_ (2026-10-28)
+---------------------
+
+* Added scheduled automatic updates for the EKS node group and cluster
+  add-ons via SSM associations. These are provided in a separate
+  ``*-eks-updates.yaml`` template (deployed after the main stack using
+  ``EksClusterName`` and ``EksNodegroupName``, i.e., the main stack's
+  ``NodegroupName`` output).
+
+* Fixes the ``NodegroupName`` output from eks.py which now reports the actual
+  EKS-generated node group name (``GetAtt``) instead of the node group's ``Name`` tag.
+
 `2.5.0`_ (2025-05-18)
 ---------------------
 

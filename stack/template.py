@@ -53,6 +53,7 @@ class InterfaceTemplate(Template):
         # remove any groups NOT specified in the stack
         ordered_groups = [g for g in ordered_groups if g in groups_in_stack]
         # update metadata with our interface
+        # Note: Temporarily remove ParameterLabels to meet template 51200 byte limit
         self.metadata.update({
             'AWS::CloudFormation::Interface': {
                 'ParameterGroups': [
@@ -62,10 +63,6 @@ class InterfaceTemplate(Template):
                     }
                     for group in ordered_groups
                 ],
-                'ParameterLabels': dict([
-                    (parameter, {'default': label})
-                    for parameter, label in self.parameter_labels.items()
-                ]),
             }
         })
         return super(InterfaceTemplate, self).to_dict()
@@ -73,6 +70,11 @@ class InterfaceTemplate(Template):
 
 # The CloudFormation template
 template = InterfaceTemplate()
+
+# Separate template holding the scheduled EKS update resources (SSM
+# automation role, document, and associations). Deployed as a separate stack
+# after the main stack; see stack/eks_updates.py.
+updates_template = InterfaceTemplate()
 
 # If you create a new group and care about the order in which it shows up in the
 # CloudFormation interface, add it below.
