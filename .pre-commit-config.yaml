@@ -24,3 +24,5 @@ repos:
   hooks:
     - id: cfn-lint
       files: ^content/.*\.yaml$
+      # cfn-lint v1.51.x requires Python <3.15; the runner default is newer
+      language_version: "3.13"
