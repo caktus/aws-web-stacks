@@ -10,7 +10,7 @@ Change Log
   ``EksClusterName`` and ``EksNodegroupName``, i.e., the main stack's
   ``NodegroupName`` output).
 
-* Fixes the ``NodegroupName`` output from eks.py which now reports the actual 
+* Fixes the ``NodegroupName`` output from eks.py which now reports the actual
   EKS-generated node group name (``GetAtt``) instead of the node group's ``Name`` tag.
 
 `2.5.0`_ (2025-05-18)
